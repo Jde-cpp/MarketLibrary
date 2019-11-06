@@ -1,0 +1,56 @@
+//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. ib.proto
+//C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. ib.proto
+//protoc --cpp_out . ib.proto
+//\code\7.0\web2\ClientApp>MKLINK ib.proto C:\code\7.0\native\framework\markets\types\proto\ib.proto
+//ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/ib.proto .
+//npx pbjs  -r ib_root -t static-module -w es6 -o src/app/proto/ib.js ib.proto & npx pbts -o src/app/proto/ib.d.ts src/app/proto/ib.js
+
+syntax = "proto3";
+package Jde.Markets.Proto;
+
+//import "google/protobuf/timestamp.proto";
+
+message ComboLeg
+{
+	uint32 ConId=1;
+	int32 Ratio=2;
+	string Action=3;
+	string Exchange=4;
+	int32 OpenClose=5;
+	int32 ShortSaleSlot=6; // 1 = clearing broker, 2 = third party
+	string DesignatedLocation=7;
+	int32 ExemptCode=8;
+}
+
+message DeltaNeutralContract
+{
+	int32 Id=1;
+	double Delta=2;
+	double Price=3;
+}
+
+message Contract
+{
+	uint32 Id=1;
+	string Symbol=2;
+	string SecType=3;
+	string LastTradeDateOrContractMonth=4;
+	double Strike=5;
+	string Right=6;
+	string Multiplier=7;
+	string Exchange=8;
+	string PrimaryExchange=9;
+	string Currency=10;
+	string LocalSymbol=11;
+	string TradingClass=12;
+	bool IncludeExpired=13;
+	string SecIdType=14;		// CUSIP;SEDOL;ISIN;RIC
+	string SecId=15;
+	string ComboLegsDescrip=16; // received in open order 14 and up for all combos
+	repeated ComboLeg ComboLegs=17;
+	DeltaNeutralContract DeltaNeutral=18;
+	string Name=19;
+	uint32 Flags=20;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

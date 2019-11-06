@@ -1,0 +1,455 @@
+//protoc --cpp_out=C:\code\7.0\native\process\tws\types\protoc ib.proto
+//C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. results.proto
+//protoc --cpp_out . results.proto
+//\code\7.0\web2\ClientApp>MKLINK ib.proto C:\code\7.0\native\framework\markets\types\proto\ib.proto
+//npx pbjs -r result_root -t static-module -w es6 -o src/app/proto/results.js results.proto & npx pbts -o src/app/proto/results.d.ts src/app/proto/results.js
+
+syntax = "proto3";
+package Jde.Markets.Proto.Results;
+import "google/protobuf/timestamp.proto";
+import "ib.proto";
+
+message MessageValue
+{
+	EResults Type=1;
+	oneof Value
+	{
+		string StringValue = 2;
+		int32 IntValue = 3;
+	}
+}
+
+message StringResult
+{
+	EResults Type=1;
+	int32	RequestId=2;
+	string Value=3;
+}
+
+message TagValue
+{
+	string Tag=1;
+	string Value=2;
+};
+
+message ContractDetails
+{
+	int32		RequestId=1;
+	Contract	Contract=2;
+	string	MarketName=3;
+	double	MinTick=4;
+	string	OrderTypes=5;
+	string	ValidExchanges=6;
+	int64		PriceMagnifier=7;
+	uint32	UnderConId=8;
+	string	LongName=9;
+	string	ContractMonth=10;
+	string	Industry=11;
+	string	Category=12;
+	string	Subcategory=13;
+	string	TimeZoneId=14;
+	string	TradingHours=15;
+	string	LiquidHours=16;
+	string	EvRule=17;
+	double	EvMultiplier=18;
+	int32		MdSizeMultiplier=19;
+	int32		AggGroup=20;
+	string	UnderSymbol=21;
+	string	UnderSecType=22;
+	string	MarketRuleIds=23;
+	string	RealExpirationDate=24;
+	string	LastTradeTime=25;
+
+	repeated TagValue secIdList=26;
+
+	string	Cusip=27;
+	string	Ratings=28;
+	string	DescAppend=29;
+	string	BondType=30;
+	string	CouponType=31;
+	bool		Callable=32;
+	bool		Putable=33;
+	double	Coupon=34;
+	bool		Convertible=35;
+	string	Maturity=36;
+	string	IssueDate=37;
+	string	NextOptionDate=38;
+	string	NextOptionType=39;
+	bool		NextOptionPartial=40;
+	string	Notes=41;
+};
+
+
+message Position
+{
+	string AccountNumber=1;
+	Contract Contract=2;
+	double Size=3;
+	double AvgCost=4;
+}
+
+message AccountList
+{
+	repeated string Numbers=1;
+}
+
+message AccountUpdate
+{
+	string Account=2;
+	string Key=4;
+	string Value=5;
+	string Currency=6;
+}
+
+message AccountUpdateMulti
+{
+	int32 RequestId=1;
+	string Account=2;
+	string ModelCode=3;
+	string Key=4;
+	string Value=5;
+	string Currency=6;
+}
+message Bar
+{
+	google.protobuf.Timestamp Time=1;
+	double High=2;
+	double Low=3;
+	double Open=4;
+	double Close=5;
+	double Wap=6;
+	uint64 Volume=7;
+	int32 Count=8;
+}
+message HistoricalData
+{
+	int32 RequestId=1;
+	repeated Bar Bars=2;
+}
+
+message PortfolioUpdate
+{
+	Contract Contract=1;
+	double Position=2;
+	double MarketPrice=3;
+	double MarketValue=4;
+	double AverageCost=5;
+	double UnrealizedPnl=6;
+	double RealizedPnl=7;
+	string AccountNumber=8;
+}
+
+message Order
+{
+	uint32 Id=1;
+	string AccountId=2;
+	string Symbol=3;
+	uint32 Conid=4;
+	uint32 Date=5;
+	string BuySell=6;
+	double Quantity=7;
+	double Price=8;
+	double Commission=9;
+	string OrderType=10;
+	uint32 OrderTime=11;
+
+}
+
+message Trade
+{
+	uint32 OrderId=1;
+	string AccountId=2;
+	string Symbol=3;
+	uint32 Conid=4;
+	uint32 Date=5;
+	string BuySell=6;
+	double Quantity=7;
+	double Price=8;
+	double Commission=9;
+	string OrderType=10;
+	uint32 OrderTime=11;
+	uint32 Id=12;
+	string ExecId=13;
+	bool IsApi=14;
+}
+
+message Flex
+{
+	uint32 RequestId=1;
+	repeated Order Orders=2;
+	repeated Trade Trades=3;
+}
+
+message Error
+{
+	int32 RequestId=1;
+	int32 Code=2;
+	string Message=3;
+}
+
+message Option
+{
+	uint32 ContractId=1;
+	float	 Strike=2;
+	float	 Bid=3;
+	float	 Ask=4;
+	float	 Last=5;
+	float	 Volume=6;
+	uint32 OpenInterest=7;
+	int32 OIChange=8;
+	float	 PreviousPrice=9;
+}
+
+message OptionDay
+{
+	bool IsCall=1;
+	uint32 ExpirationDays=2;
+	repeated Option Values=3;
+}
+
+message OptionValues
+{
+	uint32 RequestId=1;
+	repeated OptionDay OptionDays=2;
+}
+
+message MessageUnion
+{
+	oneof Value
+	{
+		Position Position = 1;
+		Contract Contract = 2;
+		MessageValue Message = 3;
+		AccountList AccountList=4;
+		AccountUpdate AccountUpdate=5;
+		AccountUpdateMulti AccountUpdateMulti=6;
+		PortfolioUpdate PortfolioUpdate=7;
+		TickGeneric TickGeneric = 8;
+		TickPrice TickPrice = 9;
+		TickSize TickSize = 10;
+		TickString TickString = 11;
+		ContractDetails ContractDetails=12;
+		Error Error = 13;
+		OptionValues Options=14;
+		HistoricalData HistoricalData=15;
+		StringResult StringResult=16;
+		Flex Flex=17;
+		//EResults Type=17;
+	}
+}
+message Transmission
+{
+	repeated MessageUnion Messages=10;
+}
+
+message TickGeneric
+{
+	int32 RequestId=1;
+	ETickType TickType=2;
+	double Value=3;
+}
+
+message TickAttrib
+{
+	bool CanAutoExecute=1;
+	bool PastLimit=2;
+	bool PreOpen=3;
+}
+
+message TickPrice
+{
+	 int32 RequestId=1;
+	 ETickType TickType=2;
+	 double Price=3;
+	 TickAttrib Attributes=4; 
+}
+
+message TickSize
+{ 
+	int32 RequestId=1;
+	ETickType TickType=2;
+	int32 Size =3;
+}
+
+message TickString
+{ 
+	int32 RequestId=1;
+	ETickType TickType=2;
+	string Value=3;
+}
+
+enum ETickType
+{
+	BidSize =0;
+	BidPrice =1;
+	AskPrice =2;
+	AskSize =3;
+	LastPrice =4;
+	LastSize = 5;
+	High=6;
+	Low=7;
+	Volume=8;
+	ClosePrice = 9;
+	BID_OPTION_COMPUTATION=10;
+	ASK_OPTION_COMPUTATION=11;
+	LAST_OPTION_COMPUTATION=12;
+	MODEL_OPTION=13;
+	OpenTick=14;
+	LOW_13_WEEK=15;
+	HIGH_13_WEEK=16;
+	LOW_26_WEEK=17;
+	HIGH_26_WEEK=18;
+	LOW_52_WEEK=19;
+	HIGH_52_WEEK=20;
+	AVG_VOLUME=21;
+	OPEN_INTEREST=22;
+	OPTION_HISTORICAL_VOL=23;
+	OPTION_IMPLIED_VOL=24;
+	OPTION_BID_EXCH=25;
+	OPTION_ASK_EXCH=26;
+	OPTION_CALL_OPEN_INTEREST=27;
+	OPTION_PUT_OPEN_INTEREST=28;
+	OPTION_CALL_VOLUME=29;
+	OPTION_PUT_VOLUME=30;
+	INDEX_FUTURE_PREMIUM=31;
+	BidExchange=32;
+	AskExchange=33;
+	AUCTION_VOLUME=34;
+	AUCTION_PRICE=35;
+	AUCTION_IMBALANCE=36;
+	MARK_PRICE=37;
+	BID_EFP_COMPUTATION=38;
+	ASK_EFP_COMPUTATION=39;
+	LAST_EFP_COMPUTATION=40;
+	OPEN_EFP_COMPUTATION=41;
+	HIGH_EFP_COMPUTATION=42;
+	LOW_EFP_COMPUTATION=43;
+	CLOSE_EFP_COMPUTATION=44;
+	LastTimestamp=45;
+	SHORTABLE=46;
+	FUNDAMENTAL_RATIOS=47;
+	RT_VOLUME=48;
+	Halted=49;
+	BID_YIELD=50;
+	ASK_YIELD=51;
+	LAST_YIELD=52;
+	CUST_OPTION_COMPUTATION=53;
+	TRADE_COUNT=54;
+	TRADE_RATE=55;
+	VOLUME_RATE=56;
+	LAST_RTH_TRADE=57;
+	RT_HISTORICAL_VOL=58;
+	IB_DIVIDENDS=59;
+	BOND_FACTOR_MULTIPLIER=60;
+	REGULATORY_IMBALANCE=61;
+	NEWS_TICK=62;
+	SHORT_TERM_VOLUME_3_MIN=63;
+	SHORT_TERM_VOLUME_5_MIN=64;
+	SHORT_TERM_VOLUME_10_MIN=65;
+	DELAYED_BID=66;
+	DELAYED_ASK=67;
+	DELAYED_LAST=68;
+	DELAYED_BID_SIZE=69;
+	DELAYED_ASK_SIZE=70;
+	DELAYED_LAST_SIZE=71;
+	DELAYED_HIGH=72;
+	DELAYED_LOW=73;
+	DELAYED_VOLUME=74;
+	DELAYED_CLOSE=75;
+	DELAYED_OPEN=76;
+	RT_TRD_VOLUME=77;
+	CREDITMAN_MARK_PRICE=78;
+	CREDITMAN_SLOW_MARK_PRICE=79;
+	DELAYED_BID_OPTION_COMPUTATION=80;
+	DELAYED_ASK_OPTION_COMPUTATION=81;
+	DELAYED_LAST_OPTION_COMPUTATION=82;
+	DELAYED_MODEL_OPTION_COMPUTATION=83;
+	LastExchange=84;
+	LAST_REG_TIME=85;
+	FUTURES_OPEN_INTEREST=86;
+	AVG_OPT_VOLUME=87;
+	DELAYED_LAST_TIMESTAMP=88;
+	SHORTABLE_SHARES=89;
+	NOT_SET =90;
+}
+enum EResults
+{
+	Accept	                                	= 0;
+	//TwitterData											=-2;
+	MultiEnd												=-1;
+	
+	TickPriceMessage                          = 1;
+	TickSizeMessage                           = 2;
+	OrderStatus                              	= 3;
+	ErrorMessage                              = 4;
+	OpenOrder                                	= 5;
+	ACCT_VALUE                                = 6;
+	PORTFOLIO_VALUE                           = 7;
+	ACCT_UPDATE_TIME                          = 8;
+	NextValidId                               = 9;
+	CONTRACT_DATA                             = 10;
+	ExecutionData                             = 11;
+	MARKET_DEPTH                              = 12;
+	MARKET_DEPTH_L2                           = 13;
+	NEWS_BULLETINS                            = 14;
+	ManagedAccounts                           = 15;
+	RECEIVE_FA                                = 16;
+	HistoricalData_                           = 17;
+	BOND_CONTRACT_DATA                        = 18;
+	SCANNER_PARAMETERS                        = 19;
+	SCANNER_DATA                              = 20;
+	TICK_OPTION_COMPUTATION                   = 21;
+	TickGenericMessage                        = 45;
+	TickStringMessage                         = 46;
+	TICK_EFP                                  = 47;
+	CurrentTime                               = 49;
+	RealTimeBars                              = 50;
+	FUNDAMENTAL_DATA                          = 51;
+	ContractDataEnd                         	= 52;
+	OPEN_ORDER_END                            = 53;
+	ACCT_DOWNLOAD_END                         = 54;
+	EXECUTION_DATA_END                        = 55;
+	DELTA_NEUTRAL_VALIDATION                  = 56;
+	TickSnapshotEnd                           = 57;
+	MarketDataType                            = 58;
+	COMMISSION_REPORT                         = 59;
+	PositionData                              = 61;
+	PositionEnd	                              = 62;
+	ACCOUNT_SUMMARY                           = 63;
+	ACCOUNT_SUMMARY_END                       = 64;
+	VERIFY_MESSAGE_API                        = 65;
+	VERIFY_COMPLETED                          = 66;
+	DISPLAY_GROUP_LIST                        = 67;
+	DISPLAY_GROUP_UPDATED                     = 68;
+	VERIFY_AND_AUTH_MESSAGE_API               = 69;
+	VERIFY_AND_AUTH_COMPLETED                 = 70;
+	PositionMulti                            = 71;
+	PositionMultiEnd                        = 72;
+	AccountUpdateMulti_                        = 73;
+	ACCOUNT_UPDATE_MULTI_END                  = 74;
+	SECURITY_DEFINITION_OPTION_PARAMETER      = 75;
+	SECURITY_DEFINITION_OPTION_PARAMETER_END  = 76;
+	SOFT_DOLLAR_TIERS                         = 77;
+	FAMILY_CODES                              = 78;
+	SYMBOL_SAMPLES                            = 79;
+	MKT_DEPTH_EXCHANGES                       = 80;
+	TickRequiredParams                        = 81;
+	SMART_COMPONENTS                          = 82;
+	NEWS_ARTICLE                              = 83;
+	TICK_NEWS                                 = 84;
+	NEWS_PROVIDERS                            = 85;
+	HISTORICAL_NEWS                           = 86;
+	HISTORICAL_NEWS_END                       = 87;
+	HEAD_TIMESTAMP                            = 88;
+	HISTOGRAM_DATA                            = 89;
+	HISTORICAL_DATA_UPDATE                    = 90;
+	REROUTE_MKT_DATA_REQ                      = 91;
+	REROUTE_MKT_DEPTH_REQ                     = 92;
+	MARKET_RULE                               = 93;
+	PNL                                       = 94;
+	PNL_SINGLE                                = 95;
+	HISTORICAL_TICKS                          = 96;
+	HISTORICAL_TICKS_BID_ASK                  = 97;
+	HISTORICAL_TICKS_LAST                     = 98;
+	TICK_BY_TICK                              = 99;
+}

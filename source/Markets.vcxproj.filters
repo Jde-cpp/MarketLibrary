@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\types">
+      <UniqueIdentifier>{9f80d873-984b-4810-a4ad-94965e5f5430}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\types">
+      <UniqueIdentifier>{72774cb0-0bcc-4588-9e9b-fc1337f979e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\types\proto">
+      <UniqueIdentifier>{8c2e2e1a-303c-4762-8316-18655e42044b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\types\proto">
+      <UniqueIdentifier>{a9c3730d-d637-46cf-a3a6-5ab6d59ed428}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="types\proto\ib.pb.h">
+      <Filter>Header Files\types\proto</Filter>
+    </ClInclude>
+    <ClInclude Include="Exports.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types\Bar.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="types\Contract.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="types\Exchanges.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="types\Currency.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="types\WrapperLog.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="types\TwsConnectionSettings.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="TwsProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types\proto\requests.pb.h">
+      <Filter>Header Files\types\proto</Filter>
+    </ClInclude>
+    <ClInclude Include="types\proto\results.pb.h">
+      <Filter>Header Files\types\proto</Filter>
+    </ClInclude>
+    <ClInclude Include="TwsClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WrapperLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types\IBException.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\ib.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="types\Contract.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\Exchanges.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\Bar.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\TwsConnectionSettings.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="TwsProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\results.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\requests.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="TwsClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WrapperLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pc.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="types\IBException.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
