@@ -27,19 +27,24 @@ OUTPUT = $(BIN_DIR)/$(OUTPUT_FILE)
 all: $(OUTPUT)
 	$(NOECHO) $(NOOP)
 
-OBJECTS = $(OUT_DIR)/QuoteProc.o $(OUT_DIR)/TwsProcessor.o $(OUT_DIR)/TwsClient.o $(OUT_DIR)/TwsClientSync.o $(OUT_DIR)/WrapperLog.o $(OUT_DIR)/WrapperSync.o $(OUT_DIR)/TradeSim.o $(OUT_DIR)/TradeUtilities.o\
-	$(OUT_DIR)/AITypes.o $(OUT_DIR)/Bar.o $(OUT_DIR)/Contract.o $(OUT_DIR)/Exchanges.o $(OUT_DIR)/IBException.o $(OUT_DIR)/Order.o $(OUT_DIR)/Transactions.o $(OUT_DIR)/TwsConnectionSettings.o\
-	$(OUT_DIR)/BarData.o $(OUT_DIR)/ContractData.o $(OUT_DIR)/QuoteData.o $(OUT_DIR)/OptionData.o $(OUT_DIR)/AIData.o  $(OUT_DIR)/SettingsData.o\
-	$(OUT_DIR)/IBEnums.o $(OUT_DIR)/ReceivedMessages.o $(OUT_DIR)/Requests.o\
-	$(OUT_DIR)/dts.pb.o $(OUT_DIR)/ib.pb.o $(OUT_DIR)/requests.pb.o $(OUT_DIR)/results.pb.o $(OUT_DIR)/MinuteBar.pb.o $(OUT_DIR)/OptionBar.pb.o $(OUT_DIR)/OptionOI.pb.o
+OBJECTS = $(OUT_DIR)/TwsProcessor.o $(OUT_DIR)/TwsClient.o $(OUT_DIR)/WrapperLog.o\
+	$(OUT_DIR)/Bar.o $(OUT_DIR)/Contract.o $(OUT_DIR)/Exchanges.o $(OUT_DIR)/IBException.o $(OUT_DIR)/TwsConnectionSettings.o\
+	$(OUT_DIR)/ib.pb.o $(OUT_DIR)/requests.pb.o $(OUT_DIR)/results.pb.o
 
+#$(OUT_DIR)/QuoteProc.o $(OUT_DIR)/TwsClientSync.o $(OUT_DIR)/WrapperSync.o  $(OUT_DIR)/TradeSim.o  $(OUT_DIR)/TradeUtilities.o
+#$(OUT_DIR)/AITypes.o $(OUT_DIR)/Bar.o  $(OUT_DIR)/Order.o $(OUT_DIR)/Transactions.o 
+#$(OUT_DIR)/BarData.o $(OUT_DIR)/ContractData.o $(OUT_DIR)/QuoteData.o $(OUT_DIR)/OptionData.o $(OUT_DIR)/AIData.o  $(OUT_DIR)/SettingsData.o\
+#$(OUT_DIR)/IBEnums.o 
+#$(OUT_DIR)/ReceivedMessages.o $(OUT_DIR)/Requests.o\
+#$(OUT_DIR)/dts.pb.o 
+#$(OUT_DIR)/MinuteBar.pb.o $(OUT_DIR)/OptionBar.pb.o $(OUT_DIR)/OptionOI.pb.o
 LDFLAGS = -pthread -shared -Wl,-z,origin -Wl,-rpath='$$ORIGIN'
 
 $(OUTPUT): $(OUT_DIR)/stdafx.h.gch $(OBJECTS)
 	$(CXX) -L$(BIN_DIR) $(LDFLAGS) $(OBJECTS) -o$(OUTPUT) $(LIBS)
 
 $(OUT_DIR)/stdafx.h.gch: pc.h
-	$(CXX) $(CXXFLAGS) pc.h -o$(OUT_DIR)/stdafx.h.gch -I/home/duffyj/code/libraries/spdlog/include -I/home/duffyj/code/libraries/tws-api/source/cppclient/client -I/home/duffyj/code/libraries/json/include -I/home/duffyj/code/libraries/boostorg/boost_1_68_0 -I/home/duffyj/code/libraries/eigen 
+	$(CXX) $(CXXFLAGS) pc.h -o$(OUT_DIR)/stdafx.h.gch -I/home/duffyj/code/libraries/spdlog/include -I/home/duffyj/code/libraries/tws-api/source/cppclient/client -I/home/duffyj/code/libraries/json/include -I/home/duffyj/code/libraries/boostorg/boost_1_68_0 -I../../Framework/source
 	#-I/home/duffyj/code/libraries/eigen 
 
 $(OUT_DIR)/%.o: ./%.cpp ./%.h pc.h

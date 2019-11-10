@@ -1,0 +1,37 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "clear;./build.sh",
+			"problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"] },
+			"group": { "kind": "build", "isDefault": true }
+		},
+		{
+			"label": "rebuild",
+			"type": "shell",
+			"command": "clear;./build.sh 1 1",
+			"problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"] }
+		},
+		{
+			"label": "make",
+			"type": "shell",
+			"command": "clear;make",
+			"problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"] }
+		},
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "clear;make clean; make clean DEBUG=0"
+		},
+		{
+			"label": "rebuildRelease",
+			"type": "shell",
+			"command": "clear;./build.sh 0 1",
+			"problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"] },
+		}		
+	]
+}

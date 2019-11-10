@@ -1,6 +1,5 @@
-//protoc --cpp_out=C:\code\7.0\native\process\tws\types\protoc requests.proto
 //C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
-//protoc --cpp_out . requests.proto
+//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
 //\code\7.0\web2\ClientApp>MKLINK requests.proto C:\code\7.0\native\framework\markets\types\proto\requests.proto  //ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/requests.proto .
 //npx pbjs -r request_root -t static-module -w es6 -o src/app/proto/requests.js requests.proto & npx pbts -o src/app/proto/requests.d.ts src/app/proto/requests.js
 

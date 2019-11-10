@@ -13,9 +13,9 @@
 	#include <spdlog/fmt/ostr.h>
 #endif
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <Eigen/SVD>
+// #include <Eigen/Dense>
+// #include <Eigen/Sparse>
+// #include <Eigen/SVD>
 
 #ifdef _MSC_VER
 	#define TWSAPIDLLEXP __declspec( dllimport )
