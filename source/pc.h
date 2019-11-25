@@ -26,6 +26,7 @@
 #endif
 #include <nlohmann/json.hpp>
 
+#include <EClientSocket.h>
 #include <Contract.h>
 #include <OrderState.h>
 #include <Order.h>
@@ -38,7 +39,7 @@
 #include "../../Framework/source/TypeDefs.h"
 #include "JdeAssert.h"
 //#include "Collections.h"
-#include "Application.h"
+#include "application/Application.h"
 #include "threading/InterruptibleThread.h"
 
 #include "DateTime.h"

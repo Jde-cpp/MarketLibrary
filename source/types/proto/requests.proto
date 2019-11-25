@@ -2,6 +2,7 @@
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
 //\code\7.0\web2\ClientApp>MKLINK requests.proto C:\code\7.0\native\framework\markets\types\proto\requests.proto  //ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/requests.proto .
 //npx pbjs -r request_root -t static-module -w es6 -o src/app/proto/requests.js requests.proto & npx pbts -o src/app/proto/requests.d.ts src/app/proto/requests.js
+//npx pbjs -r request_root -t static-module -w es6 -o requests.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/requests.proto & npx pbts -o requests.d.ts requests.js
 
 syntax = "proto3";
 package Jde.Markets.Proto.Requests;

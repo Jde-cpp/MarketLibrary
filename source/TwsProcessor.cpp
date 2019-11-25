@@ -31,7 +31,7 @@ namespace Jde::Markets
 		if( _pInstance )
 		{
 			DBG0( "TwsProcessor::Stop - AddThread" );
-			Application::AddThread( _pInstance->_pThread );
+			IApplication::AddThread( _pInstance->_pThread );
 			_pInstance->_pThread->Interrupt();
 			if( TwsClient::HasInstance() )
 				TwsClient::Instance().reqCurrentTime();

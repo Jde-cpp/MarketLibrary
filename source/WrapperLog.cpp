@@ -51,7 +51,7 @@ namespace Jde::Markets
 	void WrapperLog::scannerDataEnd(int reqId)noexcept{ LOG( _logLevel, "WrapperLog::scannerDataEnd( {} )", reqId ); }
 	void WrapperLog::currentTime( long time )noexcept
 	{ 
-		LOG( _logLevel, "WrapperLog::currentTime( {} )", time );
+		LOG( _logLevel, "WrapperLog::currentTime( {} )", ToIsoString(Clock::from_time_t(time)) );
 		
 	}
 	void WrapperLog::accountSummaryEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::accountSummaryEnd( {} )", reqId ); }

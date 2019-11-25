@@ -1,8 +1,8 @@
-//protoc --cpp_out=C:\code\7.0\native\process\tws\types\protoc ib.proto
 //C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. results.proto
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. results.proto
 //\code\7.0\web2\ClientApp>MKLINK ib.proto C:\code\7.0\native\framework\markets\types\proto\ib.proto
 //npx pbjs -r result_root -t static-module -w es6 -o src/app/proto/results.js results.proto & npx pbts -o src/app/proto/results.d.ts src/app/proto/results.js
+//npx pbjs -r result_root -t static-module -w es6 -o results.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/results.proto & npx pbts -o results.d.ts results.js
 
 syntax = "proto3";
 package Jde.Markets.Proto.Results;

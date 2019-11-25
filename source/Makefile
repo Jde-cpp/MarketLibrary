@@ -44,7 +44,7 @@ $(OUTPUT): $(OUT_DIR)/stdafx.h.gch $(OBJECTS)
 	$(CXX) -L$(BIN_DIR) $(LDFLAGS) $(OBJECTS) -o$(OUTPUT) $(LIBS)
 
 $(OUT_DIR)/stdafx.h.gch: pc.h
-	$(CXX) $(CXXFLAGS) pc.h -o$(OUT_DIR)/stdafx.h.gch -I/home/duffyj/code/libraries/spdlog/include -I/home/duffyj/code/libraries/tws-api/source/cppclient/client -I/home/duffyj/code/libraries/json/include -I/home/duffyj/code/libraries/boostorg/boost_1_68_0 -I../../Framework/source
+	$(CXX) $(CXXFLAGS) pc.h -o$(OUT_DIR)/stdafx.h.gch -I/home/duffyj/code/libraries/spdlog/include -I/home/duffyj/code/libraries/tws-api/source/cppclient/client -I/home/duffyj/code/libraries/json/include -I$BOOST_ROOT -I../../Framework/source
 	#-I/home/duffyj/code/libraries/eigen 
 
 $(OUT_DIR)/%.o: ./%.cpp ./%.h pc.h

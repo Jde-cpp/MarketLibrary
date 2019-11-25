@@ -1,6 +1,7 @@
 #pragma once
-#include <EClientSocket.h>
-#include <TagValue.h>
+//#include <EClientSocket.h>
+//#include <TagValue.h>
+#include "./Exports.h"
 #include "types/TwsConnectionSettings.h"
 
 struct EReaderSignal;
@@ -19,7 +20,7 @@ namespace Jde::Markets
 		void cancelMktData( TickerId reqId )noexcept{LOG(_logLevel, "cancelMktData( '{}' )", reqId); EClientSocket::cancelMktData(reqId); }
 		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "cancelPositionsMulti( '{}' )", reqId); EClientSocket::cancelPositionsMulti(reqId); }
 
-		void reqIds( int _ )noexcept{ LOG0(_logLevel, "reqIds"); EClientSocket::reqIds(_); }
+		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"); EClientSocket::reqIds(_); }
 		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept{ LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )", subscribe, acctCode); EClientSocket::reqAccountUpdates( subscribe, acctCode ); }
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqHistoricalData( TickerId tickerId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept;
@@ -30,6 +31,7 @@ namespace Jde::Markets
 		void reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept;
 		void reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
 		void reqCurrentTime()noexcept;
+		void reqOpenOrders()noexcept;
 	protected:
 		shared_ptr<EWrapper> _pWrapper;
 		uint16 _port{0};

@@ -112,7 +112,6 @@ namespace Jde::Markets
 		{
 			for( var& pComboLeg : *ComboLegsPtr )
 				pComboLeg->SetProto( pProto->add_combolegs() );
-				
 		}
 		sp<Proto::DeltaNeutralContract> pDeltaNeutral = DeltaNeutral.ToProto(true);
 		pProto->set_allocated_deltaneutral( pDeltaNeutral.get() );
@@ -344,6 +343,24 @@ namespace Jde::Markets
 		pResult->set_category( details.category );
 		pResult->set_subcategory( details.subcategory );
 		pResult->set_timezoneid( details.timeZoneId );
+		auto parseDate= []( const string& value )
+		{
+			auto year  = stoi( value.substr(0,4) );
+			auto month = stoi( value.substr(4,2) );
+			auto day =   stoi( value.substr(6,2) );
+			auto hour =  stoi( value.substr(9,2) );
+			auto minute= stoi( value.substr(11,2) );
+			return DateTime( year,month,day,hour,minute ).GetTimePoint();
+		};
+		var days = StringUtilities::Split( details.tradingHours, ';' );
+		for( auto day : days )
+		{
+			var startEnd = StringUtilities::Split( details.tradingHours, '-' );
+			if( startEnd.size()!=2 || startEnd[0].size()!=13 || startEnd[1].size()!=13 )
+				continue;
+			
+		}
+
 		pResult->set_tradinghours( details.tradingHours );
 		pResult->set_liquidhours( details.liquidHours );
 		pResult->set_evrule( details.evRule );

@@ -82,4 +82,9 @@ namespace Jde::Markets
 		LOG0( _logLevel, "reqCurrentTime" );
 		EClientSocket::reqCurrentTime();
 	}
-}
+	
+	void TwsClient::reqOpenOrders()noexcept
+	{
+		LOG0( _logLevel, "reqOpenOrders" );
+		EClientSocket::reqOpenOrders();
+	}}

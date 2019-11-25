@@ -32,3 +32,5 @@
 *.app
 /source/.vs
 *.user
+*.pb.h
+*.cc

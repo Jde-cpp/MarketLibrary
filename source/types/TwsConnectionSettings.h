@@ -11,6 +11,7 @@ namespace Jde::Markets
 		string Options;
 		//uint16 Port{7497};//{7497,7496,4001,4002}; //tws paper, tws, gateway, gateway paper
 		vector<uint16> Ports={7497,4002};
+		const bool CommunicationSink{false};
 	};
 	JDE_MARKETS_EXPORT std::ostream& operator<<( std::ostream& os, const TwsConnectionSettings& settings );
 }
