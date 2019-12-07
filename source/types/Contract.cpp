@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Contract.h"
 #include "proto/results.pb.h"
 

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "WrapperLog.h"
 //#include "types/messages/IBEnums.h"
 

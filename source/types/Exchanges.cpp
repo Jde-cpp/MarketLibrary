@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Exchanges.h"
 #define var const auto
 

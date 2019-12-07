@@ -32,6 +32,7 @@ namespace Jde::Markets
 		void reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
 		void reqCurrentTime()noexcept;
 		void reqOpenOrders()noexcept;
+		void reqAllOpenOrders()noexcept;
 	protected:
 		shared_ptr<EWrapper> _pWrapper;
 		uint16 _port{0};

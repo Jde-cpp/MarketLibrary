@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TwsClient.h"
 #include "TwsProcessor.h"
 #define var const auto
@@ -87,4 +86,10 @@ namespace Jde::Markets
 	{
 		LOG0( _logLevel, "reqOpenOrders" );
 		EClientSocket::reqOpenOrders();
-	}}
+	}
+	void TwsClient::reqAllOpenOrders()noexcept
+	{
+		LOG0( _logLevel, "reqAllOpenOrders" );
+		EClientSocket::reqAllOpenOrders();
+	}
+}

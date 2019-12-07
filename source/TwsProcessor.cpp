@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TwsProcessor.h"
 #include <EClientSocket.h>
 #include <EReaderSignal.h>

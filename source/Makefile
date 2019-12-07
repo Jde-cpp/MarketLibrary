@@ -12,16 +12,16 @@ OUT_DIR_BASE := .obj/
 #LIBS = -lprotobuf -lboost_system
 
 ifeq ($(DEBUG), 1)
-	OUT_DIR=$(OUT_DIR_BASE)debug
+	OUT_DIR=$(OUT_DIR_BASE)debug2
 	CXXFLAGS= $(CXXFLAGS_BASE) -O0 -I$(OUT_DIR)
-	BIN_DIR=$(BIN_DIR_BASE)debug
+	BIN_DIR=$(BIN_DIR_BASE)debug2
 else
-	OUT_DIR=$(OUT_DIR_BASE)release
+	OUT_DIR=$(OUT_DIR_BASE)release2
 	CXXFLAGS= $(CXXFLAGS_BASE) -march=native -DNDEBUG -O3 -I$(OUT_DIR)
-	BIN_DIR=$(BIN_DIR_BASE)release
+	BIN_DIR=$(BIN_DIR_BASE)release2
 endif
 
-OUTPUT_FILE = libMarkets.so
+OUTPUT_FILE = libJde.Markets.so
 OUTPUT = $(BIN_DIR)/$(OUTPUT_FILE)
 
 all: $(OUTPUT)

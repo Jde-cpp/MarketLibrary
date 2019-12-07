@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "TwsConnectionSettings.h"
 #define var const auto
 namespace Jde::Markets

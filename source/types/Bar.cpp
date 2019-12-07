@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Bar.h"
 //#include "../../../framework/DateTime.h"
 #define var const auto
