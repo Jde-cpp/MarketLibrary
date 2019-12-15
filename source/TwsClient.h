@@ -33,6 +33,7 @@ namespace Jde::Markets
 		void reqCurrentTime()noexcept;
 		void reqOpenOrders()noexcept;
 		void reqAllOpenOrders()noexcept;
+		void placeOrder( ibapi::OrderId id, const ibapi::Contract& contract, const ibapi::Order& order )noexcept;
 	protected:
 		shared_ptr<EWrapper> _pWrapper;
 		uint16 _port{0};

@@ -54,10 +54,10 @@ namespace Jde::Markets
 
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}
-	void TwsClient::reqMktData( TickerId tickerId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
+	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{ 
-		LOG( _logLevel, "reqMktData( '{}', '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", tickerId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
-		EClientSocket::reqMktData( tickerId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions ); 
+		LOG( _logLevel, "reqMktData( '{}', '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
+		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions ); 
 	}
 	
 	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
@@ -91,5 +91,12 @@ namespace Jde::Markets
 	{
 		LOG0( _logLevel, "reqAllOpenOrders" );
 		EClientSocket::reqAllOpenOrders();
+	}
+
+	void TwsClient::placeOrder( ibapi::OrderId id, const ibapi::Contract& contract, const ibapi::Order& order )noexcept
+	{
+		var contractDisplay = fmt::format( "({}){}",  contract.symbol, contract.conId );
+		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )", id, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
+		EClientSocket::placeOrder( id, contract, order );
 	}
 }
