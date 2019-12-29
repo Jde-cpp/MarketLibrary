@@ -3,7 +3,8 @@
 
 namespace Jde::Markets
 {
-	string to_string( Exchanges exchange )
+	using namespace Chrono;
+	string to_string( Exchanges exchange )noexcept
 	{
 		string value;
 		switch( exchange )
@@ -31,7 +32,7 @@ namespace Jde::Markets
 		}
 		return value;
 	}
-	Exchanges ToExchange( string_view pszName )
+	Exchanges ToExchange( string_view pszName )noexcept
 	{
 		const CIString name( pszName.data(), pszName.size() );
 		Exchanges value = Exchanges::None;
@@ -52,7 +53,7 @@ namespace Jde::Markets
 		return value;
 	}
 
-	bool IsHoliday( const TimePoint& time )
+	bool IsHoliday( const TimePoint& time )noexcept
 	{
 		const DateTime date{time};
 		bool isHoliday = date.DayOfWk()==DayOfWeek::Saturday || date.DayOfWk()==DayOfWeek::Sunday;
@@ -61,6 +62,25 @@ namespace Jde::Markets
 			var year = date.Year();
 			var day = date.Day();
 			var month= date.Month();
+			if( year==2020 )
+			{
+				if( month == 1 )
+					isHoliday = day==1 || day==20;
+				else if( month==2 )
+					isHoliday = day==17;
+				else if( month==4 )
+					isHoliday = day==10;
+				else if( month==5 )
+					isHoliday = day==25;
+				else if( month==7 )
+					isHoliday = day==3;
+				else if( month==9 )
+					isHoliday = day==7;
+				else if( month==11 )
+					isHoliday = day==26;
+				else if( month==12 )
+					isHoliday = day==25;
+			}
 			if( year==2019 )
 			{
 				if( month == 1 )
@@ -372,48 +392,82 @@ namespace Jde::Markets
 					isHoliday = day==24;
 			}
 			else
-				THROW( Exception("date not implemented {}.", year) );
-				
-				//isHoliday = true;
-				//
+				ASSERT_DESC( false, fmt::format("date not implemented {}.", year) );
 		}
 		return isHoliday;
 	}
 
-	TimePoint PreviousTradingDay( const TimePoint& time )
+	TimePoint PreviousTradingDay( const TimePoint& time )noexcept
 	{
 		//auto start = time;
 		auto previous = time-std::chrono::hours( 24 );
 		for( ; IsHoliday(previous); previous-=std::chrono::hours(24)  );
 		return previous;
 	}
-	TimePoint NextTradingDay( const TimePoint& time )
+	TimePoint NextTradingDay( const TimePoint& time )noexcept
 	{
 		auto next = time+std::chrono::hours( 24 );;
 		for( ; IsHoliday(next); next+=std::chrono::hours(24)  );
 		return next;
-	
+
 	}
-	MinuteIndex ExchangeTime::MinuteCount( const TimePoint& timePoint )
+	mutex _lock;
+	MinuteIndex ExchangeTime::MinuteCount( DayIndex day )noexcept
 	{
-		MinuteIndex minuteCount = 390;
-		DateTime date( timePoint );
-		var year = date.Year(); var month = date.Month(); var day = date.Day();
-		if( year==2006 )
+		if( day==16062 )
+			return 352;
+		constexpr array<DayIndex,35> values = {12748,13112,13332,13476,13697,13840,14063,14237,14452,14602,14939,15303,15524,15667,15698,15889,16038,16063,16254,16402,16428,16766,16793,17130,17350,17494,17715,17858,17889,18080,18229,18254,18593,18620,18957};
+		auto pValue = std::lower_bound( values.begin(), values.end(), day );
+		return pValue==values.end() || *pValue!=day ? 390 : 210;
+#if 0
+		static map<DayIndex,uint16> shortDays;
+		if( shortDays.size()==0 )
 		{
-			if( month==11 && day==24 )
-				minuteCount = 210;
+			unique_lock l{_lock};
+			map<DayIndex,uint16> temp;
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2004,11,26).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2005,11,25).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2006,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2006,11,24).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2007,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2007,11,23)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2008,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2008,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2009,7,27)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2009,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2010,11,26)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2011,11,25)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2012,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2012,11,23)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2012,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2013,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2013,11,29)), 210 );
+			//temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2013,12,23), 352 );//352
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2013,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2014,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2014,11,28)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2014,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2015,11,27)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2015,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2016,11,25)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2017,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2017,11,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2018,7,3)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2018,11,23)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2018,12,24)), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2019,7,3).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2019,11,29).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2019,12,24).GetTimePoint()), 210 );
+ 			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2020,11,27).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2020,12,24).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2021,11,26).GetTimePoint()), 210 );
+			ostringstream os;
+			for( var& [day,size] : temp )
+				os << day <<",";
+			DBG0( os.str() );
+			shortDays = temp;
 		}
-		else if( year==2005 )
-		{
-			if( month==11 && day==25 )
-				minuteCount = 210;
-		}
-		else if( year==2004 )
-		{
-			if( month==11 && day==26 )
-				minuteCount = 210;
-		}
-		return minuteCount;
+		return shortDays.find(day)==shortDays.end() ? 390 : shortDays.find(day)->second;
+#endif
 	}
 }

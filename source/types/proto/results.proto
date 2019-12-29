@@ -48,8 +48,8 @@ message ContractDetails
 	string	Category=12;
 	string	Subcategory=13;
 	string	TimeZoneId=14;
-	string	TradingHours=15;
-	string	LiquidHours=16;
+	repeated uint32 TradingHours=15;
+	repeated uint32 LiquidHours=16;
 	string	EvRule=17;
 	double	EvMultiplier=18;
 	int32		MdSizeMultiplier=19;
@@ -261,18 +261,18 @@ message TickPrice
 	 int32 RequestId=1;
 	 ETickType TickType=2;
 	 double Price=3;
-	 TickAttrib Attributes=4; 
+	 TickAttrib Attributes=4;
 }
 
 message TickSize
-{ 
+{
 	int32 RequestId=1;
 	ETickType TickType=2;
 	int32 Size =3;
 }
 
 message TickString
-{ 
+{
 	int32 RequestId=1;
 	ETickType TickType=2;
 	string Value=3;
@@ -377,7 +377,7 @@ enum EResults
 	Accept	                                	= 0;
 	//TwitterData											=-2;
 	MultiEnd												=-1;
-	
+
 	TickPriceMessage                          = 1;
 	TickSizeMessage                           = 2;
 	OrderStatus                              	= 3;

@@ -6,7 +6,7 @@
 namespace Jde::Markets
 {
 	using std::ostream;
-/*	
+/*
 	Contract::Contract( IO::IncomingMessage& message, bool havePrimaryExchange )noexcept(false):
 		Id{message.ReadInt32()},
 		Symbol{ message.ReadString() },
@@ -50,7 +50,7 @@ namespace Jde::Markets
 		other.right = Right;
 		other.multiplier = Multiplier;
 		other.exchange = Exchange;
-		
+
 		other.primaryExchange = to_string( PrimaryExchange );
 		other.currency = Currency;
 		other.localSymbol = LocalSymbol;
@@ -137,7 +137,7 @@ namespace Jde::Markets
 	}
 	operator=( const Contract& contract );
 */
-	
+
 	Contract::Contract(ContractPK id, string_view symbol ):
 		Id(id),
 		Symbol(symbol)
@@ -157,11 +157,11 @@ namespace Jde::Markets
 	}
 
 	PositionAmount Contract::LongShareCount( Amount price )const noexcept
-	{ 
+	{
 		return ShortShareCount( price );
 	}
 	PositionAmount Contract::ShortShareCount( Amount price )const noexcept
-	{ 
+	{
 		var count = price==0 ? 0 : std::min( 1000.0, 10000.0/price );
 		auto shareCount = RoundShares( count, count>100 ? 100 : 1 );
 		if( shareCount==0 && price!=0 )
@@ -211,7 +211,7 @@ namespace Jde::Markets
 		Delta{ message.ReadDouble() },
 		Price{ message.ReadDouble() }
 	{}
-*/	
+*/
 	DeltaNeutralContract::DeltaNeutralContract( const Proto::DeltaNeutralContract& proto )noexcept:
 		Id{ proto.id() },
 		Delta{ proto.delta() },
@@ -226,13 +226,13 @@ namespace Jde::Markets
 		pProto->set_price( Price );
 		return pProto;
 	}
-/*	ComboLeg::ComboLeg( IO::IncomingMessage& message, bool isOrder ): 
-		ConId{ message.ReadInt32() }, 
-		Ratio{ message.ReadInt32() }, 
+/*	ComboLeg::ComboLeg( IO::IncomingMessage& message, bool isOrder ):
+		ConId{ message.ReadInt32() },
+		Ratio{ message.ReadInt32() },
 		Action{ message.ReadString() },
 		Exchange{ message.ReadString() },
-		OpenClose{ isOrder ? message.ReadInt32() : 0 }, 
-		ShortSaleSlot{ isOrder ? message.ReadInt32() : 0 }, 
+		OpenClose{ isOrder ? message.ReadInt32() : 0 },
+		ShortSaleSlot{ isOrder ? message.ReadInt32() : 0 },
 		DesignatedLocation{ isOrder ? message.ReadString() : "" },
 		ExemptCode{ isOrder ? message.ReadInt32() : 0 }
 	{}
@@ -262,14 +262,14 @@ namespace Jde::Markets
 	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const
 	{
 		os << ConId << Ratio << Action << Exchange;
-		if( isOrder ) 
+		if( isOrder )
 			os << OpenClose << ShortSaleSlot << DesignatedLocation << ExemptCode;
 		return os;
 	}
 	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )
 	{
 		return comboLeg.to_stream( os, false );
-	}	
+	}
 	namespace Contracts
 	{
 		const Contract Spy{ 756733, "USD", "SPY", "0", "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
@@ -308,7 +308,7 @@ namespace Jde::Markets
 			type = SecurityType::Warrant;
 		else
 			GetDefaultLogger()->warn( fmt::format("Could not parse security type {}", inputName) );
-		
+
 		return type;
 	}
 #pragma endregion
@@ -342,26 +342,36 @@ namespace Jde::Markets
 		pResult->set_category( details.category );
 		pResult->set_subcategory( details.subcategory );
 		pResult->set_timezoneid( details.timeZoneId );
-		auto parseDate= []( const string& value )
+		auto parseDate= [&details]( const string& value )
 		{
-			auto year  = stoi( value.substr(0,4) );
-			auto month = stoi( value.substr(4,2) );
-			auto day =   stoi( value.substr(6,2) );
-			auto hour =  stoi( value.substr(9,2) );
-			auto minute= stoi( value.substr(11,2) );
-			return DateTime( year,month,day,hour,minute ).GetTimePoint();
+			//var startEnd = StringUtilities::Split( details.tradingHours, '-' );
+			// if( startEnd.size()!=2 || startEnd[0].size()!=13 || startEnd[1].size()!=13 )
+			// 	continue;
+			if( value.size()!=13 )
+			{
+				WARN( "Could not parse date '{}'.", value );
+				return static_cast<time_t>(0);
+			}
+			var year  = stoi( value.substr(0,4) ); var month = stoi( value.substr(4,2) ); var day = stoi( value.substr(6,2) ); var hour = stoi( value.substr(9,2) ); var minute = stoi( value.substr(11,2) );
+			var time = DateTime( year, month, day, hour, minute ).GetTimePoint();
+			return Clock::to_time_t( time+Timezone::TryGetGmtOffset(details.timeZoneId, time) );
 		};
-		var days = StringUtilities::Split( details.tradingHours, ';' );
-		for( auto day : days )
+		//pResult->set_tradinghours( details.tradingHours );
+		var tradingHours = StringUtilities::Split( details.tradingHours, ';' );
+		for( auto day : tradingHours )
 		{
-			var startEnd = StringUtilities::Split( details.tradingHours, '-' );
-			if( startEnd.size()!=2 || startEnd[0].size()!=13 || startEnd[1].size()!=13 )
-				continue;
-			
+			var time = parseDate( day );
+			if( time )
+				pResult->add_tradinghours( time );
 		}
-
-		pResult->set_tradinghours( details.tradingHours );
-		pResult->set_liquidhours( details.liquidHours );
+		var liquidHours = StringUtilities::Split( details.liquidHours, ';' );
+		for( auto day : liquidHours )
+		{
+			var time = parseDate( day );
+			if( time )
+				pResult->add_liquidhours( time );
+		}
+		//pResult->set_liquidhours( details.liquidHours );
 		pResult->set_evrule( details.evRule );
 		pResult->set_evmultiplier( details.evMultiplier );
 		pResult->set_mdsizemultiplier( details.mdSizeMultiplier );

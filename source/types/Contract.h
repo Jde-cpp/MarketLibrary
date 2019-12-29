@@ -72,8 +72,8 @@ namespace Jde::Markets
 		std::ostream& to_stream( std::ostream& os, bool isOrder )const;
 		bool operator==( const ComboLeg& other) const
 		{
-			return ConId == other.ConId && Ratio == other.Ratio && OpenClose == other.OpenClose 
-				&& ShortSaleSlot == other.ShortSaleSlot && ExemptCode == other.ExemptCode && Action == other.Action 
+			return ConId == other.ConId && Ratio == other.Ratio && OpenClose == other.OpenClose
+				&& ShortSaleSlot == other.ShortSaleSlot && ExemptCode == other.ExemptCode && Action == other.Action
 				&& Exchange == other.Exchange &&  DesignatedLocation == other.DesignatedLocation;
 		}
 	};
@@ -96,7 +96,7 @@ namespace Jde::Markets
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};
 		string Symbol;
-		string SecType;
+		string SecType;//"STK", "OPT"
 		string LastTradeDateOrContractMonth;
 		double Strike{0.0};
 		string Right;
