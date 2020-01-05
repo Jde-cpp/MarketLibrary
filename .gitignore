@@ -34,3 +34,4 @@
 *.user
 *.pb.h
 *.cc
+source/.vscode/c_cpp_properties.json

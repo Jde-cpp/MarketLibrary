@@ -20,7 +20,7 @@ namespace Jde::Markets
 	Exchanges ToExchange( string_view pszName )noexcept;
 	JDE_MARKETS_EXPORT TimePoint PreviousTradingDay( const TimePoint& time )noexcept;
 	JDE_MARKETS_EXPORT TimePoint NextTradingDay( const TimePoint& time )noexcept;
-	inline DayIndex PreviousTradingDay( DayIndex day )noexcept{ return Chrono::DaysSinceEpoch( PreviousTradingDay(Chrono::FromDays(day)) ); }
+	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;
 	inline DayIndex NextTradingDay( DayIndex day )noexcept{ return Chrono::DaysSinceEpoch( NextTradingDay(Chrono::FromDays(day)) ); }
 
 	inline DayIndex CurrentTradingDay( DayIndex day )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }//weekend=monday, monday=monday.

@@ -93,6 +93,7 @@ namespace Jde::Markets
 		void completedOrder(const ibapi::Contract& contract, const ibapi::Order& order, const ibapi::OrderState& orderState)noexcept override;
 		void completedOrdersEnd()noexcept override;
 
+		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 	protected:
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };

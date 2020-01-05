@@ -81,7 +81,7 @@ namespace Jde::Markets
 				else if( month==12 )
 					isHoliday = day==25;
 			}
-			if( year==2019 )
+			else if( year==2019 )
 			{
 				if( month == 1 )
 					isHoliday = day==1 || day==21;
@@ -397,6 +397,12 @@ namespace Jde::Markets
 		return isHoliday;
 	}
 
+	DayIndex PreviousTradingDay( DayIndex day )noexcept
+	{
+		if( day==0 )
+			day = Chrono::DaysSinceEpoch( Timezone::EasternTimeNow() );
+		return Chrono::DaysSinceEpoch( PreviousTradingDay(Chrono::FromDays(day)) );
+	}
 	TimePoint PreviousTradingDay( const TimePoint& time )noexcept
 	{
 		//auto start = time;
@@ -426,7 +432,7 @@ namespace Jde::Markets
 			unique_lock l{_lock};
 			map<DayIndex,uint16> temp;
 			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2004,11,26).GetTimePoint()), 210 );
-			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2005,11,25).GetTimePoint()), 210 );
+			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2005,11,23).GetTimePoint()), 210 );
 			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2006,7,3)), 210 );
 			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2006,11,24).GetTimePoint()), 210 );
 			temp.emplace_hint( temp.end(), DaysSinceEpoch(DateTime(2007,7,3)), 210 );

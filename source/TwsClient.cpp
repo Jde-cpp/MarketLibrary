@@ -55,15 +55,15 @@ namespace Jde::Markets
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}
 	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
-	{ 
+	{
 		LOG( _logLevel, "reqMktData( '{}', '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
-		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions ); 
+		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
 	}
-	
+
 	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
 	{
 		LOG( _logLevel, "reqSecDefOptParams( '{}', '{}', '{}', '{}', '{}' )", tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
-		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId ); 
+		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
 	void TwsClient::reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept
 	{
@@ -81,7 +81,7 @@ namespace Jde::Markets
 		LOG0( _logLevel, "reqCurrentTime" );
 		EClientSocket::reqCurrentTime();
 	}
-	
+
 	void TwsClient::reqOpenOrders()noexcept
 	{
 		LOG0( _logLevel, "reqOpenOrders" );
