@@ -32,6 +32,12 @@ message TagValue
 	string Value=2;
 };
 
+message ContractHours
+{
+	int32 Start=1;
+	int32 End=2;
+}
+
 message ContractDetails
 {
 	int32		RequestId=1;
@@ -48,8 +54,8 @@ message ContractDetails
 	string	Category=12;
 	string	Subcategory=13;
 	string	TimeZoneId=14;
-	repeated int32 TradingHours=15;
-	repeated int32 LiquidHours=16;
+	repeated ContractHours trading_hours=15;
+	repeated ContractHours liquid_hours=16;
 	string	EvRule=17;
 	double	EvMultiplier=18;
 	int32		MdSizeMultiplier=19;

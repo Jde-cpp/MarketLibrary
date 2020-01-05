@@ -3,9 +3,9 @@
 
 namespace Jde::Markets
 {
-	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept 
+	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
 	{ //callback reqHistoricalData...
-		LOG( _logLevel, "WrapperLog::error( {}, {}, {} )", id, errorCode, errorMsg ); 
+		LOG( _logLevel, "WrapperLog::error( {}, {}, {} )", id, errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"); }
 	/***********TO Implement************/
@@ -17,11 +17,11 @@ namespace Jde::Markets
 		LOG( _logLevel, "WrapperLog::contractDetails( '{}', ('{}', '{}', '{}', '{}', '{}') )", reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
 	}
 	void WrapperLog::contractDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::contractDetailsEnd( '{}' )", reqId ); }
-	void WrapperLog::execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "WrapperLog::execDetails( {}, {}, {}, {}, {}, {} )", reqId, contract.symbol, execution.acctNumber, execution.side, execution.shares, execution.price );	}
+	void WrapperLog::execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "({})WrapperLog::execDetails( {}, {}, {}, {}, {}, {} )", contract.symbol, reqId, execution.acctNumber, execution.side, execution.shares, execution.price );	}
 	void WrapperLog::execDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::execDetailsEnd( {} )", reqId ); }
 	void WrapperLog::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
-	{ 
-		LOG( ELogLevel::Trace, "WrapperLog::historicalData( '{}', ['{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}'] )", reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low ); 
+	{
+		LOG( ELogLevel::Trace, "WrapperLog::historicalData( '{}', ['{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}'] )", reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
 	}
 	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept{ LOG( _logLevel, "WrapperLog::historicalDataEnd( {}, {}, {} )", reqId, startDateStr, endDateStr); }
 	void WrapperLog::managedAccounts( const std::string& accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )", accountsList ); }
@@ -49,9 +49,9 @@ namespace Jde::Markets
 	void WrapperLog::scannerData(int reqId, int rank, const ibapi::ContractDetails& contractDetails, const std::string& distance, const std::string& /*benchmark*/, const std::string& /*projection*/, const std::string& /*legsStr*/)noexcept{ LOG( _logLevel, "WrapperLog::scannerData( {}, {}, {}, {} )", reqId, rank, contractDetails.contract.conId, distance ); }
 	void WrapperLog::scannerDataEnd(int reqId)noexcept{ LOG( _logLevel, "WrapperLog::scannerDataEnd( {} )", reqId ); }
 	void WrapperLog::currentTime( long time )noexcept
-	{ 
+	{
 		LOG( _logLevel, "WrapperLog::currentTime( {} )", ToIsoString(Clock::from_time_t(time)) );
-		
+
 	}
 	void WrapperLog::accountSummaryEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::accountSummaryEnd( {} )", reqId ); }
 	void WrapperLog::positionMultiEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::positionMultiEnd( {} )", reqId ); }
@@ -60,8 +60,8 @@ namespace Jde::Markets
 	void WrapperLog::accountUpdateMultiEnd( int reqId )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::accountUpdateMultiEnd( {} )", reqId ); }
 #pragma endregion
 	void WrapperLog::securityDefinitionOptionalParameter(int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
-	{ 
-		LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameter( '{}', '{}', '{}', '{}', '{}', '{}', '{}' )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() ); 
+	{
+		LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameter( '{}', '{}', '{}', '{}', '{}', '{}', '{}' )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() );
 	}
 	void WrapperLog::securityDefinitionOptionalParameterEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameterEnd( {} )", reqId ); }
 	void WrapperLog::fundamentalData(TickerId reqId, const std::string& data)noexcept{ LOG( _logLevel, "WrapperLog::fundamentalData( {}, {} )", reqId, data ); }
@@ -103,24 +103,24 @@ namespace Jde::Markets
 	void WrapperLog::historicalTicksLast( int reqId, const std::vector<HistoricalTickLast>& ticks, bool done )noexcept{ LOG( _logLevel, "WrapperLog::position( {}, {}, {} )", reqId, ticks.size(), done ); }
 	void WrapperLog::tickEFP( TickerId tickerId, TickType tickType, double basisPoints, const std::string& formattedBasisPoints, double /*totalDividends*/, int /*holdDays*/, const std::string& /*futureLastTradeDate*/, double /*dividendImpact*/, double /*dividendsToLastTradeDate*/ )noexcept{ LOG( _logLevel, "WrapperLog::tickEFP( {}, {}, {}, {} )", tickerId, tickType, basisPoints, formattedBasisPoints ); }
 	void WrapperLog::tickGeneric( TickerId tickerId, TickType tickType, double value )noexcept
-	{ 
-		LOG( _tickLevel, "WrapperLog::tickGeneric( tickerId='{}', field='{}', value='{}' )", tickerId, tickType, value ); 
+	{
+		LOG( _tickLevel, "WrapperLog::tickGeneric( tickerId='{}', field='{}', value='{}' )", tickerId, tickType, value );
 	}
 	void WrapperLog::tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept
-	{ 
-		LOG( _tickLevel, "WrapperLog::tickOptionComputation( tickerId='{}', tickType='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )", tickerId, tickType, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice ); 
+	{
+		LOG( _tickLevel, "WrapperLog::tickOptionComputation( tickerId='{}', tickType='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )", tickerId, tickType, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
 	}
 	void WrapperLog::tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attribs )noexcept
 	{
-		LOG( _tickLevel, "WrapperLog::tickPrice( tickerId='{}', field='{}', price='{}' )", tickerId, field, price ); 
+		LOG( _tickLevel, "WrapperLog::tickPrice( tickerId='{}', field='{}', price='{}' )", tickerId, field, price );
 	}
 	void WrapperLog::tickSize( TickerId tickerId, TickType field, int size )noexcept
-	{ 
-		LOG( _tickLevel, "WrapperLog::tickSize( tickerId='{}', field='{}', size='{}' )", tickerId, field, size ); 
+	{
+		LOG( _tickLevel, "WrapperLog::tickSize( tickerId='{}', field='{}', size='{}' )", tickerId, field, size );
 	}
 	void WrapperLog::tickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept
 	{
-		LOG( _tickLevel, "WrapperLog::tickString( tickerId='{}', field='{}', value='{}' )", tickerId, tickType, value ); 
+		LOG( _tickLevel, "WrapperLog::tickString( tickerId='{}', field='{}', value='{}' )", tickerId, tickType, value );
 	}
 	void WrapperLog::tickSnapshotEnd( int reqId )noexcept{}
 	void WrapperLog::winError( const std::string& str, int lastError)noexcept{ LOG( _logLevel, "({})noexcept{}.", lastError, str ); }

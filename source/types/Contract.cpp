@@ -6,22 +6,6 @@
 namespace Jde::Markets
 {
 	using std::ostream;
-/*
-	Contract::Contract( IO::IncomingMessage& message, bool havePrimaryExchange )noexcept(false):
-		Id{message.ReadInt32()},
-		Symbol{ message.ReadString() },
-		SecType{ message.ReadString() },
-		LastTradeDateOrContractMonth{ message.ReadString() },
-		Strike{ message.ReadDouble() },
-		Right{ message.ReadString() },
-		Multiplier{message.ReadString()},
-		Exchange{message.ReadString()},
-		PrimaryExchange{ havePrimaryExchange ? ToExchange(message.ReadString()) : Exchanges::None },
-		Currency{message.ReadString()},
-		LocalSymbol{message.ReadString()},
-		TradingClass{message.ReadString()}
-	{}
-*/
 	Contract::Contract( const ibapi::Contract& other ):
 		Id{ other.conId },
 		Symbol{ other.symbol },
@@ -342,36 +326,42 @@ namespace Jde::Markets
 		pResult->set_category( details.category );
 		pResult->set_subcategory( details.subcategory );
 		pResult->set_timezoneid( details.timeZoneId );
-		auto parseDate= [&details]( const string& value )
+		auto parseTimeframe = [&details]( const string& timeFrame )noexcept(false)
 		{
-			//var startEnd = StringUtilities::Split( details.tradingHours, '-' );
-			// if( startEnd.size()!=2 || startEnd[0].size()!=13 || startEnd[1].size()!=13 )
-			// 	continue;
-			if( value.size()!=13 )
+			auto parseDateTime = [&details]( const string& value )noexcept(false) //20200131:0930, 20200104:CLOSED
 			{
-				WARN( "Could not parse date '{}'.", value );
-				return static_cast<time_t>(0);
-			}
-			var year  = stoi( value.substr(0,4) ); var month = stoi( value.substr(4,2) ); var day = stoi( value.substr(6,2) ); var hour = stoi( value.substr(9,2) ); var minute = stoi( value.substr(11,2) );
-			var time = DateTime( year, month, day, hour, minute ).GetTimePoint();
-			return Clock::to_time_t( time+Timezone::TryGetGmtOffset(details.timeZoneId, time) );
+				var dateTime = StringUtilities::Split( value, ':' );
+				var& date = dateTime[0];
+				if( date.size()!=8 || dateTime.size()!=2 )
+					THROW( Exception("Could not parse parseDateTime '{}'.", value) );
+				var year  = stoi( date.substr(0,4) ); var month = stoi( date.substr(4,2) ); var day = stoi( date.substr(6,2) );
+				var& time = dateTime[1]; uint8 hour=0; uint8 minute=0;
+				if( time!="CLOSED" )
+				{
+					if( time.size()!=4 )
+						THROW( Exception("Could not parse time part of parseDateTime '{}'.", value) );
+					hour = stoi( value.substr(0,2) );
+					minute = stoi( value.substr(2,2) );
+				}
+				var localTime = DateTime( year, month, day, hour, minute ).GetTimePoint();
+				return Clock::to_time_t( localTime+Timezone::TryGetGmtOffset(details.timeZoneId, localTime) );
+			};
+			var startEnd = StringUtilities::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
+			var start = parseDateTime( startEnd[0] );
+			if( startEnd.size()>2 )
+				THROW( Exception("Could not parse parseTimeframe '{}'.", timeFrame) );
+			var end = startEnd.size()==2 ? parseDateTime( startEnd[1] ) : 0;
+
+			Proto::Results::ContractHours hours; hours.set_start( start ); hours.set_end( end );
+			return hours;
 		};
-		//pResult->set_tradinghours( details.tradingHours );
 		var tradingHours = StringUtilities::Split( details.tradingHours, ';' );
 		for( auto day : tradingHours )
-		{
-			var time = parseDate( day );
-			if( time )
-				pResult->add_tradinghours( time );
-		}
+			Try( [&](){ *pResult->add_trading_hours()=parseTimeframe(day); } );
 		var liquidHours = StringUtilities::Split( details.liquidHours, ';' );
 		for( auto day : liquidHours )
-		{
-			var time = parseDate( day );
-			if( time )
-				pResult->add_liquidhours( time );
-		}
-		//pResult->set_liquidhours( details.liquidHours );
+			Try( [&](){ *pResult->add_liquid_hours() = parseTimeframe(day); } );
+
 		pResult->set_evrule( details.evRule );
 		pResult->set_evmultiplier( details.evMultiplier );
 		pResult->set_mdsizemultiplier( details.mdSizeMultiplier );
