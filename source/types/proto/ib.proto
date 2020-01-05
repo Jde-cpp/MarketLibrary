@@ -1,7 +1,4 @@
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. ib.proto
-//C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. ib.proto
-//protoc --cpp_out . ib.proto
-//\code\7.0\web2\ClientApp>MKLINK ib.proto C:\code\7.0\native\framework\markets\types\proto\ib.proto
 //ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/ib.proto .
 //npx pbjs  -r ib_root -t static-module -w es6 -o src/app/proto/ib.js ib.proto & npx pbts -o src/app/proto/ib.d.ts src/app/proto/ib.js
 //npx pbjs -r ib_root -t static-module -w es6 -o ib.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/ib.proto & npx pbts -o ib.d.ts ib.js

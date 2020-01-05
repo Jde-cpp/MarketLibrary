@@ -1,12 +1,12 @@
-//C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
+//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto -I/c/code/libraries/vcpkg/installed/x64-windows/include -I. 
 //\code\7.0\web2\ClientApp>MKLINK requests.proto C:\code\7.0\native\framework\markets\types\proto\requests.proto  //ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/requests.proto .
 //npx pbjs -r request_root -t static-module -w es6 -o src/app/proto/requests.js requests.proto & npx pbts -o src/app/proto/requests.d.ts src/app/proto/requests.js
 //npx pbjs -r request_root -t static-module -w es6 -o requests.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/requests.proto & npx pbts -o requests.d.ts requests.js
 
 syntax = "proto3";
 package Jde.Markets.Proto.Requests;
-import "google/protobuf/timestamp.proto";
+//import "google/protobuf/timestamp.proto";
 import "ib.proto";
 
 message GenericRequest
@@ -96,7 +96,7 @@ message RequestHistoricalData
 {
 	int32 RequestId=1;
 	Contract Contract=2;
-	google.protobuf.Timestamp Date=3;
+	int32 Date=3;
 	uint32 Days=4;
 	BarSize BarSize=5;
 	Display Display=6;
@@ -115,7 +115,6 @@ message RequestContractDetails
 {
 	int32 RequestId=1;
 	repeated Contract Contracts=2;
-	//google.protobuf.Timestamp Date=3;
 }
 
 message RequestOptions
@@ -123,7 +122,7 @@ message RequestOptions
 	int32 RequestId=1;
 	int32 ContractId=2;
 	int32 IsCall=3;
-	google.protobuf.Timestamp Date=4;
+	int32 Date=4;
 }
 
 message FlexExecutions

@@ -18,7 +18,7 @@
 // #include <Eigen/SVD>
 
 #ifdef _MSC_VER
-	#define TWSAPIDLLEXP __declspec( dllimport )
+//	#define TWSAPIDLLEXP __declspec( dllimport )
 	#include <SDKDDKVer.h>
 #else
 	//#define IB_POSIX 1
@@ -34,7 +34,6 @@
 #include <EClient.h>
 #include <EWrapper.h>
 #include <CommissionReport.h>
-
 
 #include "../../Framework/source/TypeDefs.h"
 #include "JdeAssert.h"

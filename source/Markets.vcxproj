@@ -48,12 +48,12 @@
     <OutDir>$(SolutionDir).bin\$(Configuration)\</OutDir>
     <IntDir>.obj\$(Configuration)\</IntDir>
     <TargetName>Jde.Markets</TargetName>
-    <IncludePath>spdlog\include;boost_1_69_0;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir).bin\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>spdlog\include;boost_1_69_0;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir).bin\$(Configuration)\</OutDir>
     <IntDir>.obj\$(Configuration)\</IntDir>
     <TargetName>Jde.Markets</TargetName>
@@ -65,12 +65,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;NOMINMAX;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>4068;4251;4275;4297</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -88,12 +89,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;NOMINMAX;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableSpecificWarnings>4068;4251;4275;4297</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
