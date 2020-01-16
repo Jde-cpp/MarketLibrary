@@ -51,4 +51,82 @@ message Contract
 	uint32 Flags=20;
 }
 
+enum EOrderType
+{
+	Limit=0;
+	Market=1;
+	MarketToLimit=2;
+	MarketIfTouched=3;
+	MarketOnClose=4;
+	PeggedToMarket=5;
+	PeggedToStock=6;
+	PeggedToPrimary=7;
+	BoxTop=8;
+	LimitIfTouched=9;
+	LimitOnClose=10;
+	PassiveRelative=11;
+	PeggedToMidpoint=12;
+	Stop=13;
+	StopLimit=14;
+	StopWithProtection=15;
+	TrailingStop=16;
+	TrailLimit=17;
+	RelativeLimit=18;
+	RelativeMarket=19;
+	Volatility=20;
+	PeggedToBenchmark=21;
+};
+
+enum ETimeInForce
+{
+	DayTif = 0;	//Valid for the day only.
+	Gtc = 1; //Good until canceled.
+	Ioc = 2; //Immediate or Cancel
+	Gtd = 3; //Good until Date.
+	Opg = 4; //Use OPG to send a market-on-open (MOO) or limit-on-open (LOO) order.
+	Fok = 5; //- If the entire Fill-or-Kill order does not execute as soon as it becomes available, the entire order is canceled.
+	Dtc = 6; //Day until Canceled
+}
+
+message Order
+{
+	uint32 id=1;
+	uint32 client_id=2;
+	uint32 perm_id=3;
+	bool is_buy = 4;
+	double quantity=5;
+	EOrderType type=6;
+	double limit=7;
+	double aux=8;
+	ETimeInForce time_in_force=9; // "Time in Force" - DAY, GTC, etc.
+	int32 active_start_time=10;	// for GTC orders
+	int32 active_stop_time=11;	// for GTC orders
+	string oca_group=12;      // one cancels all group name
+	int32 oca_type = 13;       // 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
+	string order_ref=14;      // order reference
+	bool transmit =15;      // if false, order will be created but not transmited
+	int32 parent_id = 16;      // Parent order Id, to associate Auto STP or TRAIL orders with the original order.
+	bool block_order = 17;
+	bool sweep_to_fill = 18;
+	int32 display_size = 19;
+	int32 trigger_method = 20; // 0=Default, 1=Double_Bid_Ask, 2=Last, 3=Double_Last, 4=Bid_Ask, 7=Last_or_Bid_Ask, 8=Mid-point
+	bool outside_rth = 21;
+	bool hidden = 22;
+	int32 good_after_time=23;    // Format: 20060505 08:00:00 {time zone}
+	int32 good_till_date=24;     // Format: 20060505 08:00:00 {time zone}
+	string rule_80a=25; // Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
+	bool all_or_none = 26;
+	int32  min_qty = 27;
+	double percent_offset = 28; // REL orders only
+	bool override_percentage_constraints = 29;
+	double trail_stop_price = 30; // TRAILLIMIT orders only
+	double trailing_percent = 31;
+		// financial advisors only
+	string fa_group=32;
+	string fa_profile=33;
+	string fa_method=34;
+	string fa_percentage=35;
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -145,7 +145,7 @@ message PortfolioUpdate
 	string AccountNumber=8;
 }
 
-message Order
+message FlexOrder
 {
 	uint32 Id=1;
 	string AccountId=2;
@@ -158,7 +158,6 @@ message Order
 	double Commission=9;
 	string OrderType=10;
 	uint32 OrderTime=11;
-
 }
 
 message Trade
@@ -182,7 +181,7 @@ message Trade
 message Flex
 {
 	uint32 RequestId=1;
-	repeated Order Orders=2;
+	repeated FlexOrder Orders=2;
 	repeated Trade Trades=3;
 }
 
@@ -219,6 +218,22 @@ message OptionValues
 	repeated OptionDay OptionDays=2;
 }
 
+message OrderStatus
+{
+	int32 id=1;
+	int32 order_id=2;
+	EOrderStatus status=3;
+	double filled=4;
+	double remaining=5;
+	double average_fill_price=6;
+	int32 perm_id=7;
+	int32 parent_id=8;
+	double last_fill_price=9;
+	int32 client_id=10;
+	string why_held=11;
+	double market_cap_price=12;
+}
+
 message MessageUnion
 {
 	oneof Value
@@ -238,8 +253,10 @@ message MessageUnion
 		Error Error = 13;
 		OptionValues Options=14;
 		HistoricalData HistoricalData=15;
-		StringResult StringResult=16;
-		Flex Flex=17;
+		StringResult string_result=16;
+		Flex flex=17;
+		OrderStatus order_status=18;
+		OpenOrder open_order=19;
 		//EResults Type=17;
 	}
 }
@@ -284,6 +301,33 @@ message TickString
 	string Value=3;
 }
 
+message OrderState
+{
+	string status=1;
+	string init_margin_before=2;
+	string maint_margin_before=3;
+	string equity_with_loan_before=4;
+	string init_margin_change=5;
+	string maint_margin_change=6;
+	string equity_with_loan_change=7;
+	string init_margin_after=8;
+	string maint_margin_after=9;
+	string equity_With_loan_after=10;
+	double commission=11;
+	double min_commission=12;
+	double max_commission=13;
+	string commission_currency=14;
+	string warning_text=15;
+	string completed_time=16;
+	string completed_status=17;
+}
+message OpenOrder
+{
+	uint32 web_id=1;
+	Contract contract=2;
+	Order order=3;
+	OrderState state=4;
+}
 enum ETickType
 {
 	BidSize =0;
@@ -386,9 +430,9 @@ enum EResults
 
 	TickPriceMessage                          = 1;
 	TickSizeMessage                           = 2;
-	OrderStatus                              	= 3;
+	OrderStatus_                             	= 3;
 	ErrorMessage                              = 4;
-	OpenOrder                                	= 5;
+	OpenOrder_                               	= 5;
 	ACCT_VALUE                                = 6;
 	PORTFOLIO_VALUE                           = 7;
 	ACCT_UPDATE_TIME                          = 8;
@@ -458,4 +502,21 @@ enum EResults
 	HISTORICAL_TICKS_BID_ASK                  = 97;
 	HISTORICAL_TICKS_LAST                     = 98;
 	TICK_BY_TICK                              = 99;
+}
+
+enum EOrderStatus
+{
+	None = 0x0;
+	Submitted = 0x1;//- indicates that your order has been accepted by the system.
+	Cancelled = 0x2;//- indicates that the balance of your order has been confirmed canceled by the IB system. This could occur unexpectedly when IB or the destination has rejected your order.
+	Filled = 0x4;//- indicates that the order has been completely filled. Market orders executions will not always trigger a Filled status.
+	Inactive = 0x8;//- indicates that the order was received by the system but is no longer active because it was rejected or canceled.
+	Pending = 0x20;
+	PendingSubmit=0x21;//- indicates that you have transmitted the order, but have not yet received confirmation that it has been accepted by the order destination.
+	PendingCancel=0x22;//- indicates that you have sent a request to cancel the order but have not yet received cancel confirmation from the order destination. At this point, your order is not confirmed canceled. It is not guaranteed that the cancellation will be successful.
+	Pre = 0x40;
+	PreSubmitted = 0x41;//- indicates that a simulated order type has been accepted by the IB system and that this order has yet to be elected. The order is held in the IB system until the election criteria are met. At that time the order is transmitted to the order destination as specified .
+	Api = 0x80;
+	ApiCancelled = 0x82; //- after an order has been submitted and before it has been acknowledged, an API client client can request its cancelation, producing this state.
+	UnknownStatus = 0x100;//Unknown
 }

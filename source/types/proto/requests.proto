@@ -1,6 +1,4 @@
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
-//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto -I/c/code/libraries/vcpkg/installed/x64-windows/include -I. 
-//\code\7.0\web2\ClientApp>MKLINK requests.proto C:\code\7.0\native\framework\markets\types\proto\requests.proto  //ln -s /home/duffyj/code/jde/7.0/native/framework/markets/types/proto/requests.proto .
 //npx pbjs -r request_root -t static-module -w es6 -o src/app/proto/requests.js requests.proto & npx pbts -o src/app/proto/requests.d.ts src/app/proto/requests.js
 //npx pbjs -r request_root -t static-module -w es6 -o requests.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/requests.proto & npx pbts -o requests.d.ts requests.js
 
@@ -88,7 +86,7 @@ enum ETickList
 	EtfNavMischightLow=614;
 	CreditmanSlowMarkPrice=619;
 	EtfFrozenNavLastfznavlast=623;
-	MonetaryClosePrice=645;///428 
+	MonetaryClosePrice=645;///428
 	Avgv1Min=658;
 }
 
@@ -132,6 +130,14 @@ message FlexExecutions
 	uint32 Date=3;
 }
 
+
+message PlaceOrder
+{
+	uint32 id=1;
+	Contract contract=2;
+	Order order=3;
+}
+
 message RequestUnion
 {
 	oneof Value
@@ -144,6 +150,7 @@ message RequestUnion
 		RequestOptions Options = 6;
 		RequestHistoricalData HistoricalData = 7;
 		FlexExecutions FlexExecutions=8;
+		PlaceOrder place_order=9;
 		//Request Historical data like normal...
 	}
 }
@@ -154,11 +161,11 @@ message RequestTransmission
 }
 
 enum Display
-{ 
+{
 	Trades=0;
-	Midpoint=1; 
-	Bid=3; 
-	Ask=4; 
+	Midpoint=1;
+	Bid=3;
+	Ask=4;
 	BidAsk=5;
 	HistoricalVolatility=6;
 	OptionImpliedVolatility=7;
@@ -167,8 +174,8 @@ enum Display
 }
 
 enum BarSize
-{	
-	None=0; 
+{
+	None=0;
 	Second=1;
 	Second5=2;
 	Second15=3;
@@ -193,7 +200,7 @@ enum ERequests
 
 	MarketData             			= 1;
 	CANCEL_MKT_DATA               = 2;
-	PlaceOrder                   	= 3;
+	PlaceOrder_                  	= 3;
 	CancelOrder                  	= 4;
 	REQ_OPEN_ORDERS               = 5;
 	REQ_ACCT_DATA                 = 6;
@@ -266,3 +273,4 @@ enum ERequests
 	REQ_TICK_BY_TICK_DATA         = 97;
 	CANCEL_TICK_BY_TICK_DATA      = 98;
 }
+
