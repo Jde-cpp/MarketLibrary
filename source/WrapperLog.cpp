@@ -5,7 +5,7 @@ namespace Jde::Markets
 {
 	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
 	{ //callback reqHistoricalData...
-		LOG( _logLevel, "WrapperLog::error( {}, {}, {} )", id, errorCode, errorMsg );
+		LOG( _logLevel, "({})WrapperLog::error( {}, {} )", errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"); }
 	/***********TO Implement************/

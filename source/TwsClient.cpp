@@ -67,7 +67,7 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept
 	{
-		LOG( _logLevel, "reqContractDetails( '{}', '{}', '{}', '{}' )", reqId, contract.conId, contract.secType, contract.localSymbol );
+		LOG( _logLevel, "reqContractDetails( '{}', '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.localSymbol );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
 	void TwsClient::reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
@@ -105,6 +105,6 @@ namespace Jde::Markets
 		order2.action = order.action;
 		order2.tif = order.tif;
 
-		EClientSocket::placeOrder( order.orderId, contract, order2 );
+		EClientSocket::placeOrder( order.orderId, contract, order );
 	}
 }

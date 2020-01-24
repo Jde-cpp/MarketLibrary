@@ -4,7 +4,7 @@ project(Jde.Markets)
 set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../Framework/cmake )
 include(SetUpConfigurations)
 #Custom######################################################
-include_directories( "/home/duffyj/code/libraries/tws-api/source/cppclient/client" )
+include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
 #############################################################
 add_library( Jde.Markets SHARED TwsProcessor.cpp TwsClient.cpp WrapperLog.cpp
 	types/Bar.cpp types/Contract.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/TwsConnectionSettings.cpp

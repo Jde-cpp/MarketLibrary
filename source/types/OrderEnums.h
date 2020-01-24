@@ -12,7 +12,7 @@ namespace Jde
 	// };
 namespace Markets
 {
-	constexpr std::array<std::string_view,22> EOrderTypeStrings={ "MKT", "LMT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
+	constexpr std::array<std::string_view,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
 	inline std::string_view ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return StringUtilities::FromEnum( EOrderTypeStrings, orderType ); }
 	inline Proto::EOrderType ToOrderType( string_view value )noexcept{ return StringUtilities::ToEnum( EOrderTypeStrings, value, Proto::EOrderType::Limit ); }
 

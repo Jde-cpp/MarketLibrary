@@ -11,31 +11,31 @@ import "ib.proto";
 
 message MessageValue
 {
-	EResults Type=1;
+	EResults type=1;
 	oneof Value
 	{
-		string StringValue = 2;
-		int32 IntValue = 3;
+		string string_value = 2;
+		int32 int_value = 3;
 	}
 }
 
 message StringResult
 {
-	EResults Type=1;
-	int32	RequestId=2;
-	string Value=3;
+	EResults type=1;
+	int32	id=2;
+	string value=3;
 }
 
 message TagValue
 {
-	string Tag=1;
-	string Value=2;
+	string tag=1;
+	string value=2;
 };
 
 message ContractHours
 {
-	int32 Start=1;
-	int32 End=2;
+	int32 start=1;
+	int32 end=2;
 }
 
 message ContractDetails
@@ -180,9 +180,9 @@ message Trade
 
 message Flex
 {
-	uint32 RequestId=1;
-	repeated FlexOrder Orders=2;
-	repeated Trade Trades=3;
+	uint32 id=1;
+	repeated FlexOrder orders=2;
+	repeated Trade trades=3;
 }
 
 message Error
@@ -238,31 +238,31 @@ message MessageUnion
 {
 	oneof Value
 	{
-		Position Position = 1;
-		Contract Contract = 2;
-		MessageValue Message = 3;
-		AccountList AccountList=4;
-		AccountUpdate AccountUpdate=5;
-		AccountUpdateMulti AccountUpdateMulti=6;
-		PortfolioUpdate PortfolioUpdate=7;
-		TickGeneric TickGeneric = 8;
-		TickPrice TickPrice = 9;
-		TickSize TickSize = 10;
-		TickString TickString = 11;
-		ContractDetails ContractDetails=12;
-		Error Error = 13;
-		OptionValues Options=14;
-		HistoricalData HistoricalData=15;
+		Position position = 1;
+		Contract contract = 2;
+		MessageValue message = 3;
+		AccountList account_list=4;
+		AccountUpdate account_update=5;
+		AccountUpdateMulti account_update_multi=6;
+		PortfolioUpdate portfolio_update=7;
+		TickGeneric tick_generic = 8;
+		TickPrice tick_price = 9;
+		TickSize tick_size = 10;
+		TickString tick_string = 11;
+		ContractDetails contract_details=12;
+		Error error = 13;
+		OptionValues options=14;
+		HistoricalData historical_data=15;
 		StringResult string_result=16;
 		Flex flex=17;
 		OrderStatus order_status=18;
 		OpenOrder open_order=19;
-		//EResults Type=17;
+		EResults type=20;
 	}
 }
 message Transmission
 {
-	repeated MessageUnion Messages=10;
+	repeated MessageUnion messages=1;
 }
 
 message TickGeneric
@@ -456,7 +456,7 @@ enum EResults
 	RealTimeBars                              = 50;
 	FUNDAMENTAL_DATA                          = 51;
 	ContractDataEnd                         	= 52;
-	OPEN_ORDER_END                            = 53;
+	OpenOrderEnd	                            = 53;
 	ACCT_DOWNLOAD_END                         = 54;
 	EXECUTION_DATA_END                        = 55;
 	DELTA_NEUTRAL_VALIDATION                  = 56;
