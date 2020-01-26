@@ -15,15 +15,15 @@ namespace Jde::Markets
 		ibapi::OrderId RequestId()noexcept{ return _requestId++; }
 		void SetRequestId( TickerId id )noexcept;
 
-		void cancelMktData( TickerId reqId )noexcept{LOG(_logLevel, "cancelMktData( '{}' )", reqId); EClientSocket::cancelMktData(reqId); }
-		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "cancelPositionsMulti( '{}' )", reqId); EClientSocket::cancelPositionsMulti(reqId); }
+		void cancelMktData( TickerId reqId )noexcept{LOG(_logLevel, "cancelMktData( '{}' )"sv, reqId); EClientSocket::cancelMktData(reqId); }
+		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "cancelPositionsMulti( '{}' )"sv, reqId); EClientSocket::cancelPositionsMulti(reqId); }
 
-		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"); EClientSocket::reqIds(_); }
-		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept{ LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )", subscribe, acctCode); EClientSocket::reqAccountUpdates( subscribe, acctCode ); }
+		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
+		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept{ LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode); EClientSocket::reqAccountUpdates( subscribe, acctCode ); }
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqHistoricalData( TickerId tickerId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept;
-		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()" ); EClientSocket::reqPositions(); }
-		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
+		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
+		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }
 		void reqMktData( TickerId tickerId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept;
 		void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
 		void reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept;

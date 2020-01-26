@@ -126,7 +126,7 @@ namespace Jde::Markets
 			if( timezone=="EST" || timezone=="EDT" )
 				time+=Timezone::EasternTimezoneDifference(time);
 			else if( timezone!="GMT" && timezone!="UTC" )
-				ERR( "non-implemented timezone {}", timezone );
+				ERR( "non-implemented timezone {}"sv, timezone );
 		}
 		return Clock::to_time_t( time );
 	}

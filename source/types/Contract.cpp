@@ -151,7 +151,7 @@ namespace Jde::Markets
 		if( shareCount==0 && price!=0 )
 		{
 			shareCount = 1;
-			TRACE( "{} - ${} resulted in 1 shares...", Symbol, price );//TODO only log once...
+			TRACE( "{} - ${} resulted in 1 shares..."sv, Symbol, price );//TODO only log once...
 		}
 		if( shareCount>89 && shareCount<100 )
 			shareCount = 100;

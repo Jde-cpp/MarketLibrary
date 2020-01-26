@@ -93,7 +93,7 @@ namespace Jde::Markets
 			duration = 1440min;
 			break;
 		default:
-			ERR( "Unknown Barsize '{}'", barSize );
+			ERR( "Unknown Barsize '{}'"sv, barSize );
 		}
 		return duration;
 	}
@@ -101,8 +101,8 @@ namespace Jde::Markets
 	{
 		constexpr auto perDay = chrono::minutes( (6*60+30) ).count();
 		var duration = chrono::duration_cast<chrono::minutes>( BarSize::BarDuration(barSize) ).count();
-		return duration > perDay 
-			? 1 
+		return duration > perDay
+			? 1
 			: perDay/duration + (perDay%duration ? 1 : 0);
 	}
 
