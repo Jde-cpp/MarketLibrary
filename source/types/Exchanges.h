@@ -12,8 +12,9 @@ namespace Jde::Markets
 		Nasdaq = 2,
 		Amex   =0x20,
 		Smart  =0x20000000,//30
-		Arca   =0x40000000,
-		Bats   =0x200000000
+		Arca   =0x40000000,//32
+		Bats   =0x200000000,
+		PinkSheets =0x100000000000
 	};
 
 	JDE_MARKETS_EXPORT string to_string( Exchanges exchange )noexcept;

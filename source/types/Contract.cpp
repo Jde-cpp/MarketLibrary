@@ -265,7 +265,7 @@ namespace Jde::Markets
 #pragma region SecurityRight
 	SecurityRight ToSecurityRight( string_view inputName )noexcept
 	{
-		CIString name = string(inputName).c_str();
+		CIString name{inputName};
 		auto securityRight = SecurityRight::None;
 		if( name=="call" || name=="C" )
 			securityRight = SecurityRight::Call;
@@ -280,7 +280,7 @@ namespace Jde::Markets
 #pragma region SecurityType
 	SecurityType ToSecurityType( string_view inputName )noexcept
 	{
-		CIString name = string(inputName).c_str();
+		CIString name{ inputName };
 		SecurityType type = SecurityType::None;
 		if( name=="OPT" )
 			type = SecurityType::Option;

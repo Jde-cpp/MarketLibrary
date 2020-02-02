@@ -17,7 +17,7 @@ namespace Jde::Markets
 		LOG( _logLevel, "WrapperLog::contractDetails( '{}', ('{}', '{}', '{}', '{}', '{}') )"sv, reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
 	}
 	void WrapperLog::contractDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::contractDetailsEnd( '{}' )"sv, reqId ); }
-	void WrapperLog::execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "({})WrapperLog::execDetails( {}, {}, {}, {}, {}, {} )"sv, contract.symbol, reqId, execution.acctNumber, execution.side, execution.shares, execution.price );	}
+	void WrapperLog::execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "({})WrapperLog::execDetails( {}, {}, {}, {}, {} )"sv, reqId, contract.symbol, execution.acctNumber, execution.side, execution.shares, execution.price );	}
 	void WrapperLog::execDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::execDetailsEnd( {} )"sv, reqId ); }
 	void WrapperLog::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
 	{

@@ -7,34 +7,27 @@ namespace Jde::Markets
 	string to_string( Exchanges exchange )noexcept
 	{
 		string value;
-		switch( exchange )
-		{
-		case Exchanges::Nyse:
+		if( exchange==Exchanges::Nyse )
 			value = "Nyse";
-			break;
-		case Exchanges::Nasdaq:
+		else if( exchange==Exchanges::Nasdaq )
 			value = "Nasdaq";
-			break;
-		case Exchanges::Amex:
+		else if( exchange==Exchanges::Amex )
 			value = "Amex";
-			break;
-		case Exchanges::Smart:
+		else if( exchange==Exchanges::Smart )
 			value = "Smart";
-			break;
-		case Exchanges::Arca:
+		else if( exchange==Exchanges::Arca )
 			value = "Arca";
-			break;
-		case Exchanges::Bats:
+		else if( exchange==Exchanges::Bats )
 			value = "Bats";
-			break;
-		default:
+		else if( exchange==Exchanges::PinkSheets )
+			value = "PinkSheets";
+		else
 			GetDefaultLogger()->error( "Unknown exchange {}", (uint)exchange );
-		}
 		return value;
 	}
 	Exchanges ToExchange( string_view pszName )noexcept
 	{
-		const CIString name( pszName.data(), pszName.size() );
+		const CIString name( pszName );
 		Exchanges value = Exchanges::None;
 		if( name=="Nyse" )
 			value = Exchanges::Nyse;
@@ -48,8 +41,10 @@ namespace Jde::Markets
 			value = Exchanges::Arca;
 		else if( name=="Bats" )
 			value = Exchanges::Bats;
+		else if( name=="Pink Sheets" || name=="PinkSheets" )
+			value = Exchanges::PinkSheets;
 		else
-			GetDefaultLogger()->error( "Unknown exchange {}", pszName );
+			GetDefaultLogger()->error( "Unknown exchange '{}'", pszName );
 		return value;
 	}
 
