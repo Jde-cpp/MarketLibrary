@@ -29,7 +29,7 @@ namespace Jde::Markets
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }//weekend=monday, monday=monday.
 
 	JDE_MARKETS_EXPORT bool IsHoliday( const TimePoint& date )noexcept;
-	bool IsHoliday( DayIndex day )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.
+	JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.
 	namespace ExchangeTime
 	{
 		//JDE_MARKETS_EXPORT MinuteIndex MinuteCount( const TimePoint& timePoint )noexcept;

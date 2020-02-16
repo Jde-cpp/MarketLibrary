@@ -5,4 +5,10 @@
     <IncludePath>$(REPO_DIR)/boost_1_72_0;$(REPO_DIR)/spdlog/include;$(REPO_DIR)/json/include;$(REPO_DIR)/tws-api/source/cppclient/client;$(IncludePath)</IncludePath>
     <LibraryPath>$(REPO_DIR)/boost_1_72_0/stage/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
 </Project>

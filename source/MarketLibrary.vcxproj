@@ -49,7 +49,7 @@
     <IntDir>.obj\$(Configuration)\</IntDir>
     <TargetName>Jde.Markets</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir).bin\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir).bin\$(Configuration)\;$(LibraryPath);../../Framework/source/.bin/debug</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -57,7 +57,7 @@
     <OutDir>$(SolutionDir).bin\$(Configuration)\</OutDir>
     <IntDir>.obj\$(Configuration)\</IntDir>
     <TargetName>Jde.Markets</TargetName>
-    <LibraryPath>$(SolutionDir).bin\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir).bin\$(Configuration)\;$(LibraryPath);../../Framework/source/.bin/release</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
