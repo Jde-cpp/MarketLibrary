@@ -68,6 +68,9 @@
     <ClInclude Include="types\IBException.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
+    <ClInclude Include="types\MyOrder.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -107,6 +110,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="types\IBException.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\MyOrder.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
   </ItemGroup>

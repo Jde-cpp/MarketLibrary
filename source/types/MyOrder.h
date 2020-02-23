@@ -9,7 +9,7 @@ namespace Jde::Markets
 		namespace IB{ enum ETimeInForce:int; class Order; }
 	}
 
-	struct MyOrder : public ibapi::Order
+	struct JDE_MARKETS_EXPORT MyOrder : public ibapi::Order
 	{
 		MyOrder( ibapi::OrderId orderId, const Proto::Order& order );
 		MyOrder( const ibapi::Order& order ):ibapi::Order{order}{}

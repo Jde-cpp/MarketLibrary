@@ -124,6 +124,7 @@
     <ClCompile Include="TwsProcessor.cpp" />
     <ClCompile Include="types\Bar.cpp" />
     <ClCompile Include="types\IBException.cpp" />
+    <ClCompile Include="types\MyOrder.cpp" />
     <ClCompile Include="types\proto\requests.pb.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -164,6 +165,7 @@
     <ClInclude Include="types\Currency.h" />
     <ClInclude Include="types\Exchanges.h" />
     <ClInclude Include="types\IBException.h" />
+    <ClInclude Include="types\MyOrder.h" />
     <ClInclude Include="types\proto\ib.pb.h" />
     <ClInclude Include="types\proto\requests.pb.h" />
     <ClInclude Include="types\proto\results.pb.h" />
