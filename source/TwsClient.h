@@ -15,7 +15,8 @@ namespace Jde::Markets
 		ibapi::OrderId RequestId()noexcept{ return _requestId++; }
 		void SetRequestId( TickerId id )noexcept;
 
-		void cancelMktData( TickerId reqId )noexcept{LOG(_logLevel, "cancelMktData( '{}' )"sv, reqId); EClientSocket::cancelMktData(reqId); }
+		void cancelMktData( TickerId reqId )noexcept{ LOG(_logLevel, "cancelMktData( '{}' )"sv, reqId); EClientSocket::cancelMktData(reqId); }
+		void cancelOrder( TickerId reqId )noexcept{ LOG(_logLevel, "cancelOrder( '{}' )"sv, reqId); EClientSocket::cancelOrder(reqId); }
 		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "cancelPositionsMulti( '{}' )"sv, reqId); EClientSocket::cancelPositionsMulti(reqId); }
 
 		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
@@ -28,6 +29,7 @@ namespace Jde::Markets
 		void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
 		void reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept;
 		void reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
+		void reqFundamentalData( TickerId tickerId, const ibapi::Contract &contract, string_view reportType )noexcept;
 		void reqCurrentTime()noexcept;
 		void reqOpenOrders()noexcept;
 		void reqAllOpenOrders()noexcept;

@@ -6,33 +6,45 @@
 namespace Jde::Markets
 {
 	using std::ostream;
-	Contract::Contract( const ibapi::Contract& other ):
+	Contract::Contract( const ibapi::Contract& other )noexcept:
 		Id{ other.conId },
 		Symbol{ other.symbol },
 		SecType{ other.secType },
-		LastTradeDateOrContractMonth{ other.lastTradeDateOrContractMonth },
 		Strike{ other.strike },
 		Right{ other.right },
-		Multiplier{other.multiplier},
+		Multiplier{ other.multiplier.size() ? (uint)stoi(other.multiplier) : 0 },
 		Exchange{other.exchange},
 		PrimaryExchange{ ToExchange(other.primaryExchange) },
 		Currency{other.currency},
 		LocalSymbol{other.localSymbol},
 		TradingClass{ other.tradingClass }
 	{
+		var& expiration = other.lastTradeDateOrContractMonth;
+		if( expiration.size()>0 )
+		{
+			if( expiration.size()==8 )
+			{
+				var year  = stoi( expiration.substr(0,4) ); var month = stoi( expiration.substr(4,2) ); var day = stoi( expiration.substr(6,2) );
+				Expiration = Chrono::DaysSinceEpoch( DateTime{(uint16)year, (uint8)month, (uint8)day} );
+			}
+		}
 		//GetDefaultLogger()->trace( "here" );
 	}
-	sp<ibapi::Contract> Contract::ToTws()const
+	sp<ibapi::Contract> Contract::ToTws()const noexcept
 	{
 		auto pIB = ms<ibapi::Contract>();
 		auto& other = *pIB;
 		other.conId = Id;
 		other.symbol = Symbol;
 		other.secType = SecType;
-		other.lastTradeDateOrContractMonth = LastTradeDateOrContractMonth;
+		if( Expiration )
+		{
+			const DateTime expiration{ Chrono::FromDays( Expiration ) };
+			other.lastTradeDateOrContractMonth = fmt::format( "{}{}{}", expiration.Year(), expiration.Month(), expiration.Day() );
+		}
 		other.strike = Strike;
 		other.right = Right;
-		other.multiplier = Multiplier;
+		other.multiplier = std::to_string( Multiplier );
 		other.exchange = Exchange;
 
 		other.primaryExchange = to_string( PrimaryExchange );
@@ -42,11 +54,11 @@ namespace Jde::Markets
 
 		return pIB;
 	}
-	Contract::Contract( const Proto::Contract& contract ):
+	Contract::Contract( const Proto::Contract& contract )noexcept:
 		Id{ (ContractPK)contract.id() },
 		Symbol{  contract.symbol() },
 		SecType{ contract.sectype() },
-		LastTradeDateOrContractMonth{ contract.lasttradedateorcontractmonth() },
+		Expiration{ contract.expiration() },
 		Strike{ contract.strike() },
 		Right{ contract.right() },
 		Multiplier{ contract.multiplier() },
@@ -78,7 +90,7 @@ namespace Jde::Markets
 		pProto->set_id( Id );
 		pProto->set_symbol( Symbol );
 		pProto->set_sectype( SecType );
-		pProto->set_lasttradedateorcontractmonth( LastTradeDateOrContractMonth );
+		pProto->set_expiration( Expiration );
 		pProto->set_strike( Strike );
 		pProto->set_right( Right );
 		pProto->set_multiplier( Multiplier );
@@ -104,7 +116,7 @@ namespace Jde::Markets
 
 		return pProto;
 	}
-	Contract::Contract( ContractPK id, string_view currency, string_view localSymbol, string_view multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate ):
+	Contract::Contract( ContractPK id, string_view currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
 		Id{id},
 		Symbol{symbol},
 		Multiplier{multiplier},
@@ -115,6 +127,11 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
+	Contract::Contract( const ibapi::ContractDetails& details )noexcept:
+		Contract{ details.contract }
+	{
+
+	}
 /*	Contract( const Contract& contract )
 	{
 		*this = contract;
@@ -122,7 +139,7 @@ namespace Jde::Markets
 	operator=( const Contract& contract );
 */
 
-	Contract::Contract(ContractPK id, string_view symbol ):
+	Contract::Contract(ContractPK id, string_view symbol )noexcept:
 		Id(id),
 		Symbol(symbol)
 	{}
@@ -161,7 +178,7 @@ namespace Jde::Markets
 	{
 		return PositionAmount( roundAmount==1 ? llround( amount ) : static_cast<_int>( amount/100 )*100 );
 	}
-	sp<DateTime> Contract::ExpirationTime()const noexcept
+/*	sp<DateTime> Contract::ExpirationTime()const noexcept
 	{
 		auto result = sp<DateTime>( nullptr );
 		if( LastTradeDateOrContractMonth.size()>0 )
@@ -172,20 +189,20 @@ namespace Jde::Markets
 			result = make_shared<DateTime>( year, month, day );
 		}
 		return result;
-	}
+	}*/
 	Amount Contract::RoundDownToMinTick( Amount price )const noexcept//TODO find min tick.
 	{
 		return Amount( std::round( (static_cast<double>(price)-.000005)*100.0 )/100.0 );//.00005 rounds down .005
 	}
-	std::ostream& Contract::to_stream( std::ostream& os, bool includePrimaryExchange )const
+	std::ostream& Contract::to_stream( std::ostream& os, bool includePrimaryExchange )const noexcept
 	{
-		os << Id << Symbol << SecType << LastTradeDateOrContractMonth << Strike << Right << Multiplier << Exchange;
+		os << Id << Symbol << SecType << Expiration << Strike << Right << Multiplier << Exchange;
 		if( includePrimaryExchange )
 			os  << to_string(PrimaryExchange);
 		os << Currency << LocalSymbol << TradingClass;
 		return os;
 	}
-	ostream& operator<<( ostream& os, const Contract& contract )
+	ostream& operator<<( ostream& os, const Contract& contract )noexcept
 	{
 		return contract.to_stream( os );
 	}
@@ -221,7 +238,7 @@ namespace Jde::Markets
 		ExemptCode{ isOrder ? message.ReadInt32() : 0 }
 	{}
 	*/
-	ComboLeg::ComboLeg( const Proto::ComboLeg& proto ):
+	ComboLeg::ComboLeg( const Proto::ComboLeg& proto )noexcept:
 		ConId{ (ContractPK)proto.conid() },
 		Ratio{ proto.ratio() },
 		Action{ proto.action() },
@@ -243,24 +260,24 @@ namespace Jde::Markets
 		pProto->set_designatedlocation( DesignatedLocation );
 		pProto->set_exemptcode( ExemptCode );
 	}
-	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const
+	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const noexcept
 	{
 		os << ConId << Ratio << Action << Exchange;
 		if( isOrder )
 			os << OpenClose << ShortSaleSlot << DesignatedLocation << ExemptCode;
 		return os;
 	}
-	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )
+	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )noexcept
 	{
 		return comboLeg.to_stream( os, false );
 	}
 	namespace Contracts
 	{
-		const Contract Spy{ 756733, "USD", "SPY", "0", "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
-		const Contract SH{ 236687911, "USD", "SH", "0", "PROSHARES SHORT S&P500", Exchanges::Arca, "SH", "SH" };
-		const Contract Qqq{ 320227571, "USD", "QQQ", "0", "POWERSHARES QQQ TRUST SERIES", Exchanges::Arca, "QQQ", "QQQ" };
-		const Contract Psq{ 43661924, "USD", "PSQ", "0", "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
-		const Contract Tsla{ 76792991, "USD", "TSLA", "0", "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
+		const Contract Spy{ 756733, "USD", "SPY", 0, "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
+		const Contract SH{ 236687911, "USD", "SH", 0, "PROSHARES SHORT S&P500", Exchanges::Arca, "SH", "SH" };
+		const Contract Qqq{ 320227571, "USD", "QQQ", 0, "POWERSHARES QQQ TRUST SERIES", Exchanges::Arca, "QQQ", "QQQ" };
+		const Contract Psq{ 43661924, "USD", "PSQ", 0, "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
+		const Contract Tsla{ 76792991, "USD", "TSLA", 0, "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
 	}
 #pragma region SecurityRight
 	SecurityRight ToSecurityRight( string_view inputName )noexcept
@@ -296,7 +313,7 @@ namespace Jde::Markets
 		return type;
 	}
 #pragma endregion
-	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, string_view symbol )
+	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, string_view symbol )noexcept
 	{
 		ContractPtr_ pContract;
 		for( var& pIdContract : contracts )
@@ -340,11 +357,11 @@ namespace Jde::Markets
 				{
 					if( time.size()!=4 )
 						THROW( Exception("Could not parse time part of parseDateTime '{}'.", value) );
-					hour = stoi( value.substr(0,2) );
-					minute = stoi( value.substr(2,2) );
+					hour = stoi( time.substr(0,2) );
+					minute = stoi( time.substr(2,2) );
 				}
 				var localTime = DateTime( year, month, day, hour, minute ).GetTimePoint();
-				return Clock::to_time_t( localTime+Timezone::TryGetGmtOffset(details.timeZoneId, localTime) );
+				return Clock::to_time_t( localTime-Timezone::TryGetGmtOffset(details.timeZoneId, localTime) );
 			};
 			var startEnd = StringUtilities::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
 			var start = parseDateTime( startEnd[0] );
@@ -395,5 +412,4 @@ namespace Jde::Markets
 		pResult->set_notes( details.notes );
 		return pResult;
 	}
-
 }

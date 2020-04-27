@@ -51,7 +51,6 @@ namespace Jde::Markets
 	void WrapperLog::currentTime( long time )noexcept
 	{
 		LOG( _logLevel, "WrapperLog::currentTime( {} )"sv, ToIsoString(Clock::from_time_t(time)) );
-
 	}
 	void WrapperLog::accountSummaryEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::accountSummaryEnd( {} )"sv, reqId ); }
 	void WrapperLog::positionMultiEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::positionMultiEnd( {} )"sv, reqId ); }
@@ -122,7 +121,7 @@ namespace Jde::Markets
 	{
 		LOG( _tickLevel, "WrapperLog::tickString( tickerId='{}', field='{}', value='{}' )"sv, tickerId, tickType, value );
 	}
-	void WrapperLog::tickSnapshotEnd( int reqId )noexcept{}
+	void WrapperLog::tickSnapshotEnd( int reqId )noexcept{LOG( _tickLevel, "WrapperLog::tickSnapshotEnd( tickerId='{}' )"sv, reqId);}
 	void WrapperLog::winError( const std::string& str, int lastError)noexcept{ LOG( _logLevel, "({})noexcept{}."sv, lastError, str ); }
 	void WrapperLog::orderBound( long long orderId, int apiClientId, int apiOrderId )noexcept{ LOG( _logLevel, "WrapperLog::orderBound( {}, {}, {} )"sv, orderId, apiClientId, apiOrderId ); }
 	void WrapperLog::completedOrder(const ibapi::Contract& contract, const ibapi::Order& order, const ibapi::OrderState& orderState)noexcept{LOG( _logLevel, "WrapperLog::openOrder( {}, {}@{}, {} )"sv, contract.symbol, toString(order), orderState.status );}

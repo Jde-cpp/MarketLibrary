@@ -1,0 +1,25 @@
+//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. OptionOI.proto
+syntax = "proto3";
+
+package Jde.Markets.Proto;
+
+
+message OptionOIDay
+{
+	uint32 id=1; /*option contract id*/
+	float last=2;
+	float net=3;
+	float bid=4;
+	float ask=5;
+	uint32 volume=6;
+	float iv=7;
+	float delta=8;
+	float gamma=9;
+	uint32 open_interest=10;
+}
+
+message UnderlyingOIValues
+{
+	uint32 id=1;/*uderlying id*/
+	repeated OptionOIDay contracts=2;
+}

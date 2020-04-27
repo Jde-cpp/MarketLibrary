@@ -50,7 +50,8 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
-		LOG( _logLevel, "reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' )"sv, reqId, contract.conId, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
+		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
+		LOG( _logLevel, "reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' )"sv, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}
@@ -62,12 +63,12 @@ namespace Jde::Markets
 
 	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
 	{
-		LOG( _logLevel, "reqSecDefOptParams( '{}', '{}', '{}', '{}', '{}' )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
+		LOG( _logLevel, "reqSecDefOptParams( {}, '{}', '{}', '{}', {} )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
 	void TwsClient::reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept
 	{
-		LOG( _logLevel, "reqContractDetails( '{}', '{}', '{}', '{}' )"sv, reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.localSymbol );
+		LOG( _logLevel, "reqContractDetails( {}, '{}', '{}', '{}' )"sv, reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
 	void TwsClient::reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
@@ -75,6 +76,12 @@ namespace Jde::Markets
 		LOG( _logLevel, "reqHeadTimestamp( '{}', '{}', '{}', useRTH:  '{}', formatDate:  '{}' )"sv, tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
 	}
+	void TwsClient::reqFundamentalData( TickerId tickerId, const ibapi::Contract &contract, string_view reportType )noexcept
+	{
+		LOG( _logLevel, "reqFundamentalData( '{}', '{}', '{}' )"sv, tickerId, contract.conId, reportType );
+		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
+	}
+
 
 	void TwsClient::reqCurrentTime()noexcept
 	{

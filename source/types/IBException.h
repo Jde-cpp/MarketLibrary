@@ -1,4 +1,5 @@
 #pragma once
+#include "../Exports.h"
 
 using std::string;
 namespace Jde::Markets
@@ -8,7 +9,8 @@ namespace Jde::Markets
 		IBException()=default;
 		IBException(const IBException&) = default;
 		IBException(IBException&&) = default;
-		IBException( string_view message, int errorCode, long reqId=-1 ):
+		IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, uint line )noexcept;
+		IBException( string_view message, int errorCode, long reqId=-1 )noexcept:
 			Exception( message ),
 			ErrorCode( errorCode ),
 			//Request( request ),
@@ -19,7 +21,7 @@ namespace Jde::Markets
 
 		const int ErrorCode;
 		//const void* Request;
-		const long RequestId;
+		const long RequestId{0};
 	};
 
 }

@@ -13,7 +13,7 @@ namespace Jde::Markets
 	{
 		MyOrder( ibapi::OrderId orderId, const Proto::Order& order );
 		MyOrder( const ibapi::Order& order ):ibapi::Order{order}{}
-		bool IsBuy()const noexcept{ return action=="BUY"; } void IsBuy( bool value)noexcept{ action = value ? "BUY" : "SELL"; }
+		bool IsBuy()const noexcept{ return action=="BUY"; } void IsBuy( bool value )noexcept{ action = value ? "BUY" : "SELL"; }
 		Proto::ETimeInForce TimeInForce()const noexcept; void TimeInForce( Proto::ETimeInForce value )noexcept;
 		Proto::EOrderType OrderType()const noexcept; void OrderType( Proto::EOrderType value )noexcept;
 		sp<Proto::Order> ToProto( bool stupidPointer=false )const noexcept;

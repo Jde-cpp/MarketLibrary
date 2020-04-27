@@ -91,35 +91,35 @@ enum ETickList
 
 message RequestHistoricalData
 {
-	int32 RequestId=1;
-	Contract Contract=2;
-	int32 Date=3;
-	uint32 Days=4;
-	BarSize BarSize=5;
-	Display Display=6;
-	bool UseRth=7;
-	bool KeepUpToDate=8;
+	int32 id=1;
+	Contract contract=2;
+	int32 date=3;
+	uint32 days=4;
+	BarSize bar_size=5;
+	Display display=6;
+	bool use_rth=7;
+	bool keep_up_to_date=8;
 }
 message RequestMrkDataSmart
 {
-	int32 RequestId=1;
-	int32 ContractId=2;
-	repeated ETickList TickList=3;
-	bool Snapshot=4;
+	int32 id=1;
+	int32 contract_id=2;
+	repeated ETickList tick_list=3;
+	bool snapshot=4;
 }
 
 message RequestContractDetails
 {
-	int32 RequestId=1;
-	repeated Contract Contracts=2;
+	int32 id=1;
+	repeated Contract contracts=2;
 }
 
 message RequestOptions
 {
-	int32 id=1;
-	int32 contract_id=2;
-	int32 is_call=3;
-	int32 date=4;
+	uint32 id=1;
+	uint32 contract_id=2;
+	boolean is_call=3;
+	uint32 date=4;
 }
 
 message FlexExecutions
@@ -136,6 +136,8 @@ message PlaceOrder
 	uint32 id=1;
 	Contract contract=2;
 	Order order=3;
+	double stop=4;
+	double stop_limit=5;
 }
 
 message RequestUnion
@@ -164,13 +166,13 @@ enum Display
 {
 	Trades=0;
 	Midpoint=1;
-	Bid=3;
-	Ask=4;
-	BidAsk=5;
-	HistoricalVolatility=6;
-	OptionImpliedVolatility=7;
-	FeeRate=8;
-	RebateRate=9;
+	Bid=2;
+	Ask=3;
+	BidAsk=4;
+	HistoricalVolatility=5;
+	OptionImpliedVolatility=6;
+	FeeRate=7;
+	RebateRate=8;
 }
 
 enum BarSize

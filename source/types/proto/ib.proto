@@ -29,26 +29,26 @@ message DeltaNeutralContract
 
 message Contract
 {
-	uint32 Id=1;
-	string Symbol=2;
-	string SecType=3;
-	string LastTradeDateOrContractMonth=4;
-	double Strike=5;
-	string Right=6;
-	string Multiplier=7;
-	string Exchange=8;
-	string PrimaryExchange=9;
-	string Currency=10;
-	string LocalSymbol=11;
-	string TradingClass=12;
-	bool IncludeExpired=13;
-	string SecIdType=14;		// CUSIP;SEDOL;ISIN;RIC
-	string SecId=15;
-	string ComboLegsDescrip=16; // received in open order 14 and up for all combos
-	repeated ComboLeg ComboLegs=17;
-	DeltaNeutralContract DeltaNeutral=18;
-	string Name=19;
-	uint32 Flags=20;
+	uint32 id=1;
+	string symbol=2;
+	string secType=3;
+	uint32 expiration=4;
+	double strike=5;
+	string right=6;
+	uint32 multiplier=7;
+	string exchange=8;
+	string primaryExchange=9;
+	string currency=10;
+	string localSymbol=11;
+	string tradingClass=12;
+	bool includeExpired=13;
+	string secIdType=14;		// CUSIP;SEDOL;ISIN;RIC
+	string secId=15;
+	string comboLegsDescrip=16; // received in open order 14 and up for all combos
+	repeated ComboLeg comboLegs=17;
+	DeltaNeutralContract deltaNeutral=18;
+	string name=19;
+	uint32 flags=20;
 }
 
 enum EOrderType
@@ -127,6 +127,18 @@ message Order
 	string fa_method=34;
 	string fa_percentage=35;
 
+	string open_close=36; // institutional (ie non-cleared) only O=Open, C=Close
+	uint32 origin=37;    // 0=Customer, 1=Firm
+	int32 short_sale_slot=38; // 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action="SSHORT
+	string designated_location=39; // set when slot=2 only.
+	int32 exempt_code = 40;
+
+	// SMART routing only
+	double discretionary_amt = 41;
+	bool etrade_only = 42;
+	bool firm_quote_only = 43;
+	double nbbo_price_cap = 44;
+	bool  opt_out_smart_routing = 45;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

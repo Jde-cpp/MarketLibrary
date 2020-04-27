@@ -52,6 +52,20 @@ namespace Jde::Markets
 		faMethod = proto.fa_method();
 		faPercentage = proto.fa_percentage();
 
+	/*	go with defaults for now
+		openClose = proto.open_close(); // institutional (ie non-cleared) only O=Open, C=Close
+		origin = proto.origin();    // 0=Customer, 1=Firm
+		shortSaleSlot = proto.short_sale_slot(); // 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action="SSHORT
+		designatedLocation = proto.designated_location(); // set when slot=2 only.
+		exemptCode = proto.exempt_code();
+
+		// SMART routing only
+		discretionaryAmt = proto.discretionary_amt();
+		eTradeOnly = proto.etrade_only();
+		firmQuoteOnly = proto.firm_quote_only();
+		nbboPriceCap = proto.nbbo_price_cap();
+		optOutSmartRouting = proto.opt_out_smart_routing();
+	*/
 		//TODO rest of variables
 	}
 	sp<Proto::Order> MyOrder::ToProto( bool stupidPointer )const noexcept
@@ -97,6 +111,20 @@ namespace Jde::Markets
 		proto.set_fa_profile( faProfile );
 		proto.set_fa_method( faMethod );
 		proto.set_fa_percentage( faPercentage );
+
+		proto.set_open_close( openClose ); // institutional (ie non-cleared) only O=Open, C=Close
+		proto.set_origin( origin );    // 0=Customer, 1=Firm
+		proto.set_short_sale_slot( shortSaleSlot ); // 1 if you hold the shares, 2 if they will be delivered from elsewhere.  Only for Action="SSHORT
+		proto.set_designated_location( designatedLocation ); // set when slot=2 only.
+		proto.set_exempt_code( exemptCode );
+
+		// SMART routing only
+		proto.set_discretionary_amt( discretionaryAmt );
+		proto.set_etrade_only( eTradeOnly );
+		proto.set_firm_quote_only( firmQuoteOnly );
+		proto.set_nbbo_price_cap( nbboPriceCap );
+		proto.set_opt_out_smart_routing( optOutSmartRouting );
+
 		return p;
 	}
 	Proto::ETimeInForce MyOrder::TimeInForce()const noexcept
@@ -153,9 +181,11 @@ namespace Jde::Markets
 		p->set_init_margin_after( state.initMarginAfter );
 		p->set_maint_margin_after( state.maintMarginAfter );
 		p->set_equity_with_loan_after( state.equityWithLoanAfter );
-		p->set_commission( state.commission );
-		p->set_min_commission( state.minCommission );
-		p->set_max_commission( state.maxCommission );
+		var max = std::numeric_limits<double>::max();
+		p->set_commission( state.commission==max ? nan("") : state.commission );
+		DBG( "{}, {}, {}"sv, max, state.commission, p->commission() );
+		p->set_min_commission( state.minCommission==max ? nan("") : state.minCommission );
+		p->set_max_commission( state.maxCommission==max ? nan("") : state.maxCommission );
 		p->set_commission_currency( state.commissionCurrency );
 		p->set_warning_text( state.warningText );
 		p->set_completed_time( state.completedTime );

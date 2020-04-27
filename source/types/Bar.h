@@ -14,7 +14,7 @@ namespace Jde::Markets
 	};
 
 	struct JDE_MARKETS_EXPORT TwsDisplay
-	{ 
+	{
 		enum Enum{ Trades, Midpoint, Bid, Ask, BidAsk, HistoricalVolatility, OptionImpliedVolatility, FeeRate, RebateRate };
 		static const char* StringValues[9];
 		static const char* ToString(const TwsDisplay::Enum display )noexcept(false);

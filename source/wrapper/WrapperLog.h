@@ -1,6 +1,6 @@
 #pragma once
 #include <EWrapper.h>
-#include "Exports.h"
+#include "../Exports.h"
 
 
 namespace Jde::Markets
@@ -96,6 +96,6 @@ namespace Jde::Markets
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 	protected:
 		ELogLevel _logLevel{ ELogLevel::Debug };
-		ELogLevel _tickLevel{ ELogLevel::Trace };
+		ELogLevel _tickLevel{ ELogLevel::Debug };
 	};
 }

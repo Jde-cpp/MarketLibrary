@@ -54,8 +54,8 @@ namespace Jde::Markets
 #pragma region ComboLeg
 	struct ComboLeg
 	{
-		ComboLeg( IO::IncomingMessage& message, bool isOrder );
-		ComboLeg( const Proto::ComboLeg& proto );
+		ComboLeg( IO::IncomingMessage& message, bool isOrder )noexcept;
+		ComboLeg( const Proto::ComboLeg& proto )noexcept;
 
 		ContractPK ConId{0};
 		long Ratio{0};
@@ -69,8 +69,8 @@ namespace Jde::Markets
 		int32 ExemptCode{-1};
 
 		void SetProto( Proto::ComboLeg* pProto )const noexcept;
-		std::ostream& to_stream( std::ostream& os, bool isOrder )const;
-		bool operator==( const ComboLeg& other) const
+		std::ostream& to_stream( std::ostream& os, bool isOrder )const noexcept;
+		bool operator==( const ComboLeg& other) const noexcept
 		{
 			return ConId == other.ConId && Ratio == other.Ratio && OpenClose == other.OpenClose
 				&& ShortSaleSlot == other.ShortSaleSlot && ExemptCode == other.ExemptCode && Action == other.Action
@@ -78,29 +78,30 @@ namespace Jde::Markets
 		}
 	};
 	typedef sp<ComboLeg> ComboLegPtr_;
-	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg );
+	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )noexcept;
 #pragma endregion
 #pragma region Contract
 	struct JDE_MARKETS_EXPORT Contract
 	{
 		Contract()=default;
 		Contract( IO::IncomingMessage& message, bool havePrimaryExchange=true )noexcept(false);
-		explicit Contract( ContractPK id, string_view symbol="" );
-		Contract( ContractPK id, string_view currency, string_view localSymbol, string_view multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() );
-		Contract( const ibapi::Contract& contract );
-		Contract( const Proto::Contract& contract );
+		explicit Contract( ContractPK id, string_view symbol="" )noexcept;
+		Contract( ContractPK id, string_view currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
+		Contract( const ibapi::Contract& contract )noexcept;
+		Contract( const ibapi::ContractDetails& details )noexcept;
+		Contract( const Proto::Contract& contract )noexcept;
 		~Contract();
-		bool operator <(const Contract &b) const{return Id<b.Id;}
+		bool operator <(const Contract &b)const noexcept{return Id<b.Id;}
 
-		sp<ibapi::Contract> ToTws()const;
+		sp<ibapi::Contract> ToTws()const noexcept;
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};
 		string Symbol;
 		string SecType;//"STK", "OPT"
-		string LastTradeDateOrContractMonth;
+		DayIndex Expiration;
 		double Strike{0.0};
 		string Right;
-		string Multiplier;
+		uint32 Multiplier;
 		string Exchange{"SMART"};
 		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
 		string Currency;//TODOEXT make int
@@ -120,14 +121,14 @@ namespace Jde::Markets
 		PositionAmount LongShareCount( Amount price )const noexcept;
 		PositionAmount ShortShareCount( Amount price )const noexcept;
 		PositionAmount RoundShares( PositionAmount amount, PositionAmount roundAmount )const noexcept;
-		sp<DateTime> ExpirationTime()const noexcept;
+		//sp<DateTime> ExpirationTime()const noexcept;
 		Amount RoundDownToMinTick( Amount price )const noexcept;
 
-		std::ostream& to_stream( std::ostream& os, bool includePrimaryExchange=true )const;
+		std::ostream& to_stream( std::ostream& os, bool includePrimaryExchange=true )const noexcept;
 	};
 	typedef std::shared_ptr<const Contract> ContractPtr_;
-	std::ostream& operator<<( std::ostream& os, const Contract& contract );
-	JDE_MARKETS_EXPORT ContractPtr_ Find( const map<ContractPK, ContractPtr_>&, string_view symbol );
+	std::ostream& operator<<( std::ostream& os, const Contract& contract )noexcept;
+	JDE_MARKETS_EXPORT ContractPtr_ Find( const map<ContractPK, ContractPtr_>&, string_view symbol )noexcept;
 
 	//JDE_MARKETS_EXPORT sp<Proto::ContractDetails> ToProto( const ibapi::ContractDetails& details )noexcept;
 	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ibapi::ContractDetails& details )noexcept;

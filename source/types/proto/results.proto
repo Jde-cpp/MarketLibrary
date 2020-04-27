@@ -96,7 +96,7 @@ message Position
 
 message AccountList
 {
-	repeated string Numbers=1;
+	map<string,string> values=1;
 }
 
 message AccountUpdate
@@ -194,28 +194,30 @@ message Error
 
 message Option
 {
-	uint32 ContractId=1;
-	float	 Strike=2;
-	float	 Bid=3;
-	float	 Ask=4;
-	float	 Last=5;
-	float	 Volume=6;
-	uint32 OpenInterest=7;
-	int32 OIChange=8;
-	float	 PreviousPrice=9;
+	uint32 id=1;
+	float	 strike=2;
+	float	 bid=3;
+	float	 ask=4;
+	float	 last=5;
+	float	 volume=6;
+	uint32 open_interest=7;
+	int32 oi_change=8;
+	float	 previous_price=9;
+//	float delta=10;
+//	float delta_previous=11;
 }
 
 message OptionDay
 {
-	bool IsCall=1;
-	uint32 ExpirationDays=2;
-	repeated Option Values=3;
+	bool is_call=1;
+	uint32 expiration_days=2;
+	repeated Option values=3;
 }
 
 message OptionValues
 {
-	uint32 RequestId=1;
-	repeated OptionDay OptionDays=2;
+	uint32 id=1;
+	repeated OptionDay option_days=2;
 }
 
 message OrderStatus
