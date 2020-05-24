@@ -4,6 +4,7 @@
 #include "../types/proto/results.pb.h"
 #include "../../../Framework/source/io/File.h"
 #include "../../../Framework/source/db/Database.h"
+#include "../../../Framework/source/Cache.h"
 #define var const auto
 
 namespace Jde::Markets
@@ -39,7 +40,7 @@ namespace Jde::Markets
 			: IsCall<op2.IsCall;
 	}
 
-	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const list<ibapi::ContractDetails>& details )noexcept(false)
+	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& details )noexcept(false)
 	{
 		auto pExisting = Load( pContract->Id );
 		for( var& detail : details )
@@ -85,21 +86,92 @@ namespace Jde::Markets
 		sp<Proto::UnderlyingOIValues> pUnderlying;
 		if( fs::exists(file) )
 		{
-			var pBytes = Jde::IO::Zip::XZ::Read( file );
-			google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
-			pUnderlying = make_shared<Proto::UnderlyingOIValues>();
-			pUnderlying->ParseFromCodedStream( &input );
-
-			//uint size;
-			//input.ReadVarint64( &size );
-			//pCache->ParseFromCodedStream( &input );
-			//Jde::IO::IStreamBuffer buffer{ pBytes->data(), pBytes->size() };
-			//istream is{&buffer};
+			var cacheId = file.string();
+			if( Cache::Has(cacheId) )
+				pUnderlying = dynamic_pointer_cast<Proto::UnderlyingOIValues>( Cache::Get<google::protobuf::Message>(cacheId) );
+			else
+			{
+				var pBytes = Jde::IO::Zip::XZ::Read( file );
+				google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
+				pUnderlying = make_shared<Proto::UnderlyingOIValues>();
+				pUnderlying->ParseFromCodedStream( &input );
+				Cache::Set<google::protobuf::Message>( cacheId, pUnderlying );
+			}
 		}
 		return pUnderlying;
 	}
 
-	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired )noexcept(false)
+	void OptionData::LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	{
+		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
+		for( var& contract : ibOptions )
+			options.emplace( contract.contract.conId, make_tuple(Contract{contract},nullptr) );
+
+	//load tws details for day.
+		var currentTradingDay = IsOpen() ? CurrentTradingDay() : PreviousTradingDay(); // ;
+		var to = PreviousTradingDay( currentTradingDay );
+		var from = PreviousTradingDay( to );
+		const DateTime toDate( Chrono::FromDays(to) );
+		const DateTime fromDate( Chrono::FromDays(from) );
+		DBG( "current={}, to={}, from={}"sv, DateTime(Chrono::FromDays(currentTradingDay)).DateDisplay(), toDate.DateDisplay(), fromDate.DateDisplay() );
+		var pFromValues = Load( underlying, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
+		var fromSize = pFromValues ? pFromValues->contracts_size() : 0;
+		for( auto i=0; i<fromSize; ++i )
+		{
+			var pMutableOptionDays = pFromValues->mutable_contracts( i );
+			var pOptionIdValues = options.find( pMutableOptionDays->id() );
+			if( pOptionIdValues!=options.end() )//maybe only have calls
+				pOptionIdValues->second = make_tuple( get<0>(pOptionIdValues->second),pMutableOptionDays );
+		}
+
+		var pToValues = Load( underlying, toDate.Year(), toDate.Month(), toDate.Day() );
+		if( !pToValues )
+			return;
+		var toSize = pToValues->contracts_size();
+		map<uint16,Proto::Results::OptionDay*> values;
+		set<ContractPK> matchedIds;
+		auto setValue = [&]( const Contract& option, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay )
+		{
+			var daysSinceEpoch = option.Expiration;
+			auto pDayValue = values.find( daysSinceEpoch );
+			if( pDayValue==values.end() )
+			{
+				//DBG( "Adding - {}({})", DateTime(DateTime::FromDays(daysSinceEpoch)).ToIsoString(), daysSinceEpoch );
+				pDayValue = values.emplace( daysSinceEpoch, results.add_option_days() ).first;
+				pDayValue->second->set_expiration_days( daysSinceEpoch );
+				pDayValue->second->set_is_call( option.Right==SecurityRight::Call );
+			}
+			auto pDay = pDayValue->second;
+			auto pValue = pDay->add_values();
+			pValue->set_id( toDay.id() );
+			pValue->set_strike( (float)option.Strike );
+			pValue->set_ask( toDay.ask() ); pValue->set_bid( toDay.bid() ); pValue->set_last( toDay.last() );
+			pValue->set_open_interest( toDay.open_interest() );
+			const int toOI = toDay.open_interest();
+			pValue->set_oi_change( toOI - (pFromDay ? pFromDay->open_interest() : 0) );
+			pValue->set_previous_price( pFromDay ? pFromDay->last()<pFromDay->bid() || pFromDay->last()>pFromDay->ask() ? (pFromDay->bid()+pFromDay->ask())/2 : pFromDay->last() : 0 );
+			pValue->set_volume( toDay.volume() );
+			//pValue->set_delta( toDay.delta() );
+			//pValue->set_delta_pr evious(pFromDay ? pFromDay->delta() : toDay.delta() );
+		};
+		var today = DateTime::Today();
+		for( auto i=0; i<toSize; ++i )
+		{
+			var& toDay = pToValues->contracts( i );
+			var pOptionIdValues = options.find( toDay.id() );
+			if( pOptionIdValues==options.end() )
+				continue;
+			matchedIds.emplace( toDay.id() );
+			var& option = get<0>( pOptionIdValues->second );
+			if( Chrono::FromDays(option.Expiration)+23h<today )
+				continue;
+
+			var pFromDay = get<1>( pOptionIdValues->second );
+			setValue( option, toDay, pFromDay );
+		}
+	}
+
+	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired, bool noFromDayOk )noexcept(false)
 	{
 		var pOptions = Load( contract.Id );
 		map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
@@ -109,19 +181,20 @@ namespace Jde::Markets
 		const DateTime fromDate( Chrono::FromDays(from) );
 		//var pContract = Data::ContractData::Load( contract.Id );
 		var pFromValues = Load( contract, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
-		if( !pFromValues )
+		if( !pFromValues && !noFromDayOk )
 			return nullptr;
-		var size = pFromValues->contracts_size();
-		for( auto i=0; i<size; ++i )
+		if( pFromValues )
 		{
-			var pMutableOptionDays = pFromValues->mutable_contracts( i );
-			var pOptionIdValues = options.find( pMutableOptionDays->id() );
-			if( pOptionIdValues==options.end() )
-				WARN( "Could not find option id='{}'."sv, pMutableOptionDays->id() );
-			else
-				pOptionIdValues->second = make_tuple( get<0>(pOptionIdValues->second),pMutableOptionDays );
+			for( auto i=0; i<pFromValues->contracts_size(); ++i )
+			{
+				var pMutableOptionDays = pFromValues->mutable_contracts( i );
+				var pOptionIdValues = options.find( pMutableOptionDays->id() );
+				if( pOptionIdValues==options.end() )
+					WARN( "Could not find option id='{}'."sv, pMutableOptionDays->id() );
+				else
+					pOptionIdValues->second = make_tuple( get<0>(pOptionIdValues->second),pMutableOptionDays );
+			}
 		}
-
 		const DateTime toDate( Chrono::FromDays(to) );
 		var pToValues = Load( contract, toDate.Year(), toDate.Month(), toDate.Day() );
 		if( !pToValues )

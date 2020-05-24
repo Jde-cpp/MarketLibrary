@@ -6,7 +6,9 @@ include(SetUpConfigurations)
 #Custom######################################################
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
 #############################################################
-add_library( Jde.Markets SHARED TwsProcessor.cpp TwsClient.cpp TwsClientSync.cpp wrapper/WrapperLog.cpp wrapper/WrapperSync.cpp
+add_library( Jde.Markets SHARED TwsProcessor.cpp
+	client/TwsClient.cpp client/TwsClientSync.cpp client/TwsClientCache.cpp
+	wrapper/WrapperLog.cpp wrapper/WrapperSync.cpp wrapper/WrapperCache.cpp
 	data/OptionData.cpp
 	types/Bar.cpp types/Contract.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/TwsConnectionSettings.cpp
 	types/proto/ib.pb.cc types/proto/OptionOI.pb.cc types/proto/requests.pb.cc types/proto/results.pb.cc )

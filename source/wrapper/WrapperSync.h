@@ -1,19 +1,20 @@
 #pragma once
-#include "../Exports.h"
-#include "WrapperLog.h"
 #include "../../../Framework/source/collections/Queue.h"
+#include "../Exports.h"
+#include "WrapperCache.h"
 #include "WrapperPromise.h"
+#include "../types/proto/results.pb.h"
 
 namespace Jde::Markets
 {
-	struct OptionsData{ const std::string Exchange; int UnderlyingConId; const std::string TradingClass; const std::string Multiplier; const std::set<std::string> Expirations; const std::set<double> Strikes; };
-	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperLog
+	//struct OptionsData{ const std::string Exchange; int UnderlyingConId; const std::string TradingClass; const std::string Multiplier; const std::set<std::string> Expirations; const std::set<double> Strikes; };
+	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperCache
 	{
 		typedef function<void(TickerId id, int errorCode, const std::string& errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;
 		typedef function<void(TimePoint)> HeadTimestampCallback; void AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept;
-		typedef list<ibapi::Bar> ReqHistoricalData; //typedef function<void(sp<ReqHistoricalData>)> ReqHistoricalDataCallback;
+		typedef vector<ibapi::Bar> ReqHistoricalData; //typedef function<void(sp<ReqHistoricalData>)> ReqHistoricalDataCallback;
 		//typedef function<void(TickerId)> ReqIdCallback;
 		typedef function<void()> EndCallback;
 
@@ -22,7 +23,7 @@ namespace Jde::Markets
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		WrapperData<ibapi::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
 		WrapperData<ibapi::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
-		WrapperData<OptionsData>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
+		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
 		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId )noexcept;
 	protected:
@@ -44,11 +45,16 @@ namespace Jde::Markets
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ibapi::OrderId orderId)noexcept override;
 		void openOrderEnd()noexcept override;
+	public:
+		void securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
+		bool securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
+		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
+		bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
 		void contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
-		void securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
-		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
+	protected:
 
+		WrapperData<ibapi::ContractDetails> _detailsData;
 	private:
 		void SendCurrentTime( const TimePoint& time )noexcept;
 		forward_list<CurrentTimeCallback> _currentTimeCallbacks; mutable shared_mutex _currentTimeCallbacksMutex;
@@ -57,9 +63,9 @@ namespace Jde::Markets
 		//map<ReqId,ReqHistoricalDataCallback> _requestCallbacks; mutable shared_mutex _requestCallbacksMutex;
 		//map<ReqId,sp<ReqHistoricalData>> _requestData; mutable mutex _requestDataMutex;
 		sp<std::promise<TickerId>> _requestIdsPromisePtr; sp<std::shared_future<TickerId>> _requestIdsFuturePtr; mutable shared_mutex _requestIdsPromiseMutex;
-		WrapperData<ibapi::ContractDetails> _detailsData;
 		WrapperData<ibapi::Bar> _historicalData;
-		WrapperData<OptionsData> _optionsData;
+		WrapperData<Proto::Results::OptionParams> _optionsData;
+
 		WrapperItem<string> _fundamentalData;
 		WrapperItem<map<string,double>> _ratioData; map<TickerId,map<string,double>> _ratioValues; mutable mutex _ratioMutex;
 

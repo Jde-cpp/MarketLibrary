@@ -10,45 +10,46 @@ package Jde.Markets.Proto;
 
 message ComboLeg
 {
-	uint32 ConId=1;
-	int32 Ratio=2;
-	string Action=3;
-	string Exchange=4;
-	int32 OpenClose=5;
-	int32 ShortSaleSlot=6; // 1 = clearing broker, 2 = third party
-	string DesignatedLocation=7;
-	int32 ExemptCode=8;
+	uint32 contract_id=1;
+	int32 ratio=2;
+	string action=3;
+	string exchange=4;
+	int32 open_close=5;
+	int32 short_sales_lot=6; // 1 = clearing broker, 2 = third party
+	string designated_location=7;
+	int32 exempt_code=8;
 }
 
 message DeltaNeutralContract
 {
-	int32 Id=1;
-	double Delta=2;
-	double Price=3;
+	int32 id=1;
+	double delta=2;
+	double price=3;
 }
 
 message Contract
 {
 	uint32 id=1;
 	string symbol=2;
-	string secType=3;
+	string security_type=3;//todo make enum.
 	uint32 expiration=4;
 	double strike=5;
-	string right=6;
+	string right=6;//todo make enum.
 	uint32 multiplier=7;
 	string exchange=8;
-	string primaryExchange=9;
+	string primary_exchange=9;
 	string currency=10;
-	string localSymbol=11;
-	string tradingClass=12;
-	bool includeExpired=13;
-	string secIdType=14;		// CUSIP;SEDOL;ISIN;RIC
-	string secId=15;
-	string comboLegsDescrip=16; // received in open order 14 and up for all combos
-	repeated ComboLeg comboLegs=17;
-	DeltaNeutralContract deltaNeutral=18;
+	string local_symbol=11;
+	string trading_class=12;
+	bool include_expired=13;
+	string sec_id_type=14;		// CUSIP;SEDOL;ISIN;RIC
+	string sec_id=15;
+	string combo_legs_description=16; // received in open order 14 and up for all combos
+	repeated ComboLeg combo_Legs=17;
+	DeltaNeutralContract delta_neutral=18;
 	string name=19;
 	uint32 flags=20;
+	uint32 underlying_id=21;
 }
 
 enum EOrderType

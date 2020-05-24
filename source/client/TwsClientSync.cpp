@@ -1,7 +1,7 @@
 #include "TwsClientSync.h"
-#include "wrapper/WrapperSync.h"
-#include "TwsProcessor.h"
-#include "types/IBException.h"
+#include "../wrapper/WrapperSync.h"
+#include "../TwsProcessor.h"
+#include "../types/IBException.h"
 
 #define var const auto
 namespace Jde::Markets
@@ -19,9 +19,13 @@ namespace Jde::Markets
 		pInstance->ReqIds();
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
-		TwsClient( settings, wrapper, pReaderSignal, clientId )
+		TwsClientCache( settings, wrapper, pReaderSignal, clientId )
 	{}
 
+	shared_ptr<WrapperSync> TwsClientSync::Wrapper()noexcept
+	{
+		return std::dynamic_pointer_cast<WrapperSync>(_pWrapper);
+	}
 	TimePoint TwsClientSync::CurrentTime()noexcept
 	{
 		std::condition_variable cv; mutex mutex;
@@ -96,7 +100,7 @@ namespace Jde::Markets
 			pCv->notify_one();
 	};
 */
-	std::future<sp<list<ibapi::Bar>>> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
+	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
@@ -124,25 +128,89 @@ namespace Jde::Markets
 		_conditionVariables.erase( reqId );
 		return pResults ? pResults : make_shared<list<ibapi::Bar>>();*/
 	//}
-	std::future<sp<list<ibapi::ContractDetails>>> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
+	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol )noexcept
 	{
-		ibapi::Contract contract; contract.conId = id; contract.exchange = "SMART";
+		ibapi::Contract contract;
+		contract.symbol = symbol;
+		contract.secType = "STK";
+		contract.currency="USD";
+		contract.exchange = contract.primaryExchange = "SMART";
+
 		return ReqContractDetails( contract );
 	}
-	std::future<sp<list<ibapi::ContractDetails>>> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
+/*	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol, DayIndex dayIndex, SecurityRight right )noexcept
+	{
+		ibapi::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
+		if( dayIndex>0 )
+		{
+			const DateTime date{ Chrono::FromDays(dayIndex) };
+			contract.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
+		}
+		contract.right = ToString( right );
+
+		return ReqContractDetails( contract );
+	}*/
+	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
+	{
+		ibapi::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
+		return ReqContractDetails( contract );
+	}
+	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ContractDetailsPromise( reqId );
-		TwsClient::reqContractDetails( reqId, contract );
-		return future;
+		TwsClientCache::ReqContractDetails( reqId, contract );
+		// if( set && cacheReqId )
+		// {
+		// 	var pContracts = future.get();
+		// 	for( var& contract : *pContracts )
+		// 		Wrapper()->contractDetails( reqId, contract );
+		// 	Wrapper()->contractDetailsEnd( reqId );
+		// }
+		// else if( !set )
+		// 	TwsClient::reqContractDetails( reqId, contract );
+		return std::move( future );
 	}
-	std::future<sp<list<OptionsData>>> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept(false)
+	Proto::Results::OptionParams TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
+	{
+		auto params = ReqSecDefOptParams( underlyingConId, symbol ).get();
+		auto pSmart = std::find_if( params->begin(), params->end(), [](auto& param){return param.exchange()=="SMART";} );
+		if( pSmart==params->end() )
+			THROW( Exception("Could not find Smart options for '{}'", symbol) );
+		return *pSmart;
+	}
+	TwsClientSync::Future<Proto::Results::OptionParams> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->SecDefOptParamsPromise( reqId );
-		TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
-		return future;
+		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
+		return std::move( future );
 	}
+/*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
+	{
+		auto future = Wrapper()->SecDefOptParamsPromise( tickerId );
+		//if( !set )
+			TwsClientCache::reqSecDefOptParams( tickerId, underlyingConId, underlyingSymbol, futFopExchange, underlyingSecType );
+		else
+		{
+			var pData = future.get();
+			for( var& param : *pData )
+			{
+				std::set<std::string> expirations;
+				for( auto i=0; i<param.expirations_size(); ++i )
+				{
+					const DateTime date{ Chrono::FromDays(param.expirations(i)) };
+					expirations.emplace( fmt::format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
+				}
+				std::set<double> strikes;
+				for( auto i=0; i<param.strikes_size(); ++i )
+					strikes.emplace( param.strikes(i) );
+				Wrapper()->securityDefinitionOptionalParameter( tickerId, param.exchange(), param.underlying_contract_id(), param.trading_class(), param.multiplier(), expirations, strikes );
+			}
+			Wrapper()->securityDefinitionOptionalParameterEnd( tickerId );
+		}
+	}
+*/
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ibapi::Contract &contract, string_view reportType )noexcept
 	{
 		var reqId = RequestId();

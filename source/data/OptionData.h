@@ -30,10 +30,11 @@ namespace Jde::Markets
 	typedef sp<OptionSet> OptionSetPtr;
 	namespace OptionData
 	{
-		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const list<ibapi::ContractDetails>& pDetails )noexcept(false);
+		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& pDetails )noexcept(false);
 		JDE_MARKETS_EXPORT OptionSetPtr Load( ContractPK underlyingId )noexcept(false);
 		map<DayIndex,sp<Proto::UnderlyingOIValues>> LoadFiles( const Contract& contract )noexcept;
-		JDE_MARKETS_EXPORT Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired=false )noexcept(false);
+		JDE_MARKETS_EXPORT Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
+		JDE_MARKETS_EXPORT void LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
 		void Insert( const Option& value )noexcept(false);
 		JDE_MARKETS_EXPORT fs::path OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept;
 		//JDE_MARKETS_EXPORT TimePoint LastOptionDate( const Contract& contract )noexcept;

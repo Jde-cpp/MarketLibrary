@@ -31,6 +31,7 @@ namespace Jde::Markets
 		Put=2
 	};
 	JDE_MARKETS_EXPORT SecurityRight ToSecurityRight( string_view name )noexcept;
+	JDE_MARKETS_EXPORT string_view ToString( SecurityRight right )noexcept;
 #pragma endregion
 #pragma region SecurityType
 	enum class SecurityType : uint8
@@ -100,7 +101,7 @@ namespace Jde::Markets
 		string SecType;//"STK", "OPT"
 		DayIndex Expiration;
 		double Strike{0.0};
-		string Right;
+		SecurityRight Right{SecurityRight::None};
 		uint32 Multiplier;
 		string Exchange{"SMART"};
 		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
@@ -116,6 +117,7 @@ namespace Jde::Markets
 		string Name;
 		uint Flags{0};
 		TimePoint IssueDate{ TimePoint::max() };
+		ContractPK UnderlyingId{0};
 
 		ContractPK ShortContractId()const noexcept;
 		PositionAmount LongShareCount( Amount price )const noexcept;
@@ -123,6 +125,7 @@ namespace Jde::Markets
 		PositionAmount RoundShares( PositionAmount amount, PositionAmount roundAmount )const noexcept;
 		//sp<DateTime> ExpirationTime()const noexcept;
 		Amount RoundDownToMinTick( Amount price )const noexcept;
+		static DayIndex ToDay( const string& str )noexcept;
 
 		std::ostream& to_stream( std::ostream& os, bool includePrimaryExchange=true )const noexcept;
 	};

@@ -495,4 +495,9 @@ namespace Jde::Markets
 		return shortDays.find(day)==shortDays.end() ? 390 : shortDays.find(day)->second;
 #endif
 	}
+	bool IsOpen()noexcept
+	{
+		DateTime etNow{ Timezone::EasternTimeNow() };
+		return !IsHoliday( DaysSinceEpoch(etNow) ) && etNow.Hour()>3 && etNow.Hour()<20;
+	}
 }

@@ -10,25 +10,26 @@ namespace Jde::Markets
 		Id{ other.conId },
 		Symbol{ other.symbol },
 		SecType{ other.secType },
+		Expiration{ ToDay(other.lastTradeDateOrContractMonth) },
 		Strike{ other.strike },
-		Right{ other.right },
+		Right{ ToSecurityRight(other.right) },
 		Multiplier{ other.multiplier.size() ? (uint)stoi(other.multiplier) : 0 },
 		Exchange{other.exchange},
 		PrimaryExchange{ ToExchange(other.primaryExchange) },
 		Currency{other.currency},
 		LocalSymbol{other.localSymbol},
 		TradingClass{ other.tradingClass }
+	{}
+
+	DayIndex Contract::ToDay( const string& str )noexcept
 	{
-		var& expiration = other.lastTradeDateOrContractMonth;
-		if( expiration.size()>0 )
+		DayIndex value = 0;
+		if( str.size()==8 )
 		{
-			if( expiration.size()==8 )
-			{
-				var year  = stoi( expiration.substr(0,4) ); var month = stoi( expiration.substr(4,2) ); var day = stoi( expiration.substr(6,2) );
-				Expiration = Chrono::DaysSinceEpoch( DateTime{(uint16)year, (uint8)month, (uint8)day} );
-			}
+			var year  = stoi( str.substr(0,4) ); var month = stoi( str.substr(4,2) ); var day = stoi( str.substr(6,2) );
+			value = Chrono::DaysSinceEpoch( DateTime{(uint16)year, (uint8)month, (uint8)day} );
 		}
-		//GetDefaultLogger()->trace( "here" );
+		return value;
 	}
 	sp<ibapi::Contract> Contract::ToTws()const noexcept
 	{
@@ -40,14 +41,15 @@ namespace Jde::Markets
 		if( Expiration )
 		{
 			const DateTime expiration{ Chrono::FromDays( Expiration ) };
-			other.lastTradeDateOrContractMonth = fmt::format( "{}{}{}", expiration.Year(), expiration.Month(), expiration.Day() );
+			other.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", expiration.Year(), expiration.Month(), expiration.Day() );
 		}
 		other.strike = Strike;
-		other.right = Right;
-		other.multiplier = std::to_string( Multiplier );
+		other.right = ToString( Right );
+		if( Multiplier )
+			other.multiplier = std::to_string( Multiplier );
 		other.exchange = Exchange;
-
-		other.primaryExchange = to_string( PrimaryExchange );
+		if( PrimaryExchange!=Exchanges::Smart )
+			other.primaryExchange = to_string( PrimaryExchange );
 		other.currency = Currency;
 		other.localSymbol = LocalSymbol;
 		other.tradingClass = TradingClass;
@@ -57,59 +59,59 @@ namespace Jde::Markets
 	Contract::Contract( const Proto::Contract& contract )noexcept:
 		Id{ (ContractPK)contract.id() },
 		Symbol{  contract.symbol() },
-		SecType{ contract.sectype() },
+		SecType{ contract.security_type() },
 		Expiration{ contract.expiration() },
 		Strike{ contract.strike() },
-		Right{ contract.right() },
+		Right{ ToSecurityRight(contract.right()) },
 		Multiplier{ contract.multiplier() },
-		Exchange{ contract.exchange() },
-		PrimaryExchange{ ToExchange(contract.primaryexchange()) },
-		Currency{ contract.currency() },
-		LocalSymbol{ contract.localsymbol() },
-		TradingClass{ contract.tradingclass() },
-		IncludeExpired{ contract.includeexpired() },
-		SecIdType{ contract.secidtype() },
-		SecId{ contract.secid() },
-		ComboLegsDescrip{ contract.combolegsdescrip() },
+		Exchange{ contract.exchange().size() ? contract.exchange() : "SMART" },
+		PrimaryExchange{ ToExchange(contract.primary_exchange()) },
+		Currency{ contract.currency().size() ? contract.currency() : "USD" },
+		LocalSymbol{ contract.local_symbol() },
+		TradingClass{ contract.trading_class() },
+		IncludeExpired{ contract.include_expired() },
+		SecIdType{ contract.sec_id_type() },
+		SecId{ contract.sec_id() },
+		ComboLegsDescrip{ contract.combo_legs_description() },
 		Name{ contract.name() },
 		Flags{ contract.flags() }
 	{
-		var legs = contract.combolegs_size();
+		var legs = contract.combo_legs_size();
 		if( legs )
 		{
 			ComboLegsPtr = make_shared<vector<ComboLegPtr_>>(); ComboLegsPtr->reserve( legs );
 			for( auto i=0; i<legs; ++i )
-				ComboLegsPtr->push_back( make_shared<ComboLeg>(contract.combolegs(i)) );
+				ComboLegsPtr->push_back( make_shared<ComboLeg>(contract.combo_legs(i)) );
 		}
-		if( contract.has_deltaneutral() )
-			DeltaNeutral = DeltaNeutralContract{ contract.deltaneutral() };
+		if( contract.has_delta_neutral() )
+			DeltaNeutral = DeltaNeutralContract{ contract.delta_neutral() };
 	}
 	sp<Proto::Contract> Contract::ToProto( bool stupidPointer )const noexcept
 	{
 		auto pProto = stupidPointer ? shared_ptr<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
 		pProto->set_id( Id );
 		pProto->set_symbol( Symbol );
-		pProto->set_sectype( SecType );
+		pProto->set_security_type( SecType );
 		pProto->set_expiration( Expiration );
 		pProto->set_strike( Strike );
-		pProto->set_right( Right );
+		pProto->set_right( string{ToString(Right)} );
 		pProto->set_multiplier( Multiplier );
 		pProto->set_exchange( Exchange );
-		pProto->set_primaryexchange( to_string(PrimaryExchange) );
+		pProto->set_primary_exchange( to_string(PrimaryExchange) );
 		pProto->set_currency( Currency );
-		pProto->set_localsymbol( LocalSymbol );
-		pProto->set_tradingclass( TradingClass );
-		pProto->set_includeexpired( IncludeExpired );
-		pProto->set_secidtype( SecIdType );		// CUSIP;SEDOL;ISIN;RIC
-		pProto->set_secid( SecId );
-		pProto->set_combolegsdescrip( ComboLegsDescrip ); // received in open order 14 and up for all combos
+		pProto->set_local_symbol( LocalSymbol );
+		pProto->set_trading_class( TradingClass );
+		pProto->set_include_expired( IncludeExpired );
+		pProto->set_sec_id_type( SecIdType );		// CUSIP;SEDOL;ISIN;RIC
+		pProto->set_sec_id( SecId );
+		pProto->set_combo_legs_description( ComboLegsDescrip ); // received in open order 14 and up for all combos
 		if( ComboLegsPtr )
 		{
 			for( var& pComboLeg : *ComboLegsPtr )
-				pComboLeg->SetProto( pProto->add_combolegs() );
+				pComboLeg->SetProto( pProto->add_combo_legs() );
 		}
 		sp<Proto::DeltaNeutralContract> pDeltaNeutral = DeltaNeutral.ToProto(true);
-		pProto->set_allocated_deltaneutral( pDeltaNeutral.get() );
+		pProto->set_allocated_delta_neutral( pDeltaNeutral.get() );
 
 		pProto->set_name( Name );
 		pProto->set_flags( (uint32)Flags );
@@ -196,7 +198,7 @@ namespace Jde::Markets
 	}
 	std::ostream& Contract::to_stream( std::ostream& os, bool includePrimaryExchange )const noexcept
 	{
-		os << Id << Symbol << SecType << Expiration << Strike << Right << Multiplier << Exchange;
+		os << Id << Symbol << SecType << Expiration << Strike << ToString(Right) << Multiplier << Exchange;
 		if( includePrimaryExchange )
 			os  << to_string(PrimaryExchange);
 		os << Currency << LocalSymbol << TradingClass;
@@ -239,26 +241,26 @@ namespace Jde::Markets
 	{}
 	*/
 	ComboLeg::ComboLeg( const Proto::ComboLeg& proto )noexcept:
-		ConId{ (ContractPK)proto.conid() },
+		ConId{ (ContractPK)proto.contract_id() },
 		Ratio{ proto.ratio() },
 		Action{ proto.action() },
 		Exchange {proto.exchange() },
-		OpenClose{ proto.openclose() },
-		ShortSaleSlot{ proto.shortsaleslot() },
-		DesignatedLocation{ proto.designatedlocation() },
-		ExemptCode{ proto.exemptcode() }
+		OpenClose{ proto.open_close() },
+		ShortSaleSlot{ proto.short_sales_lot() },
+		DesignatedLocation{ proto.designated_location() },
+		ExemptCode{ proto.exempt_code() }
 	{}
 
 	void ComboLeg::SetProto( Proto::ComboLeg* pProto )const noexcept
 	{
-		pProto->set_conid( ConId );
+		pProto->set_contract_id( ConId );
 		pProto->set_ratio( Ratio );
 		pProto->set_action( Action );
 		pProto->set_exchange( Exchange );
-		pProto->set_openclose( OpenClose );
-		pProto->set_shortsaleslot( ShortSaleSlot );
-		pProto->set_designatedlocation( DesignatedLocation );
-		pProto->set_exemptcode( ExemptCode );
+		pProto->set_open_close( OpenClose );
+		pProto->set_short_sales_lot( ShortSaleSlot );
+		pProto->set_designated_location( DesignatedLocation );
+		pProto->set_exempt_code( ExemptCode );
 	}
 	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const noexcept
 	{
@@ -288,10 +290,20 @@ namespace Jde::Markets
 			securityRight = SecurityRight::Call;
 		else if( name=="put" || name=="P" )
 			securityRight = SecurityRight::Put;
-		else
-			GetDefaultLogger()->warn( fmt::format("Could not parse security right {}", inputName) );
+		else if( name.size() )
+			WARN( "Could not parse security right '{}'."sv, inputName );
 
 		return securityRight;
+	}
+	string_view ToString( SecurityRight right )noexcept
+	{
+		string_view result = ""sv;
+		if( right==SecurityRight::Call )
+			result = "CALL"sv;
+		else if( right==SecurityRight::Put )
+			result = "PUT"sv;
+
+		return result;
 	}
 #pragma endregion
 #pragma region SecurityType

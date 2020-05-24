@@ -1,5 +1,6 @@
 #include "WrapperSync.h"
-#include "../TwsClientSync.h"
+#include "../client/TwsClientSync.h"
+#include "../types/Contract.h"
 #include "../types/IBException.h"
 
 #define var const auto
@@ -24,6 +25,8 @@ namespace Jde::Markets
 				_historicalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			else if( (handled = _fundamentalData.Contains(id)) )
 				_fundamentalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+			else if( (handled = _detailsData.Contains(id)) )
+				_detailsData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			else
 			{
 				lock_guard l{ _errorCallbacksMutex };
@@ -124,12 +127,12 @@ namespace Jde::Markets
 	}
 	void WrapperSync::contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept
 	{
-		WrapperLog::contractDetails( reqId, contractDetails );
+		WrapperCache::contractDetails( reqId, contractDetails );
 		_detailsData.Push( reqId, contractDetails );
 	}
 	void WrapperSync::contractDetailsEnd( int reqId )noexcept
 	{
-		WrapperLog::contractDetailsEnd( reqId );
+		WrapperCache::contractDetailsEnd( reqId );
 		_detailsData.End( reqId );
 	}
 	std::shared_future<TickerId> WrapperSync::ReqIdsPromise()noexcept
@@ -153,15 +156,42 @@ namespace Jde::Markets
 
 	void WrapperSync::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
-		WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-		_optionsData.Push( reqId, OptionsData{exchange, underlyingConId, tradingClass, multiplier, expirations, strikes} );
+		securityDefinitionOptionalParameterSync( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
+
+	bool WrapperSync::securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	{
+		WrapperCache::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
+		var captured = _optionsData.Contains(reqId);
+		if( captured )
+		{
+			var params = WrapperCache::ToOptionParam( exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
+			Proto::Results::OptionParams a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
+			for( var strike : strikes )
+				a.add_strikes( strike );
+
+			for( var& expiration : expirations )
+				a.add_expirations( Contract::ToDay(expiration) );
+			_optionsData.Push( reqId, a );
+		}
+		return captured;
+	}
+
 	void WrapperSync::securityDefinitionOptionalParameterEnd( int reqId )noexcept
 	{
-		WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
-		_optionsData.End( reqId );
+		securityDefinitionOptionalParameterEndSync( reqId );
 	}
-	WrapperData<OptionsData>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
+
+	bool WrapperSync::securityDefinitionOptionalParameterEndSync( int reqId )noexcept
+	{
+		WrapperCache::securityDefinitionOptionalParameterEnd( reqId );
+		var captured = _optionsData.Contains(reqId);
+		if( captured )
+			_optionsData.End( reqId );
+		return captured;
+	}
+
+	WrapperData<Proto::Results::OptionParams>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
 		return _optionsData.Promise( reqId );
 	}

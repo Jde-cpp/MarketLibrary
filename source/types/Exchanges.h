@@ -27,6 +27,7 @@ namespace Jde::Markets
 	inline DayIndex CurrentTradingDay( DayIndex day )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }//weekend=monday, monday=monday.
 	inline DayIndex CurrentTradingDay()noexcept{ return NextTradingDay( PreviousTradingDay( Chrono::DaysSinceEpoch(Timezone::EasternTimeNow())) ); }//weekend=monday, monday=monday.
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }//weekend=monday, monday=monday.
+	bool IsOpen()noexcept;
 
 	JDE_MARKETS_EXPORT bool IsHoliday( const TimePoint& date )noexcept;
 	JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.

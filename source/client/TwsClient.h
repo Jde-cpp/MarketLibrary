@@ -1,6 +1,6 @@
 #pragma once
-#include "./Exports.h"
-#include "types/TwsConnectionSettings.h"
+#include "../Exports.h"
+#include "../types/TwsConnectionSettings.h"
 
 struct EReaderSignal;
 
@@ -26,7 +26,7 @@ namespace Jde::Markets
 		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
 		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }
 		void reqMktData( TickerId tickerId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept;
-		void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
+		virtual void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
 		void reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept;
 		void reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
 		void reqFundamentalData( TickerId tickerId, const ibapi::Contract &contract, string_view reportType )noexcept;

@@ -259,7 +259,8 @@ message MessageUnion
 		Flex flex=17;
 		OrderStatus order_status=18;
 		OpenOrder open_order=19;
-		EResults type=20;
+		OptionParams option_parameters=20;
+		EResults type=21;
 	}
 }
 message Transmission
@@ -330,6 +331,17 @@ message OpenOrder
 	Order order=3;
 	OrderState state=4;
 }
+
+message OptionParams
+{
+	string exchange=1;
+	uint32 underlying_contract_id=2;
+	string trading_class=3;
+	string multiplier=4;
+	repeated uint32 expirations=5;
+	repeated double strikes=6;
+}
+
 enum ETickType
 {
 	BidSize =0;

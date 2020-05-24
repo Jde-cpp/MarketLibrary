@@ -118,8 +118,11 @@ message RequestOptions
 {
 	uint32 id=1;
 	uint32 contract_id=2;
-	boolean is_call=3;
-	uint32 date=4;
+	uint32 security_type=3;//1=call, 2=Put, 3=both
+	uint32 start_expiration=4;
+	uint32 end_expiration=5;
+	double start_srike=6;
+	double end_strike=7;
 }
 
 message FlexExecutions
@@ -148,9 +151,9 @@ message RequestUnion
 		RequestAccountUpdatesMulti account_updates_multi = 2;
 		RequestContractDetails contract_details = 3;
 		GenericRequests generic_requests=4;
-		RequestMrkDataSmart MrkDataSmart = 5;
+		RequestMrkDataSmart market_data_smart = 5;
 		RequestOptions options = 7;
-		RequestHistoricalData HistoricalData = 8;
+		RequestHistoricalData historical_data = 8;
 		FlexExecutions flex_executions=9;
 		PlaceOrder place_order=10;
 		//Request Historical data like normal...
@@ -159,7 +162,7 @@ message RequestUnion
 
 message RequestTransmission
 {
-	repeated RequestUnion Messages=10;
+	repeated RequestUnion messages=10;
 }
 
 enum Display
@@ -253,7 +256,7 @@ enum ERequests
 	CANCEL_POSITIONS_MULTI        = 75;
 	RequestAccountUpdatesMulti_   = 76;
 	CANCEL_ACCOUNT_UPDATES_MULTI  = 77;
-	REQ_SEC_DEF_OPT_PARAMS        = 78;
+	RequestOptionParams				= 78;//REQ_SEC_DEF_OPT_PARAMS
 	REQ_SOFT_DOLLAR_TIERS         = 79;
 	REQ_FAMILY_CODES              = 80;
 	REQ_MATCHING_SYMBOLS          = 81;

@@ -96,6 +96,6 @@ namespace Jde::Markets
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 	protected:
 		ELogLevel _logLevel{ ELogLevel::Debug };
-		ELogLevel _tickLevel{ ELogLevel::Debug };
+		ELogLevel _tickLevel{ ELogLevel::Trace };
 	};
 }
