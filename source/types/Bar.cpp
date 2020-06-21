@@ -4,6 +4,23 @@
 
 namespace Jde::Markets
 {
+	time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormatOptional )noexcept
+	{
+		var ymdFormat = ymdFormatOptional.value_or( time.size()==8 );
+		ASSERT( (ymdFormat && time.size()==8) || time.size()==10 );
+		return ymdFormat
+			? DateTime( (uint16)stoi(time.substr(0,4)), (uint8)stoi(time.substr(4,2)), (uint8)stoi(time.substr(6,2)) ).TimeT()
+			: stoi(time);
+	}
+	string ToIBDate( TimePoint timePoint )noexcept
+	{
+		const DateTime time{ timePoint };
+		return time.Hour()==0 && time.Minute()==0 && time.Second()==0
+			? fmt::format( "{}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day() )
+			: std::to_string( time.TimeT() );
+			//: fmt::format( "{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second() );
+	}
+
 	const char* BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
 	{
 		const char* result = "";

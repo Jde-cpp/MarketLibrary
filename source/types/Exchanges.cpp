@@ -1,4 +1,5 @@
 #include "Exchanges.h"
+#include "Contract.h"
 #define var const auto
 
 namespace Jde::Markets
@@ -21,8 +22,10 @@ namespace Jde::Markets
 			value = "Bats";
 		else if( exchange==Exchanges::PinkSheets )
 			value = "PinkSheets";
+		else if( exchange==Exchanges::Value )
+			value = "Value";
 		else
-			GetDefaultLogger()->error( "Unknown exchange {}", (uint)exchange );
+			ERR( "Unknown exchange {}"sv, (uint)exchange );
 		return value;
 	}
 	Exchanges ToExchange( string_view pszName )noexcept
@@ -43,8 +46,10 @@ namespace Jde::Markets
 			value = Exchanges::Bats;
 		else if( name=="Pink Sheets" || name=="PinkSheets" )
 			value = Exchanges::PinkSheets;
+		else if( name=="Value" )
+			value = Exchanges::Value;
 		else
-			GetDefaultLogger()->error( "Unknown exchange '{}'", pszName );
+			ERR( "Unknown exchange {}"sv, pszName );
 		return value;
 	}
 
@@ -499,5 +504,28 @@ namespace Jde::Markets
 	{
 		DateTime etNow{ Timezone::EasternTimeNow() };
 		return !IsHoliday( DaysSinceEpoch(etNow) ) && etNow.Hour()>3 && etNow.Hour()<20;
+	}
+	bool IsOpen( SecurityType type )noexcept
+	{
+		bool isOpen;
+		if( type==SecurityType::Option )
+		{
+			DateTime etNow{ Timezone::EasternTimeNow() };
+			return !IsHoliday( DaysSinceEpoch(etNow) ) && (etNow.Hour()*60+etNow.Minute())>=570 && etNow.Hour()<16;
+		}
+		else
+			isOpen = IsOpen();
+		return isOpen;
+	}
+	bool IsPreMarket( SecurityType type )noexcept
+	{
+		bool isPreMarket = type==SecurityType::Stock;
+		if( isPreMarket )
+		{
+			DateTime etNow{ Timezone::EasternTimeNow() };
+			var minute = etNow.Hour()*60+etNow.Minute();
+			isPreMarket = !IsHoliday( DaysSinceEpoch(etNow) ) && minute>179 && minute<570;
+		}
+		return isPreMarket;
 	}
 }

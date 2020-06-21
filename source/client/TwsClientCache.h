@@ -1,9 +1,9 @@
 #pragma once
 // #include <future>
-// #include "../../Framework/source/collections/UnorderedMap.h"
+#include "../../../MarketLibrary/source/types/Bar.h"
 #include "TwsClient.h"
 #include "../Exports.h"
-// #include "types/proto/results.pb.h"
+#include "../types/proto/requests.pb.h"
 
 //struct EReaderSignal;
 
@@ -21,6 +21,7 @@ namespace Jde::Markets
 		static ibapi::Contract ToContract( string_view symbol, DayIndex dayIndex, SecurityRight isCall )noexcept;
 		void ReqContractDetails( TickerId cacheReqId, const ibapi::Contract& contract )noexcept;
 		void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept;
+		void ReqHistoricalData( TickerId reqId, ContractPK contractId, DayIndex current, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useCache, bool useRth )noexcept;
 
 		//UnorderedMapValue<ReqId,string> _cacheIds;
 	};

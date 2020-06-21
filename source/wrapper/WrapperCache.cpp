@@ -11,7 +11,7 @@ namespace Jde::Markets
 		if( _cacheIds.Has(reqId) )
 		{
 			WrapperLog::contractDetails( reqId, contractDetails );
-			shared_lock l{_detailsMutex};
+			unique_lock l{_detailsMutex};
 			_details.try_emplace( reqId, sp<vector<ibapi::ContractDetails>>{ new vector<ibapi::ContractDetails>{} } ).first->second->push_back( contractDetails );
 		}
 	}
@@ -21,7 +21,7 @@ namespace Jde::Markets
 		if( cacheId.size() )
 		{
 			WrapperLog::contractDetailsEnd( reqId );
-			shared_lock l{_detailsMutex};
+			unique_lock l{_detailsMutex};
 			var pDetails = _details.find( reqId );
 			var pResults = pDetails==_details.end() ? sp<vector<ibapi::ContractDetails>>{} : pDetails->second;
 			Cache::Set( cacheId, pResults );
@@ -39,7 +39,6 @@ namespace Jde::Markets
 		for( var& expiration : expirations )
 			a.add_expirations( Contract::ToDay(expiration) );
 		return a;
-
 	}
 
 	//Log -> Cache -> Sync -> [Web|Historian]
@@ -50,7 +49,7 @@ namespace Jde::Markets
 		{
 			WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 			var a = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-			shared_lock l{_optionParamsMutex};
+			unique_lock l{_optionParamsMutex};
 			_optionParams.try_emplace( reqId, sp<vector<Proto::Results::OptionParams>>{ new vector<Proto::Results::OptionParams>{} } ).first->second->push_back( a );
 		}
 	}
@@ -62,9 +61,49 @@ namespace Jde::Markets
 		if( cacheId.size() )
 		{
 			WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
-			shared_lock l{_optionParamsMutex};
+			unique_lock l{_optionParamsMutex};
 			var pParams = _optionParams.find( reqId );
 			var pResults = pParams==_optionParams.end() ? sp<vector<Proto::Results::OptionParams>>{} : pParams->second;
+			Cache::Set( cacheId, pResults );
+			_optionParams.erase( reqId );
+			_cacheIds.erase( reqId );
+		}
+	}
+
+	void WrapperCache::ToBar( const ibapi::Bar& bar, Proto::Results::Bar& proto )noexcept
+	{
+		var time = bar.time.size()==8 ? DateTime{ (uint16)stoi(bar.time.substr(0,4)), (uint8)stoi(bar.time.substr(4,2)), (uint8)stoi(bar.time.substr(6,2)) } : DateTime( stoi(bar.time) );
+		proto.set_time( (int)time.TimeT() );
+
+		proto.set_high( bar.high );
+		proto.set_low( bar.low );
+		proto.set_open( bar.open );
+		proto.set_close( bar.close );
+		proto.set_wap( bar.wap );
+		proto.set_volume( bar.volume );
+		proto.set_count( bar.count );
+	}
+	void WrapperCache::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
+	{
+		var cacheId = _cacheIds.Find( reqId, string{} );
+		if( cacheId.size() )
+		{
+			WrapperLog::historicalData( reqId, bar );
+			Proto::Results::Bar proto;
+			ToBar( bar, proto );
+			unique_lock l{_historicalDataMutex};
+			_historicalData.try_emplace( reqId, sp<vector<Proto::Results::Bar>>{ new vector<Proto::Results::Bar>{} } ).first->second->push_back( proto );
+		}
+	}
+	void WrapperCache::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
+	{
+		var cacheId = _cacheIds.Find( reqId, string{} );
+		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
+		if( cacheId.size() )
+		{
+			unique_lock l{_historicalDataMutex};
+			var pParams = _historicalData.find( reqId );
+			var pResults = pParams==_historicalData.end() ? sp<vector<Proto::Results::Bar>>{} : pParams->second;
 			Cache::Set( cacheId, pResults );
 			_optionParams.erase( reqId );
 			_cacheIds.erase( reqId );

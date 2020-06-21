@@ -12,6 +12,7 @@ namespace Jde::Markets
 		//uint16 Port{7497};//{7497,7496,4001,4002}; //tws paper, tws, gateway, gateway paper
 		vector<uint16> Ports={7497,4002};
 		const bool CommunicationSink{false};
+		uint MaxHistoricalDataRequest{ std::numeric_limits<uint>::max() };
 	};
 	JDE_MARKETS_EXPORT std::ostream& operator<<( std::ostream& os, const TwsConnectionSettings& settings );
 }
@@ -30,6 +31,8 @@ inline void to_json( nlohmann::json& j, const Jde::Markets::TwsConnectionSetting
 		j["ports"] = settings.Ports;
 	if( settings.Host!=defaultValues.Host )
 		j["host"] = settings.Host;
+	if( settings.MaxHistoricalDataRequest!=defaultValues.MaxHistoricalDataRequest )
+		j["maxHistoricalDataRequest"] = settings.MaxHistoricalDataRequest;
 }
 
 

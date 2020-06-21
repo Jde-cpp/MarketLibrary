@@ -22,22 +22,26 @@ namespace Jde::Markets
 			var year = static_cast<uint16>(stoul(date.substr(0,4)) );
 			var month = static_cast<uint8>( stoul(date.substr(4,2)) );
 			var day = static_cast<uint8>( stoul(date.substr(6,2)) );
-			ExpirationDate = DateTime( year, month, day ).GetTimePoint();
+			ExpirationDay = Chrono::DaysSinceEpoch( DateTime(year, month, day).GetTimePoint() );
 		}
 	}
-	Option::Option( TimePoint expirationDate, Amount strike, bool isCall ):
-		ExpirationDate{ expirationDate },
+	Option::Option( DayIndex ExpirationDay, Amount strike, bool isCall, ContractPK underlyingId ):
+		ExpirationDay{ ExpirationDay },
 		IsCall{ isCall },
-		Strike{ strike }
+		Strike{ strike },
+		UnderlyingId{ underlyingId }
 	{}
 
 	bool Option::operator<( const Option& op2 )const noexcept
 	{
-		return Id!=op2.Id ? Id<op2.Id
-			: UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
-			: ExpirationDate!=op2.ExpirationDate ? ExpirationDate<op2.ExpirationDate
+		bool less = /*Id && op2.Id && Id!=op2.Id ? Id<op2.Id
+			:*/ UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
+			: ExpirationDay!=op2.ExpirationDay ? ExpirationDay<op2.ExpirationDay
 			: Strike!=op2.Strike ? Strike<op2.Strike
 			: IsCall<op2.IsCall;
+		//if( ExpirationDay==18423 && Strike==140 && ExpirationDay==op2.ExpirationDay && Strike==op2.Strike )
+			//DBG( "less={}, IsCall={}"sv, less, IsCall );
+		return less;
 	}
 
 	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& details )noexcept(false)
@@ -55,28 +59,28 @@ namespace Jde::Markets
 	void OptionData::Insert( const Option& value )noexcept(false)
 	{
 		var sql = "insert into sec_option_contracts( id, expiration_date, flags, strike, under_contract_id ) values( ?, ?, ?, ?, ? )";
-		var days = std::chrono::duration_cast<std::chrono::hours>( value.ExpirationDate-DateTime(1970,1,1).GetTimePoint() ).count()/24;
-		DB::DataSource()->Execute( sql, {value.Id, (uint)days, (uint)value.IsCall ? 1 : 2, (double)value.Strike, value.UnderlyingId} );
+		DB::DataSource()->Execute( sql, {value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, value.UnderlyingId} );
 	}
 
-	OptionSetPtr OptionData::Load( ContractPK underlyingId )noexcept(false)
+	OptionSetPtr OptionData::Load( ContractPK underlyingId, DayIndex earliestDay )noexcept(false)
 	{
-		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=?";
+		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=? and expiration_date>=?";
 		auto pResults = make_shared<set<OptionPtr,SPCompare<const Option>>>();
 		auto result = [&pResults, underlyingId]( const DB::IRow& row )
 		{
 			OptionPtr pOption = make_shared<const Option>();
 			auto& option = const_cast<Option&>( *pOption );
 			option.UnderlyingId = underlyingId;
-			uint16 dayCount; uint8 flags;
-			row >> option.Id >> dayCount >> flags >> option.Strike;
-			option.ExpirationDate = DateTime(1970,1,1).GetTimePoint()+std::chrono::hours(24*dayCount);
+			//uint16 dayCount;
+			uint8 flags;
+			row >> option.Id >> option.ExpirationDay >> flags >> option.Strike;
+			 //= dayCount;
 			option.IsCall = (flags&1)==1;
 			option.ContractPtr = make_shared<Contract>( option.Id );
 
 			pResults->emplace( pOption );
 		};
-		DB::DataSource()->Select( sql, result, {underlyingId} );
+		DB::DataSource()->Select( sql, result, {underlyingId, earliestDay} );
 		return pResults;
 	}
 
@@ -101,7 +105,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	void OptionData::LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
 		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )
@@ -126,7 +130,7 @@ namespace Jde::Markets
 
 		var pToValues = Load( underlying, toDate.Year(), toDate.Month(), toDate.Day() );
 		if( !pToValues )
-			return;
+			return 0;
 		var toSize = pToValues->contracts_size();
 		map<uint16,Proto::Results::OptionDay*> values;
 		set<ContractPK> matchedIds;
@@ -169,6 +173,7 @@ namespace Jde::Markets
 			var pFromDay = get<1>( pOptionIdValues->second );
 			setValue( option, toDay, pFromDay );
 		}
+		return to;
 	}
 
 	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired, bool noFromDayOk )noexcept(false)
@@ -206,7 +211,7 @@ namespace Jde::Markets
 		set<ContractPK> matchedIds;
 		auto setValue = [&]( OptionPtr pOption, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay, bool expired )
 		{
-			uint16 daysSinceEpoch = pOption->DaysSinceEpoch();
+			uint16 daysSinceEpoch = pOption->ExpirationDay;
 			auto pDayValue = values.find( daysSinceEpoch );
 			if( pDayValue==values.end() )
 			{
@@ -237,7 +242,7 @@ namespace Jde::Markets
 			var pOption = get<0>( pOptionIdValues->second );
 			if( pOption->IsCall!=isCall )
 				continue;
-			if( !includeExpired && pOption->ExpirationDate+23h<today )
+			if( !includeExpired && Chrono::FromDays(pOption->ExpirationDay)+23h<today )
 				continue;
 
 			var pFromDay = get<1>( pOptionIdValues->second );

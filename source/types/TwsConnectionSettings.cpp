@@ -23,7 +23,7 @@ void from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& se
 //	DBG("{}", "HI");
 	//for( nlohmann::json::const_iterator it = j.begin(); it != j.end(); ++it )
 	//	DBG( "\"{}\":\"{}\"", it.key(), it.value() );
-	
+
  	if( j.find("options")!=j.end() )
 		j.at("options").get_to( settings.Options );
 	if( j.find("ports")!=j.end() )
@@ -33,6 +33,9 @@ void from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& se
 	}
 	if( j.find("host")!=j.end() )
 		j.at("host").get_to( settings.Host );
+
+	if( j.find("maxHistoricalDataRequest")!=j.end() )
+		j.at("maxHistoricalDataRequest").get_to( settings.MaxHistoricalDataRequest );
 }
 
 // void to_json( nlohmann::json& j, const Jde::Markets::TwsConnectionSettings& settings )

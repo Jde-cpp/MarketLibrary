@@ -23,7 +23,8 @@ namespace Jde::Markets
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ibapi::Contract &contract, const std::string& whatToShow )noexcept(false);
 
-		Future<ibapi::Bar> ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false);
+		//Future<ibapi::Bar> ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false);
+		Future<ibapi::Bar> ReqHistoricalData( ContractPK contractId, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool cache=false, bool useRTH=true )noexcept;
 		Future<ibapi::ContractDetails> ReqContractDetails( string_view symbol )noexcept;
 		Future<ibapi::ContractDetails> ReqContractDetails( ContractPK id )noexcept;
 		Future<ibapi::ContractDetails> ReqContractDetails( const ibapi::Contract& contract )noexcept;
@@ -39,7 +40,7 @@ namespace Jde::Markets
 		void ReqIds()noexcept;
 		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
 		void OnHeadTimestamp( TickerId reqId, TimePoint t );
-		void OnReqHistoricalData( TickerId reqId, sp<list<ibapi::Bar>> pBars );
+		//void OnReqHistoricalData( TickerId reqId, sp<list<ibapi::Bar>> pBars );
 		shared_ptr<WrapperSync> Wrapper()noexcept;
 		//static sp<TwsClientSync> _pInstance;
 		TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);

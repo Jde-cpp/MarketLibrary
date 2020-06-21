@@ -100,13 +100,21 @@ namespace Jde::Markets
 			pCv->notify_one();
 	};
 */
-	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
+	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( ContractPK contractId, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool cache, bool useRth )noexcept
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
-		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/*keepUpToDate*/, TagValueListSPtr() );
+		TwsClientCache::ReqHistoricalData( reqId, contractId, endDay, dayCount, barSize, display, cache, useRth );
 		return future;
+
 	}
+/*	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
+	{
+		var reqId = RequestId();
+		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
+		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/ *keepUpToDate* /, TagValueListSPtr() );
+		return future;
+	}*/
 /*		var reqId = RequestId();
 		auto pCV = make_shared<std::condition_variable>();
 		_conditionVariables.emplace( reqId, pCV );
@@ -152,6 +160,7 @@ namespace Jde::Markets
 	}*/
 	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
 	{
+		ASSERT( id!=0 );
 		ibapi::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
 		return ReqContractDetails( contract );
 	}

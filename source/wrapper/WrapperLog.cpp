@@ -1,10 +1,12 @@
 #include "WrapperLog.h"
-//#include "types/messages/IBEnums.h"
 
+#define _client TwsClient::Instance()
 namespace Jde::Markets
 {
+
 	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
 	{ //callback reqHistoricalData...
+		_historicalDataRequests.erase( id );
 		LOG( _logLevel, "({})WrapperLog::error( {}, {} )"sv, id, errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"sv); }
@@ -23,7 +25,7 @@ namespace Jde::Markets
 	{
 		LOG( ELogLevel::Trace, "WrapperLog::historicalData( '{}', ['{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}'] )"sv, reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
 	}
-	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept{ LOG( _logLevel, "WrapperLog::historicalDataEnd( {}, {}, {} )"sv, reqId, startDateStr, endDateStr); }
+	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept{ _historicalDataRequests.erase( reqId ); LOG( _logLevel, "WrapperLog::historicalDataEnd( {}, {}, {} )"sv, reqId, startDateStr, endDateStr); }
 	void WrapperLog::managedAccounts( const std::string& accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
 	void WrapperLog::nextValidId( ibapi::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( {} )"sv, orderId ); }
 #pragma region Order

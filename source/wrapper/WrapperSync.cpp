@@ -27,6 +27,8 @@ namespace Jde::Markets
 				_fundamentalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			else if( (handled = _detailsData.Contains(id)) )
 				_detailsData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+			else if( (handled = _ratioData.Contains(id)) )
+				_ratioData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			else
 			{
 				lock_guard l{ _errorCallbacksMutex };
@@ -107,24 +109,7 @@ namespace Jde::Markets
 	{
 		_requestIds.Push( fnctn );
 	}*/
-	void WrapperSync::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
-	{
-		WrapperLog::historicalData( reqId, bar );
-		_historicalData.Push( reqId, bar );
 
-/*		shared_lock l{ _requestCallbacksMutex };
-		var pRequest = _requestCallbacks.find( reqId );
-		if( pRequest!=_requestCallbacks.end() )
-		{
-			//bool ymdFormat = get<1>( pRequest->second );
-			l.unlock();
-
-			unique_lock<std::mutex> lck{ _requestDataMutex };
-			auto pBars = _requestData.try_emplace( reqId, sp<ReqHistoricalData>{ new ReqHistoricalData() } ).first->second;
-			pBars->push_back( bar );
-		}
-*/
-	}
 	void WrapperSync::contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept
 	{
 		WrapperCache::contractDetails( reqId, contractDetails );
@@ -145,10 +130,7 @@ namespace Jde::Markets
 		}
 		return *_requestIdsFuturePtr;
 	}
-	WrapperData<ibapi::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
-	{
-		return _historicalData.Promise( reqId );
-	}
+
 	WrapperData<ibapi::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
 	{
 		return _detailsData.Promise( reqId );
@@ -207,33 +189,33 @@ namespace Jde::Markets
 		return _ratioData.Promise( reqId );
 	}
 
+	WrapperData<ibapi::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
+	{
+		return _historicalData.Promise( reqId );
+	}
+	void WrapperSync::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
+	{
+		historicalDataSync( reqId, bar );
+	}
+	bool WrapperSync::historicalDataSync( TickerId reqId, const ibapi::Bar& bar )noexcept
+	{
+		WrapperCache::historicalData( reqId, bar );
+		var captured = _historicalData.Contains(reqId);
+		if( captured )
+			_historicalData.Push( reqId, bar );
+		return captured;
+	}
 	void WrapperSync::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{
-		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
-		_historicalData.End( reqId );
-
-/*		unique_lock lck{_requestCallbacksMutex};
-		auto pReqCallback = _requestCallbacks.find( reqId );
-		if( pReqCallback==_requestCallbacks.end() )
-		{
-			WARN( "Could not find _requestCallbacks={}"sv, reqId );
-			return;
-		}
-
-		lock_guard<std::mutex> lck2{ _requestDataMutex };
-		auto pIdBars = _requestData.find( reqId );
-		if( pIdBars==_requestData.end() )
-			DBG( "Could not find reqHistoricalData={} in _requestData"sv, reqId );
-		else
-		{
-			auto fncn = pReqCallback->second;
-			var pBars = pIdBars->second;
-			LOG( _logLevel, "historicalDataEnd( {}, {}, {}, barCount={} )"sv, reqId, startDateStr, endDateStr, pBars->size() );
-			std::thread( [pBars, fncn]{fncn(pBars);} ).detach();
-			_requestData.erase( pIdBars );
-		}
-		_requestCallbacks.erase( pReqCallback );
-*/
+		historicalDataEndSync( reqId, startDateStr, endDateStr );
+	}
+	bool WrapperSync::historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
+	{
+		WrapperCache::historicalDataEnd( reqId, startDateStr, endDateStr );
+		var captured = _historicalData.Contains(reqId);
+		if( captured )
+			_historicalData.End( reqId );
+		return captured;
 	}
 	void WrapperSync::nextValidId( ibapi::OrderId orderId )noexcept
 	{
@@ -270,22 +252,27 @@ namespace Jde::Markets
 			DBG( "Could not find headTimestamp request '{}'"sv, reqId );
 	}
 
-	void WrapperSync::tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept
+	bool WrapperSync::TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept
 	{
 		WrapperLog::tickPrice( tickerId, field, price, attrib );
-		if( _ratioData.Contains(tickerId) )
+		var handled = _ratioData.Contains( tickerId );
+		if( handled )
 			AddRatioTick( tickerId, std::to_string(field), price );
+		return handled;
 	}
-	void WrapperSync::tickSize( TickerId tickerId, TickType field, int size )noexcept
+	bool WrapperSync::TickSize( TickerId tickerId, TickType field, int size )noexcept
 	{
 		WrapperLog::tickSize( tickerId, field, size );
-		if( _ratioData.Contains(tickerId) )
+		var handled = _ratioData.Contains( tickerId );
+		if( handled )
 			AddRatioTick( tickerId, std::to_string(field), size );
+		return handled;
 	}
-	void WrapperSync::tickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept
+	bool WrapperSync::TickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept
 	{
 		WrapperLog::tickString( tickerId, tickType, value );
-		if( _ratioData.Contains(tickerId) )
+		var handled = _ratioData.Contains( tickerId );
+		if( handled )
 		{
 			var values = StringUtilities::Split( value, ';' );
 			for( var& value : values )
@@ -305,6 +292,15 @@ namespace Jde::Markets
 				}
 			}
 		}
+		return handled;
+	}
+	bool WrapperSync::TickGeneric( TickerId tickerId, TickType field, double value )noexcept
+	{
+		WrapperLog::tickGeneric( tickerId, field, value );
+		var handled = _ratioData.Contains( tickerId );
+		if( handled )
+			AddRatioTick( tickerId, std::to_string(field), value );
+		return handled;
 	}
 	void WrapperSync::AddRatioTick( TickerId tickerId, string_view key, double value )noexcept
 	{
@@ -316,7 +312,8 @@ namespace Jde::Markets
 			&& values.find("0")!=values.end()
 			&& values.find("1")!=values.end()
 			&& values.find("9")!=values.end()
-			&& values.find("MKTCAP")!=values.end() )
+			&& values.find("MKTCAP")!=values.end()
+			&& values.find("NPRICE")!=values.end() )
 		{
 			TwsClientSync::Instance().cancelMktData( tickerId );
 			_ratioData.Push( tickerId, make_shared<map<string,double>>(values) );

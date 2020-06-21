@@ -1,5 +1,7 @@
 #include "TwsClient.h"
 #include "../TwsProcessor.h"
+#include "../wrapper/WrapperLog.h"
+
 #define var const auto
 
 namespace Jde::Markets
@@ -36,7 +38,10 @@ namespace Jde::Markets
 		if( !_port )
 			THROW( Exception("Could not connect to IB {}"sv, _settings) );
 	}
-
+	shared_ptr<WrapperLog> TwsClient::WrapperLogPtr()noexcept
+	{
+		return std::dynamic_pointer_cast<WrapperLog>(_pWrapper);
+	}
 	void TwsClient::SetRequestId( TickerId id )noexcept
 	{
 		if( _requestId<id )
@@ -51,9 +56,16 @@ namespace Jde::Markets
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
-		LOG( _logLevel, "reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' )"sv, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
-
-		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
+		var size = WrapperLogPtr()->HistoricalDataRequestSize();
+		var send = size<_settings.MaxHistoricalDataRequest;
+		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ){}"sv, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions, send ? "*" : "" );
+		if( send )
+		{
+			WrapperLogPtr()->AddHistoricalDataRequest( reqId );
+			EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
+		}
+		else
+			_pWrapper->error( reqId, 322, fmt::format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
 	}
 	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{

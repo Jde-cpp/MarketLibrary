@@ -7,6 +7,7 @@ struct EReaderSignal;
 namespace Jde::Markets
 {
 	struct TwsConnectionSettings;
+	struct WrapperLog;
 	struct JDE_MARKETS_EXPORT TwsClient : public EClientSocket
 	{
 		static void CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
@@ -36,9 +37,9 @@ namespace Jde::Markets
 		void placeOrder( const ibapi::Contract& contract, const ibapi::Order& order )noexcept;
 	protected:
 		shared_ptr<EWrapper> _pWrapper;
+		shared_ptr<WrapperLog> WrapperLogPtr()noexcept;
 		uint16 _port{0};
 		TwsClient( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
-
 	private:
 		static sp<TwsClient> _pInstance;
 		TwsConnectionSettings _settings;

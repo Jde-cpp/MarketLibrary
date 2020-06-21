@@ -40,58 +40,58 @@ message ContractHours
 
 message ContractDetails
 {
-	int32		RequestId=1;
-	Contract	Contract=2;
-	string	MarketName=3;
-	double	MinTick=4;
-	string	OrderTypes=5;
-	string	ValidExchanges=6;
-	int64		PriceMagnifier=7;
-	uint32	UnderConId=8;
-	string	LongName=9;
-	string	ContractMonth=10;
-	string	Industry=11;
-	string	Category=12;
-	string	Subcategory=13;
-	string	TimeZoneId=14;
+	int32		request_id=1;
+	Contract	contract=2;
+	string	market_name=3;
+	double	min_tick=4;
+	string	order_types=5;
+	string	valid_exchanges=6;
+	int64		price_magnifier=7;
+	uint32	under_con_id=8;
+	string	long_name=9;
+	string	contract_month=10;
+	string	industry=11;
+	string	category=12;
+	string	subcategory=13;
+	string	time_zone_id=14;
 	repeated ContractHours trading_hours=15;
 	repeated ContractHours liquid_hours=16;
-	string	EvRule=17;
-	double	EvMultiplier=18;
-	int32		MdSizeMultiplier=19;
-	int32		AggGroup=20;
-	string	UnderSymbol=21;
-	string	UnderSecType=22;
-	string	MarketRuleIds=23;
-	string	RealExpirationDate=24;
-	string	LastTradeTime=25;
+	string	ev_rule=17;
+	double	ev_multiplier=18;
+	int32		md_size_multiplier=19;
+	int32		agg_group=20;
+	string	under_symbol=21;
+	string	under_sec_type=22;
+	string	market_rule_ids=23;
+	string	real_expiration_date=24;
+	string	last_trade_time=25;
 
-	repeated TagValue secIdList=26;
+	repeated TagValue sec_id_list=26;
 
-	string	Cusip=27;
-	string	Ratings=28;
-	string	DescAppend=29;
-	string	BondType=30;
-	string	CouponType=31;
-	bool		Callable=32;
-	bool		Putable=33;
-	double	Coupon=34;
-	bool		Convertible=35;
-	string	Maturity=36;
-	string	IssueDate=37;
-	string	NextOptionDate=38;
-	string	NextOptionType=39;
-	bool		NextOptionPartial=40;
-	string	Notes=41;
+	string	cusip=27;
+	string	ratings=28;
+	string	desc_append=29;
+	string	bond_type=30;
+	string	coupon_type=31;
+	bool		callable=32;
+	bool		putable=33;
+	double	coupon=34;
+	bool		convertible=35;
+	string	maturity=36;
+	string	issueDate=37;
+	string	next_option_date=38;
+	string	next_option_type=39;
+	bool		next_option_partial=40;
+	string	notes=41;
 };
 
 
 message Position
 {
-	string AccountNumber=1;
-	Contract Contract=2;
-	double Size=3;
-	double AvgCost=4;
+	string account_number=1;
+	Contract contract=2;
+	double size=3;
+	double avg_cost=4;
 }
 
 message AccountList
@@ -99,83 +99,105 @@ message AccountList
 	map<string,string> values=1;
 }
 
+message Fundamentals
+{
+	int32 request_id=1;
+	map<string,double> values=2;
+}
+
 message AccountUpdate
 {
-	string Account=2;
-	string Key=4;
-	string Value=5;
-	string Currency=6;
+	string account=2;
+	string key=4;
+	string value=5;
+	string currency=6;
 }
 
 message AccountUpdateMulti
 {
-	int32 RequestId=1;
-	string Account=2;
-	string ModelCode=3;
-	string Key=4;
-	string Value=5;
-	string Currency=6;
+	int32 request_id=1;
+	string account=2;
+	string model_code=3;
+	string key=4;
+	string value=5;
+	string currency=6;
 }
 message Bar
 {
-	int32 Time=1;
-	double High=2;
-	double Low=3;
-	double Open=4;
-	double Close=5;
-	double Wap=6;
-	uint64 Volume=7;
-	int32 Count=8;
+	int32 time=1;
+	double high=2;
+	double low=3;
+	double open=4;
+	double close=5;
+	double wap=6;
+	uint64 volume=7;
+	int32 count=8;
 }
+
+message DaySummary
+{
+	int32 request_id=1;
+	uint32 contract_id=2;
+	uint32 day=3;
+	double high=4;
+	double low=5;
+	double open=6;
+	double close=7;
+	double bid=8;
+	double ask=9;
+	uint64 volume=10;
+	int32 count=11;
+}
+
 message HistoricalData
 {
-	int32 RequestId=1;
-	repeated Bar Bars=2;
+	int32 request_id=1;
+	repeated Bar bars=2;
 }
 
 message PortfolioUpdate
 {
-	Contract Contract=1;
-	double Position=2;
-	double MarketPrice=3;
-	double MarketValue=4;
-	double AverageCost=5;
-	double UnrealizedPnl=6;
-	double RealizedPnl=7;
-	string AccountNumber=8;
+	Contract contract=1;
+	double position=2;
+	double market_price=3;
+	double market_value=4;
+	double average_cost=5;
+	double unrealized_pnl=6;
+	double realized_pnl=7;
+	string account_number=8;
 }
 
 message FlexOrder
 {
-	uint32 Id=1;
-	string AccountId=2;
-	string Symbol=3;
-	uint32 Conid=4;
-	uint32 Date=5;
-	string BuySell=6;
-	double Quantity=7;
-	double Price=8;
-	double Commission=9;
-	string OrderType=10;
-	uint32 OrderTime=11;
+	uint32 id=1;
+	string account_id=2;
+	string symbol=3;
+	uint32 contract_id=4;
+	uint32 date=5;
+	string buy_sell=6;
+	double quantity=7;
+	double price=8;
+	double commission=9;
+	string order_type=10;
+	uint32 order_time=11;
 }
 
 message Trade
 {
-	uint32 OrderId=1;
-	string AccountId=2;
-	string Symbol=3;
-	uint32 Conid=4;
-	uint32 Date=5;
-	string BuySell=6;
-	double Quantity=7;
-	double Price=8;
-	double Commission=9;
-	string OrderType=10;
-	uint32 OrderTime=11;
-	uint32 Id=12;
-	string ExecId=13;
-	bool IsApi=14;
+	uint32 order_id=1;
+	string account_id=2;
+	string symbol=3;
+	uint32 contract_id=4;
+	uint32 date=5;
+	string buy_sell=6;
+	double quantity=7;
+	double price=8;
+	double commission=9;
+	string order_type=10;
+	uint32 order_time=11;
+	uint32 id=12;
+	string exec_id=13;
+	bool is_api=14;
 }
 
 message Flex
@@ -187,9 +209,9 @@ message Flex
 
 message Error
 {
-	int32 RequestId=1;
-	int32 Code=2;
-	string Message=3;
+	int32 request_id=1;
+	int32 code=2;
+	string message=3;
 }
 
 message Option
@@ -217,7 +239,8 @@ message OptionDay
 message OptionValues
 {
 	uint32 id=1;
-	repeated OptionDay option_days=2;
+	uint32 day=2;
+	repeated OptionDay option_days=3;
 }
 
 message OrderStatus
@@ -261,6 +284,8 @@ message MessageUnion
 		OpenOrder open_order=19;
 		OptionParams option_parameters=20;
 		EResults type=21;
+		DaySummary day_summary=22;
+		Fundamentals fundamentals=23;
 	}
 }
 message Transmission
@@ -270,38 +295,38 @@ message Transmission
 
 message TickGeneric
 {
-	int32 RequestId=1;
-	ETickType TickType=2;
-	double Value=3;
+	int32 request_id=1;
+	ETickType tick_type=2;
+	double value=3;
 }
 
 message TickAttrib
 {
-	bool CanAutoExecute=1;
-	bool PastLimit=2;
-	bool PreOpen=3;
+	bool can_auto_execute=1;
+	bool past_limit=2;
+	bool pre_open=3;
 }
 
 message TickPrice
 {
-	 int32 RequestId=1;
-	 ETickType TickType=2;
-	 double Price=3;
-	 TickAttrib Attributes=4;
+	 int32 request_id=1;
+	 ETickType tick_type=2;
+	 double price=3;
+	 TickAttrib attributes=4;
 }
 
 message TickSize
 {
-	int32 RequestId=1;
-	ETickType TickType=2;
-	int32 Size =3;
+	int32 request_id=1;
+	ETickType tick_type=2;
+	int32 size =3;
 }
 
 message TickString
 {
-	int32 RequestId=1;
-	ETickType TickType=2;
-	string Value=3;
+	int32 request_id=1;
+	ETickType tick_type=2;
+	string value=3;
 }
 
 message OrderState
@@ -359,13 +384,13 @@ enum ETickType
 	LAST_OPTION_COMPUTATION=12;
 	MODEL_OPTION=13;
 	OpenTick=14;
-	LOW_13_WEEK=15;
-	HIGH_13_WEEK=16;
-	LOW_26_WEEK=17;
-	HIGH_26_WEEK=18;
-	LOW_52_WEEK=19;
-	HIGH_52_WEEK=20;
-	AVG_VOLUME=21;
+	Low13Week = 15;
+	High13Week = 16;
+	Low26Week = 17;
+	High26Week = 18;
+	Low52Week = 19;
+	High52Week = 20;
+	AverageVolume=21;
 	OPEN_INTEREST=22;
 	OPTION_HISTORICAL_VOL=23;
 	OPTION_IMPLIED_VOL=24;
@@ -439,9 +464,8 @@ enum ETickType
 enum EResults
 {
 	Accept	                                	= 0;
-	//TwitterData											=-2;
 	MultiEnd												=-1;
-
+	DaySummary_											=-2;
 	TickPriceMessage                          = 1;
 	TickSizeMessage                           = 2;
 	OrderStatus_                             	= 3;

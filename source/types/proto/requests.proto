@@ -8,8 +8,9 @@ import "ib.proto";
 
 message GenericRequests
 {
-	ERequests type=1;
-	repeated int32 ids=2;
+	uint32 request_id=1;
+	ERequests type=2;
+	repeated int32 ids=3;
 }
 
 message RequestAccountUpdates
@@ -202,6 +203,7 @@ enum BarSize
 enum ERequests
 {
 	Ping									= 0;
+	RequsetPrevOptionValues			= -1;/*TODO remove Options*/
 
 	MarketData             			= 1;
 	CancelMarketData              = 2;
@@ -231,7 +233,7 @@ enum ERequests
 	CurrentTime                   = 49;
 	RequestRealTimeBars           = 50;
 	CANCEL_REAL_TIME_BARS         = 51;
-	REQ_FUNDAMENTAL_DATA          = 52;
+	RequestFundamentalData        = 52;
 	CANCEL_FUNDAMENTAL_DATA       = 53;
 	REQ_CALC_IMPLIED_VOLAT        = 54;
 	REQ_CALC_OPTION_PRICE         = 55;

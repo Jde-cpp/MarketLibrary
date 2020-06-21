@@ -290,7 +290,7 @@ namespace Jde::Markets
 			securityRight = SecurityRight::Call;
 		else if( name=="put" || name=="P" )
 			securityRight = SecurityRight::Put;
-		else if( name.size() )
+		else if( name.size() && name!="0"sv )
 			WARN( "Could not parse security right '{}'."sv, inputName );
 
 		return securityRight;
@@ -343,18 +343,18 @@ namespace Jde::Markets
 	{
 		var pResult = new Proto::Results::ContractDetails();
 		pResult->set_allocated_contract( Contract(details.contract).ToProto(true).get() );
-		pResult->set_marketname( details.marketName );
-		pResult->set_mintick( details.minTick );
-		pResult->set_ordertypes( details.orderTypes );
-		pResult->set_validexchanges( details.validExchanges );
-		pResult->set_pricemagnifier( details.priceMagnifier );
-		pResult->set_underconid( details.underConId );
-		pResult->set_longname( details.longName );
-		pResult->set_contractmonth( details.contractMonth );
+		pResult->set_market_name( details.marketName );
+		pResult->set_min_tick( details.minTick );
+		pResult->set_order_types( details.orderTypes );
+		pResult->set_valid_exchanges( details.validExchanges );
+		pResult->set_price_magnifier( details.priceMagnifier );
+		pResult->set_under_con_id( details.underConId );
+		pResult->set_long_name( details.longName );
+		pResult->set_contract_month( details.contractMonth );
 		pResult->set_industry( details.industry );
 		pResult->set_category( details.category );
 		pResult->set_subcategory( details.subcategory );
-		pResult->set_timezoneid( details.timeZoneId );
+		pResult->set_time_zone_id( details.timeZoneId );
 		auto parseTimeframe = [&details]( const string& timeFrame )noexcept(false)
 		{
 			auto parseDateTime = [&details]( const string& value )noexcept(false) //20200131:0930, 20200104:CLOSED
@@ -391,36 +391,36 @@ namespace Jde::Markets
 		for( auto day : liquidHours )
 			Try( [&](){ *pResult->add_liquid_hours() = parseTimeframe(day); } );
 
-		pResult->set_evrule( details.evRule );
-		pResult->set_evmultiplier( details.evMultiplier );
-		pResult->set_mdsizemultiplier( details.mdSizeMultiplier );
-		pResult->set_agggroup( details.aggGroup );
-		pResult->set_undersymbol( details.underSymbol );
-		pResult->set_undersectype( details.underSecType );
-		pResult->set_marketruleids( details.marketRuleIds );
-		pResult->set_realexpirationdate( details.realExpirationDate );
-		pResult->set_lasttradetime( details.lastTradeTime );
+		pResult->set_ev_rule( details.evRule );
+		pResult->set_ev_multiplier( details.evMultiplier );
+		pResult->set_md_size_multiplier( details.mdSizeMultiplier );
+		pResult->set_agg_group( details.aggGroup );
+		pResult->set_under_symbol( details.underSymbol );
+		pResult->set_under_sec_type( details.underSecType );
+		pResult->set_market_rule_ids( details.marketRuleIds );
+		pResult->set_real_expiration_date( details.realExpirationDate );
+		pResult->set_last_trade_time( details.lastTradeTime );
 		if( details.secIdList )
 		{
 			for( var& pTagValue : *details.secIdList )
 			{
-				var pProto = pResult->add_secidlist(); pProto->set_tag( pTagValue->tag ); pProto->set_value( pTagValue->value );
+				var pProto = pResult->add_sec_id_list(); pProto->set_tag( pTagValue->tag ); pProto->set_value( pTagValue->value );
 			}
 		}
 		pResult->set_cusip( details.cusip );
 		pResult->set_ratings( details.ratings );
-		pResult->set_descappend( details.descAppend );
-		pResult->set_bondtype( details.bondType );
-		pResult->set_coupontype( details.couponType );
+		pResult->set_desc_append( details.descAppend );
+		pResult->set_bond_type( details.bondType );
+		pResult->set_coupon_type( details.couponType );
 		pResult->set_callable( details.callable );
 		pResult->set_putable( details.putable );
 		pResult->set_coupon( details.coupon );
 		pResult->set_convertible( details.convertible );
 		pResult->set_maturity( details.maturity );
 		pResult->set_issuedate( details.issueDate );
-		pResult->set_nextoptiondate( details.nextOptionDate );
-		pResult->set_nextoptiontype( details.nextOptionType );
-		pResult->set_nextoptionpartial( details.nextOptionPartial );
+		pResult->set_next_option_date( details.nextOptionDate );
+		pResult->set_next_option_type( details.nextOptionType );
+		pResult->set_next_option_partial( details.nextOptionPartial );
 		pResult->set_notes( details.notes );
 		return pResult;
 	}

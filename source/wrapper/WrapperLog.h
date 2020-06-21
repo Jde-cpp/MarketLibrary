@@ -1,6 +1,7 @@
 #pragma once
 #include <EWrapper.h>
 #include "../Exports.h"
+#include "../../../Framework/source/collections/UnorderedSet.h"
 
 
 namespace Jde::Markets
@@ -94,7 +95,10 @@ namespace Jde::Markets
 		void completedOrdersEnd()noexcept override;
 
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
+		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
+		void AddHistoricalDataRequest( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
 	protected:
+		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 	};

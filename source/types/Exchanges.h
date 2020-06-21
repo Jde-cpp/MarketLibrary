@@ -5,6 +5,8 @@
 
 namespace Jde::Markets
 {
+	enum class SecurityType : uint8;
+
 	enum class Exchanges : uint
 	{
 		None   = 0,
@@ -14,7 +16,8 @@ namespace Jde::Markets
 		Smart  =0x20000000,//30
 		Arca   =0x40000000,//32
 		Bats   =0x200000000,
-		PinkSheets =0x100000000000
+		PinkSheets =0x100000000000,
+		Value = 0x80000000000000
 	};
 
 	JDE_MARKETS_EXPORT string to_string( Exchanges exchange )noexcept;
@@ -28,6 +31,8 @@ namespace Jde::Markets
 	inline DayIndex CurrentTradingDay()noexcept{ return NextTradingDay( PreviousTradingDay( Chrono::DaysSinceEpoch(Timezone::EasternTimeNow())) ); }//weekend=monday, monday=monday.
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }//weekend=monday, monday=monday.
 	bool IsOpen()noexcept;
+	bool IsOpen( SecurityType type )noexcept;
+	bool IsPreMarket( SecurityType type )noexcept;
 
 	JDE_MARKETS_EXPORT bool IsHoliday( const TimePoint& date )noexcept;
 	JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.

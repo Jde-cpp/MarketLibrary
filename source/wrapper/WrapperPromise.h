@@ -9,7 +9,8 @@ namespace Jde::Markets
 		typedef std::future<sp<T>> Future;
 
 		bool Contains( ReqId id )const noexcept{ shared_lock l{_promiseMutex}; return _promises.find(id)!=_promises.end(); }
-		bool Error( ReqId id, const Exception& e )noexcept;
+		template<typename E>
+		bool Error( ReqId id, const E& e )noexcept;
 		Future Promise( ReqId id )noexcept;
 		virtual void End( ReqId reqId )noexcept;
 	protected:
@@ -94,7 +95,8 @@ namespace Jde::Markets
 	}
 */
 	template<typename T>
-	bool WrapperPromise<T>::Error( ReqId reqId, const Exception& e )noexcept
+	template<typename E>
+	bool WrapperPromise<T>::Error( ReqId reqId, const E& e )noexcept
 	{
 		unique_lock l{ _promiseMutex };
 		var pValue = _promises.find( reqId );

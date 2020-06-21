@@ -31,17 +31,25 @@ namespace Jde::Markets
 		unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;
 		void error( int id, int errorCode, const std::string& errorString )noexcept override{error2( id, errorCode, errorString );};
 		bool error2( int id, int errorCode, const std::string& errorString )noexcept;
+		bool historicalDataSync( TickerId reqId, const ibapi::Bar& bar )noexcept;
+		bool historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept;
 
+		bool TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept;
+		bool TickSize( TickerId tickerId, TickType field, int size )noexcept;
+		bool TickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept;
+		bool TickGeneric( TickerId ibReqId, TickType field, double value )noexcept;
 	private:
-		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept override;
-		void tickSize( TickerId tickerId, TickType field, int size )noexcept override;
-		void tickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept override;
+		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept override{TickPrice(tickerId,field, price, attrib);}
+		void tickSize( TickerId tickerId, TickType field, int size )noexcept override{ TickSize( tickerId, field, size ); }
+		void tickString( TickerId tickerId, TickType field, const std::string& value )noexcept override{TickString(tickerId, field, value);}
+		void tickGeneric( TickerId tickerId, TickType field, double value )noexcept override{TickGeneric(tickerId, field, value);}
 
 		void currentTime( long time )noexcept override;
 		void fundamentalData(TickerId reqId, const std::string& data)noexcept override;
 		void headTimestamp( int reqId, const std::string& headTimestamp )noexcept override;
-		void historicalData(TickerId reqId, const ibapi::Bar& bar)noexcept override;
-		void historicalDataEnd(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
+		void historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept override;
+		void historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept override;
+
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ibapi::OrderId orderId)noexcept override;
 		void openOrderEnd()noexcept override;
