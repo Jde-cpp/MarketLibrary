@@ -524,7 +524,7 @@ namespace Jde::Markets
 		{
 			DateTime etNow{ Timezone::EasternTimeNow() };
 			var minute = etNow.Hour()*60+etNow.Minute();
-			isPreMarket = !IsHoliday( DaysSinceEpoch(etNow) ) && minute>179 && minute<570;
+			isPreMarket = !IsHoliday( DaysSinceEpoch(etNow) ) && minute>239 && minute<570;
 		}
 		return isPreMarket;
 	}
