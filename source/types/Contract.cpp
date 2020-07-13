@@ -290,7 +290,7 @@ namespace Jde::Markets
 			securityRight = SecurityRight::Call;
 		else if( name=="put" || name=="P" )
 			securityRight = SecurityRight::Put;
-		else if( name.size() && name!="0"sv )
+		else if( name.size() && name!="?"sv && name!="0"sv )
 			WARN( "Could not parse security right '{}'."sv, inputName );
 
 		return securityRight;

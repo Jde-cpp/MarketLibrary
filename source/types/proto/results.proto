@@ -122,6 +122,17 @@ message AccountUpdateMulti
 	string value=5;
 	string currency=6;
 }
+
+message PositionMulti
+{
+	int32 id=1; /*web request id*/
+	string account=2;
+	string model_code=3;
+	Contract contract=4;
+	double position=5;
+	double avgerage_cost=6;
+}
+
 message Bar
 {
 	int32 time=1;
@@ -286,6 +297,7 @@ message MessageUnion
 		EResults type=21;
 		DaySummary day_summary=22;
 		Fundamentals fundamentals=23;
+		PositionMulti position_multi=24;
 	}
 }
 message Transmission
@@ -340,7 +352,7 @@ message OrderState
 	string equity_with_loan_change=7;
 	string init_margin_after=8;
 	string maint_margin_after=9;
-	string equity_With_loan_after=10;
+	string equity_with_loan_after=10;
 	double commission=11;
 	double min_commission=12;
 	double max_commission=13;
@@ -511,7 +523,7 @@ enum EResults
 	DISPLAY_GROUP_UPDATED                     = 68;
 	VERIFY_AND_AUTH_MESSAGE_API               = 69;
 	VERIFY_AND_AUTH_COMPLETED                 = 70;
-	PositionMulti                            = 71;
+	PositionMulti_                            = 71;
 	PositionMultiEnd                        = 72;
 	AccountUpdateMulti_                        = 73;
 	ACCOUNT_UPDATE_MULTI_END                  = 74;

@@ -16,7 +16,7 @@ namespace Jde::Markets
 		while( !pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, pInstance->_port, clientId );
-		pInstance->ReqIds();
+	//	pInstance->ReqIds();
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClientCache( settings, wrapper, pReaderSignal, clientId )
@@ -238,24 +238,11 @@ namespace Jde::Markets
 	void TwsClientSync::ReqIds()noexcept
 	{
 		var future = Wrapper()->ReqIdsPromise();
+		TwsClient::reqIds();
 		if( future.wait_for(10s)==std::future_status::timeout )
 			WARN0( "Timed out looking for reqIds."sv );
 		else
 			SetRequestId( future.get() );
-
-
-
-
-		//TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/*keepUpToDate*/, TagValueListSPtr() );
-		//return future;
-/*		std::condition_variable cv;
-		Jde::Markets::WrapperSync::ReqIdCallback callback = [&](auto id){ SetRequestId(id); cv.notify_one(); };
-		Wrapper()->AddRequestIds( callback );
-		mutex mutex;
-		unique_lock l{mutex};
-		TwsClient::reqIds();
-		if( cv.wait_for(l, 10s)==std::cv_status::timeout )
-*/
 	}
 /*
 	vector<ActiveOrderPtr> TwsClientSync::ReqAllOpenOrders()noexcept(false)

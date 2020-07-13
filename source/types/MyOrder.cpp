@@ -52,6 +52,18 @@ namespace Jde::Markets
 		faMethod = proto.fa_method();
 		faPercentage = proto.fa_percentage();
 
+		auctionStrategy = proto.auction_strategy(); // AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
+		if( proto.starting_price() && !isnan(proto.starting_price()) ) startingPrice = proto.starting_price();
+		if( proto.stock_ref_price() && !isnan(proto.stock_ref_price()) ) stockRefPrice = proto.stock_ref_price();
+		if( proto.delta() && !isnan(proto.delta()) ) delta = proto.delta();
+		if( proto.stock_range_lower() && !isnan(proto.stock_range_lower()) ) stockRangeLower = proto.stock_range_lower();
+		if( proto.stock_range_upper() && !isnan(proto.stock_range_upper()) ) stockRangeUpper = proto.stock_range_upper();
+		randomizeSize = proto.randomize_size();
+		randomizePrice = proto.randomize_price();
+
+		whatIf = proto.what_if();
+		account = proto.account();
+
 	/*	go with defaults for now
 		openClose = proto.open_close(); // institutional (ie non-cleared) only O=Open, C=Close
 		origin = proto.origin();    // 0=Customer, 1=Firm
@@ -125,6 +137,18 @@ namespace Jde::Markets
 		proto.set_nbbo_price_cap( nbboPriceCap );
 		proto.set_opt_out_smart_routing( optOutSmartRouting );
 
+		proto.set_auction_strategy( auctionStrategy ); // AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
+		proto.set_starting_price( startingPrice==UNSET_DOUBLE ? nan("") : startingPrice );
+		proto.set_stock_ref_price( stockRefPrice==UNSET_DOUBLE ? nan("") : stockRefPrice );
+		proto.set_delta( delta==UNSET_DOUBLE ? nan("") : delta );
+		proto.set_stock_range_lower( stockRangeLower==UNSET_DOUBLE ? nan("") : stockRangeLower );
+		proto.set_stock_range_upper( stockRangeUpper==UNSET_DOUBLE ? nan("") : stockRangeUpper );
+		proto.set_randomize_size( randomizeSize );
+		proto.set_randomize_price( randomizePrice );
+
+		proto.set_what_if( whatIf );
+		proto.set_account( account );
+
 		return p;
 	}
 	Proto::ETimeInForce MyOrder::TimeInForce()const noexcept
@@ -172,18 +196,19 @@ namespace Jde::Markets
 	{
 		auto p = new Proto::Results::OrderState{};
 		p->set_status( state.status );
-		p->set_init_margin_before( state.initMarginBefore );
-		p->set_maint_margin_before( state.maintMarginBefore );
-		p->set_equity_with_loan_before( state.equityWithLoanBefore );
-		p->set_init_margin_change( state.initMarginChange );
-		p->set_maint_margin_change( state.maintMarginChange );
-		p->set_equity_with_loan_change( state.equityWithLoanChange );
-		p->set_init_margin_after( state.initMarginAfter );
-		p->set_maint_margin_after( state.maintMarginAfter );
-		p->set_equity_with_loan_after( state.equityWithLoanAfter );
+		constexpr string_view NotSet = "1.7976931348623157E308";
+		p->set_init_margin_before( state.initMarginBefore==NotSet ? "" : state.initMarginBefore );
+		p->set_maint_margin_before( state.maintMarginBefore==NotSet ? "" : state.maintMarginBefore );
+		p->set_equity_with_loan_before( state.equityWithLoanBefore==NotSet ? "" : state.equityWithLoanBefore );
+		p->set_init_margin_change( state.initMarginChange==NotSet ? "" : state.initMarginChange );
+		p->set_maint_margin_change( state.maintMarginChange==NotSet ? "" : state.maintMarginChange );
+		p->set_equity_with_loan_change( state.equityWithLoanChange==NotSet ? "" : state.equityWithLoanChange );
+		p->set_init_margin_after( state.initMarginAfter==NotSet ? "" : state.initMarginAfter );
+		p->set_maint_margin_after( state.maintMarginAfter==NotSet ? "" : state.maintMarginAfter );
+		p->set_equity_with_loan_after( state.equityWithLoanAfter==NotSet ? "" : state.equityWithLoanAfter );
 		var max = std::numeric_limits<double>::max();
 		p->set_commission( state.commission==max ? nan("") : state.commission );
-		DBG( "{}, {}, {}"sv, max, state.commission, p->commission() );
+		//DBG( "max='{}', state='{}', proto='{}'"sv, max, state.commission, p->commission() );
 		p->set_min_commission( state.minCommission==max ? nan("") : state.minCommission );
 		p->set_max_commission( state.maxCommission==max ? nan("") : state.maxCommission );
 		p->set_commission_currency( state.commissionCurrency );

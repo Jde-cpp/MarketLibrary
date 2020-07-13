@@ -27,7 +27,7 @@ namespace Jde::Markets
 	}
 	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept{ _historicalDataRequests.erase( reqId ); LOG( _logLevel, "WrapperLog::historicalDataEnd( {}, {}, {} )"sv, reqId, startDateStr, endDateStr); }
 	void WrapperLog::managedAccounts( const std::string& accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
-	void WrapperLog::nextValidId( ibapi::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( {} )"sv, orderId ); }
+	void WrapperLog::nextValidId( ibapi::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )"sv, orderId ); }
 #pragma region Order
 	void WrapperLog::orderStatus( ibapi::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept{ DBG( "WrapperLog::orderStatus( {}, {}, {}/{} )"sv, orderId, status, filled, filled+remaining ); }
 	string toString( const ibapi::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice ); };

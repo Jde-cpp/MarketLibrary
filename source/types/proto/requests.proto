@@ -27,6 +27,13 @@ message RequestAccountUpdatesMulti
 	bool ledger_and_nlv=4;
 }
 
+message RequestPositions
+{
+	int32 id=1;
+	string account_number=2;
+	string model_code=3;
+}
+
 enum ETickList
 {
 	TickListNone=0;
@@ -157,6 +164,7 @@ message RequestUnion
 		RequestHistoricalData historical_data = 8;
 		FlexExecutions flex_executions=9;
 		PlaceOrder place_order=10;
+		RequestPositions request_positions = 11;
 		//Request Historical data like normal...
 	}
 }
@@ -254,8 +262,8 @@ enum ERequests
 	StartApi                      = 71;
 	VERIFY_AND_AUTH_REQUEST       = 72;
 	VERIFY_AND_AUTH_MESSAGE       = 73;
-	REQ_POSITIONS_MULTI           = 74;
-	CANCEL_POSITIONS_MULTI        = 75;
+	PositionsMulti		            = 74;
+	CancelPositionsMulti	         = 75;
 	RequestAccountUpdatesMulti_   = 76;
 	CANCEL_ACCOUNT_UPDATES_MULTI  = 77;
 	RequestOptionParams				= 78;//REQ_SEC_DEF_OPT_PARAMS

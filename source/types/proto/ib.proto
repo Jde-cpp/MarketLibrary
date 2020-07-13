@@ -140,6 +140,18 @@ message Order
 	bool firm_quote_only = 43;
 	double nbbo_price_cap = 44;
 	bool  opt_out_smart_routing = 45;
+
+	int32 auction_strategy = 46; // AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
+	double starting_price = 47;
+	double stock_ref_price = 48;
+	double delta = 49;
+	double stock_range_lower = 50;
+	double stock_range_upper = 51;
+	bool randomize_size = 52;
+	bool randomize_price = 53;
+
+	bool what_if=70;
+	string account=71;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
