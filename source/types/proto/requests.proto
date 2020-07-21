@@ -151,6 +151,18 @@ message PlaceOrder
 	double stop_limit=5;
 }
 
+message RequestExecutions
+{
+	uint32 id=1;
+	uint32 client_id=2;
+	string account_number=3;
+	uint32 time=4;
+	string symbol=5;
+	string security_type=6;
+	string exchange=7;
+	string side=8;
+}
+
 message RequestUnion
 {
 	oneof Value
@@ -165,6 +177,7 @@ message RequestUnion
 		FlexExecutions flex_executions=9;
 		PlaceOrder place_order=10;
 		RequestPositions request_positions = 11;
+		RequestExecutions request_executions = 12;
 		//Request Historical data like normal...
 	}
 }

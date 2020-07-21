@@ -21,11 +21,11 @@ namespace Jde::Markets
 		else if( exchange==Exchanges::Bats )
 			value = "Bats";
 		else if( exchange==Exchanges::PinkSheets )
-			value = "PinkSheets";
+			value = "PINK";
 		else if( exchange==Exchanges::Value )
 			value = "Value";
 		else
-			ERR( "Unknown exchange {}"sv, (uint)exchange );
+			ERR( "Unknown exchange '{}'"sv, (uint)exchange );
 		return value;
 	}
 	Exchanges ToExchange( string_view pszName )noexcept
@@ -44,12 +44,12 @@ namespace Jde::Markets
 			value = Exchanges::Arca;
 		else if( name=="Bats" )
 			value = Exchanges::Bats;
-		else if( name=="Pink Sheets" || name=="PinkSheets" )
+		else if( name=="Pink Sheets" || name=="PinkSheets" || name=="PINK" )
 			value = Exchanges::PinkSheets;
 		else if( name=="Value" )
 			value = Exchanges::Value;
 		else
-			ERR( "Unknown exchange {}"sv, pszName );
+			ERR( "Unknown exchange '{}'"sv, pszName );
 		return value;
 	}
 

@@ -23,6 +23,7 @@ namespace Jde::Markets
 		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
 		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept{ LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode); EClientSocket::reqAccountUpdates( subscribe, acctCode ); }
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
+		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
 		void reqHistoricalData( TickerId tickerId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept;
 		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
 		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }

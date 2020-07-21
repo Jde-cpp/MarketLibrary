@@ -150,8 +150,15 @@ message Order
 	bool randomize_size = 52;
 	bool randomize_price = 53;
 
+	double volatility = 54;
+	uint32 volatility_type = 55;     //UNSET_INTEGER 1=daily, 2=annual
+	string delta_neutral_order_type = 56;
+	double delta_neutral_aux_price = 57;
+	int64 delta_neutral_con_id = 58;
+
 	bool what_if=70;
 	string account=71;
+	int32 use_price_mngmnt_algrthm = 99;//DEFAULT = 0,USE=1, DONT_USE=2
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

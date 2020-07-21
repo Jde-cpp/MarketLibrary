@@ -22,7 +22,12 @@ namespace Jde::Markets
 		if( id>0 )
 		{
 			if( (handled = _historicalData.Contains(id)) )
-				_historicalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+			{
+				if( errorCode==162 )
+					WrapperCache::historicalDataEnd( id, "", "" );
+				else
+					_historicalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+			}
 			else if( (handled = _fundamentalData.Contains(id)) )
 				_fundamentalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			else if( (handled = _detailsData.Contains(id)) )

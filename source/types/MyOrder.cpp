@@ -61,8 +61,16 @@ namespace Jde::Markets
 		randomizeSize = proto.randomize_size();
 		randomizePrice = proto.randomize_price();
 
+		if( proto.volatility() && !isnan(proto.volatility()) ) volatility = proto.volatility();
+		if( proto.volatility_type() ) volatilityType = proto.volatility_type();// 1=daily, 2=annual
+		deltaNeutralOrderType = proto.delta_neutral_order_type();
+		if( proto.delta_neutral_aux_price() && !isnan(proto.delta_neutral_aux_price()) ) deltaNeutralAuxPrice = proto.delta_neutral_aux_price();
+		deltaNeutralConId = proto.delta_neutral_con_id();
+
 		whatIf = proto.what_if();
 		account = proto.account();
+
+		usePriceMgmtAlgo = proto.use_price_mngmnt_algrthm()==2 ? UsePriceMmgtAlgo::DONT_USE : proto.use_price_mngmnt_algrthm()==1 ? UsePriceMmgtAlgo::USE : UsePriceMmgtAlgo::DEFAULT;
 
 	/*	go with defaults for now
 		openClose = proto.open_close(); // institutional (ie non-cleared) only O=Open, C=Close
@@ -146,8 +154,16 @@ namespace Jde::Markets
 		proto.set_randomize_size( randomizeSize );
 		proto.set_randomize_price( randomizePrice );
 
+		proto.set_volatility( deltaNeutralAuxPrice==UNSET_DOUBLE ? nan("") : volatility );
+		proto.set_volatility_type( volatilityType==UNSET_INTEGER ? 0 : volatilityType );// 1=daily, 2=annual
+		proto.set_delta_neutral_order_type( deltaNeutralOrderType );
+		proto.set_delta_neutral_aux_price( deltaNeutralAuxPrice==UNSET_DOUBLE ? nan("") : deltaNeutralAuxPrice );
+		proto.set_delta_neutral_con_id( deltaNeutralConId );
+
 		proto.set_what_if( whatIf );
 		proto.set_account( account );
+
+		proto.set_use_price_mngmnt_algrthm( usePriceMgmtAlgo==UsePriceMmgtAlgo::USE ? 1 : usePriceMgmtAlgo==UsePriceMmgtAlgo::DONT_USE ? 2 : 0 );
 
 		return p;
 	}

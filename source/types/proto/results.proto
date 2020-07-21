@@ -145,6 +145,17 @@ message Bar
 	int32 count=8;
 }
 
+message CommissionReport
+{
+	//string id=1;
+	string exec_id=2;
+	double commission=3;
+	string currency=4;
+	double realized_pnl=5;
+	double yield=6;
+	uint32 yield_redemption_date=7;
+};
+
 message DaySummary
 {
 	int32 request_id=1;
@@ -180,35 +191,61 @@ message PortfolioUpdate
 
 message FlexOrder
 {
-	uint32 id=1;
-	string account_id=2;
-	string symbol=3;
-	uint32 contract_id=4;
-	uint32 date=5;
-	string buy_sell=6;
-	double quantity=7;
-	double price=8;
-	double commission=9;
-	string order_type=10;
-	uint32 order_time=11;
+	uint32 order_id=2;
+	string account_number=3;
+	uint32 time=4;
+	string side=5;
+	double shares=6;
+	double price=7;
+	Contract contract=9;
+	double commission=10;
+	string order_type=11;
+	uint32 order_time=12;
 }
 
 message Trade
 {
-	uint32 order_id=1;
-	string account_id=2;
-	string symbol=3;
-	uint32 contract_id=4;
-	uint32 date=5;
-	string buy_sell=6;
-	double quantity=7;
-	double price=8;
-	double commission=9;
-	string order_type=10;
-	uint32 order_time=11;
-	uint32 id=12;
-	string exec_id=13;
-	bool is_api=14;
+	uint32 id=1;
+	uint32 order_id=2;
+	string account_number=3;
+	uint32 time=4;
+	string side=5;
+	double shares=6;
+	double price=7;
+	string exec_id=8;
+	Contract contract=9;
+
+	double commission=10;
+	string order_type=11;
+	uint32 order_time=12;
+	bool is_api=13;
+
+	//string symbol=3;
+	//uint32 contract_id=4;
+}
+message Execution
+{
+	uint32	id=1;
+	uint32	order_id=2;
+	string	account_number=3;
+	uint32	time=4;
+	string	side=5;
+	double	shares=6;
+	double	price=7;
+	string	exec_id=8;
+	Contract contract=9;
+
+	string	exchange=14;
+	int32		perm_id=15;
+	uint32	client_id=16;
+	int32		liquidation=17;
+	double	cumulative_quantity=18;
+	double	avg_price=19;
+	string	order_ref=20;
+	string	ev_rule=21;
+	double	ev_multiplier=22;
+	string 	model_code=23;
+	int32    last_liquidity=24;
 }
 
 message Flex
@@ -280,24 +317,26 @@ message MessageUnion
 		AccountList account_list=4;
 		AccountUpdate account_update=5;
 		AccountUpdateMulti account_update_multi=6;
-		PortfolioUpdate portfolio_update=7;
-		TickGeneric tick_generic = 8;
-		TickPrice tick_price = 9;
-		TickSize tick_size = 10;
-		TickString tick_string = 11;
-		ContractDetails contract_details=12;
-		Error error = 13;
-		OptionValues options=14;
-		HistoricalData historical_data=15;
-		StringResult string_result=16;
-		Flex flex=17;
-		OrderStatus order_status=18;
-		OpenOrder open_order=19;
-		OptionParams option_parameters=20;
-		EResults type=21;
-		DaySummary day_summary=22;
-		Fundamentals fundamentals=23;
-		PositionMulti position_multi=24;
+		CommissionReport commission_report=7;
+		ContractDetails contract_details=8;
+		Execution execution=9;
+		PortfolioUpdate portfolio_update=10;
+		TickGeneric tick_generic = 11;
+		TickPrice tick_price = 12;
+		TickSize tick_size = 13;
+		TickString tick_string = 14;
+		Error error = 15;
+		OptionValues options=16;
+		HistoricalData historical_data=17;
+		StringResult string_result=18;
+		Flex flex=19;
+		OrderStatus order_status=20;
+		OpenOrder open_order=21;
+		OptionParams option_parameters=22;
+		EResults type=23;
+		DaySummary day_summary=24;
+		Fundamentals fundamentals=25;
+		PositionMulti position_multi=26;
 	}
 }
 message Transmission
@@ -508,7 +547,7 @@ enum EResults
 	ContractDataEnd                         	= 52;
 	OpenOrderEnd	                            = 53;
 	ACCT_DOWNLOAD_END                         = 54;
-	EXECUTION_DATA_END                        = 55;
+	ExecutionDataEnd                        = 55;
 	DELTA_NEUTRAL_VALIDATION                  = 56;
 	TickSnapshotEnd                           = 57;
 	MarketDataType                            = 58;

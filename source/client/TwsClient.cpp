@@ -53,6 +53,11 @@ namespace Jde::Markets
 		LOG( _logLevel, "reqAccountUpdatesMulti( {}, {}, {}, {} )"sv, reqId, account, modelCode, ledgerAndNLV );
 		EClient::reqAccountUpdatesMulti( reqId, account, modelCode, ledgerAndNLV );
 	}
+	void TwsClient::reqExecutions( int reqId, const ExecutionFilter& filter )noexcept
+	{
+		LOG( _logLevel, "reqExecutions( {}, {}, {}, {} )"sv, reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
+		EClient::reqExecutions( reqId, filter );
+	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
