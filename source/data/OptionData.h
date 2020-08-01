@@ -40,5 +40,5 @@ namespace Jde::Markets
 		//JDE_MARKETS_EXPORT TimePoint LastOptionDate( const Contract& contract )noexcept;
 	}
 
-	inline fs::path RootMinuteBar()noexcept(false){ return Settings::Global().Get<fs::path>("rootMinuteBar"); }
+	//inline fs::path RootMinuteBar()noexcept(false){ return Settings::Global().Get<fs::path>("rootMinuteBar"); }
 }

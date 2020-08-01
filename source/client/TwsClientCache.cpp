@@ -1,8 +1,11 @@
 #include "TwsClientCache.h"
-#include "../../../Framework/source/Cache.h"
+//#include <ranges>
+#include "../data/HistoricalDataCache.h"
 #include "../wrapper/WrapperCache.h"
 #include "../types/Contract.h"
 #include "../types/proto/results.pb.h"
+
+#include "../../../Framework/source/Cache.h"
 
 #define var const auto
 namespace Jde::Markets
@@ -71,35 +74,89 @@ namespace Jde::Markets
 			TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
 		}
 	}
-	void TwsClientCache::ReqHistoricalData( TickerId reqId, ContractPK contractId, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useCache, bool useRth )noexcept
+	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
 	{
-		var cacheId = useCache ? fmt::format( "ReqHistoricalData.{}.{}.{}.{}.{}.{}", contractId, endDay, dayCount, barSize, display, useRth ) : string{};
-		var pData = cacheId.size() ? Cache::Get<vector<Proto::Results::Bar>>( cacheId ) : nullptr;
+		var current = CurrentTradingDay( contract.Exchange );
+		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<ibapi::Bar>>>& existing, time_t lastTime=0 )
+		{
+			VectorPtr<ibapi::Bar> pBars;
+			if( !lastTime )
+				pBars = ReqHistoricalDataSync( contract, end, subDayCount, barSize, display, useRth, false ).get();
+			else if( time(nullptr)-lastTime>barSize )
+				pBars = ReqHistoricalDataSync( contract, lastTime, barSize, display, useRth ).get();
+			if( pBars )
+			{
+				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars );
+				for( var& bar : *pBars )
+				{
+					var day = Chrono::DaysSinceEpoch( Clock::from_time_t(ConvertIBDate(bar.time)) );
+					existing.emplace( day, VectorPtr<sp<ibapi::Bar>>{new vector<sp<ibapi::Bar>>{}} ).first->second->push_back( make_shared<ibapi::Bar>(bar) );
+				}
+			}
+		};
+		auto pData = HistoricalDataCache::ReqHistoricalData( contract, endDay, dayCount, barSize, (Proto::Requests::Display)display, useRth );// : MapPtr<DayIndex,VectorPtr<sp<const ibapi::Bar>>>{};
 		if( pData )
 		{
-			//auto toString = []( const DateTime& time ){ return fmt::format("{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second()); };
-			var now = time( nullptr );
-			int minTime=now, maxTime=0;
-			for( var& bar : *pData )
+			ASSERT( pData->size() );
+			if( !pData->begin()->second )
 			{
-				var timet = bar.time();
-				minTime = std::min( timet, minTime );
-				maxTime = std::max( timet, maxTime );
-
-				ibapi::Bar ibBar{ ToIBDate(DateTime{timet}), bar.high(), bar.low(), bar.open(), bar.close(), bar.wap(), (long long)bar.volume(), bar.count() };
-				Wrapper()->historicalData( reqId, ibBar );
+				uint startDayCount = 0; DayIndex endDay = 0;
+				for( var& [day,pBars] : *pData )
+				{
+					if( pBars )
+						break;
+					++startDayCount;
+					endDay = day;
+				}
+				addBars( endDay, startDayCount, *pData );
 			}
-			Wrapper()->historicalDataEnd( reqId, minTime==now ? "" : ToIBDate(DateTime{minTime}), maxTime==0 ? "" : ToIBDate(DateTime{maxTime}) );
+			var isOpen = IsOpen( contract );
+			if( !pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )
+			{
+				DayIndex endDayCount = 0, endDay = endDay;
+				time_t lastTime = 0;
+				for( auto p = pData->rbegin(); p!=pData->rend(); ++p )
+				{
+					if( p->second )
+					{
+						if( p->first==current && isOpen && p->second->size() )
+							lastTime = ConvertIBDate( (*p->second->rbegin())->time );
+						break;
+					}
+					++endDayCount;
+					endDay = p->first;
+				}
+				addBars( endDay, endDayCount, *pData, lastTime );
+			}
 		}
 		else
 		{
-			Wrapper()->AddCacheId( reqId, cacheId );
-			ibapi::Contract contract; contract.conId = contractId;
-			//contract.symbol = "SPX"; contract.secType = "IND"; contract.exchange="CBOE"; contract.currency="USD";
-			const TimePoint tp = Chrono::EndOfDay( Chrono::FromDays(endDay) );
-			const DateTime endTime{ tp };
-			const string endTimeString{ fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
-			TwsClient::reqHistoricalData( reqId, contract, endTimeString, fmt::format("{} D", dayCount), BarSize::ToString((BarSize::Enum)barSize), TwsDisplay::ToString(display), useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+			pData = make_shared<map<DayIndex,VectorPtr<sp<ibapi::Bar>>>>();
+			addBars( endDay, dayCount, *pData );
 		}
+			//Cache needs to handle initial load.
+			//Make sure current day works.
+			//UnitTests:
+				// ask for week ago, then last 2 weeks, then last 3 weeks.
+				//2x 1 load.
+				//save to file.
+				//make sure load from file.
+				//combine into day,week,month.
+					//if have minute bars, use that else just request.
+				//during day cache then save.
+				//some kind of cache cleanup.
+
+		var now = time( nullptr ); time_t minTime=now, maxTime=0;
+		for( var& dayBars : *pData )
+		{
+			for( var& pBar : *dayBars.second )
+			{
+				var timet = ConvertIBDate( pBar->time );
+				minTime = std::min( timet, minTime );
+				maxTime = std::max( timet, maxTime );
+				Wrapper()->historicalData( reqId, *pBar );
+			}
+		}
+		Wrapper()->historicalDataEnd( reqId, minTime==now ? "" : ToIBDate(DateTime{minTime}), maxTime==0 ? "" : ToIBDate(DateTime{maxTime}) );
 	}
 }

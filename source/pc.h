@@ -7,11 +7,11 @@
 #include <boost/crc.hpp>
 #pragma warning( default : 4245)
 #include <boost/system/error_code.hpp>
-#ifndef __INTELLISENSE__
+//#ifndef __INTELLISENSE__
 	#include <spdlog/spdlog.h>
 	#include <spdlog/sinks/basic_file_sink.h>
 	#include <spdlog/fmt/ostr.h>
-#endif
+//#endif
 
 // #include <Eigen/Dense>
 // #include <Eigen/Sparse>
@@ -36,16 +36,16 @@
 #include <CommissionReport.h>
 
 #include "../../Framework/source/TypeDefs.h"
-#include "JdeAssert.h"
+#include "../../Framework/source/JdeAssert.h"
 //#include "Collections.h"
-#include "application/Application.h"
-#include "threading/InterruptibleThread.h"
+#include "../../Framework/source/application/Application.h"
+#include "../../Framework/source/threading/InterruptibleThread.h"
 
-#include "DateTime.h"
-#include "Stopwatch.h"
-#include "StringUtilities.h"
-#include "threading/Thread.h"
-#include "threading/InterruptibleThread.h"
+#include "../../Framework/source/DateTime.h"
+#include "../../Framework/source/Stopwatch.h"
+#include "../../Framework/source/StringUtilities.h"
+#include "../../Framework/source/threading/Thread.h"
+#include "../../Framework/source/threading/InterruptibleThread.h"
 //#include "../../io/zip/xz/XZ.h"
 //#include "db/Database.h"
 //#include "math/EMatrix.h"

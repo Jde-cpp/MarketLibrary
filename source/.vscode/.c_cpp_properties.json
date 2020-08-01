@@ -4,18 +4,16 @@
             "name": "Linux",
             "includePath": [
 					 "${workspaceFolder}",
-					 "/home/duffyj/code/libraries/eigen",
-					 "/home/duffyj/code/libraries/tws-api/source/cppclient/client",
-					 "/home/duffyj/code/libraries/spdlog/include",
-					 "/home/duffyj/code/libraries/json/include",
-					 "/home/duffyj/code/libraries/matio/src"
+					 "${env:REPO_DIR}/tws-api/source/cppclient/client",
+					 "${env:REPO_DIR}/spdlog/include",
+					 "${env:REPO_DIR}/json/include"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
-            "browse": { "path": ["${workspaceFolder}", "/usr/include/c++/8" ], "limitSymbolsToIncludedHeaders": true, "databaseFilename": "" },
+            "browse": { "path": ["${workspaceFolder}", "${env:REPO_DIR}/llvm-project/libcxx/include" ], "limitSymbolsToIncludedHeaders": true, "databaseFilename": "" },
 				"forcedInclude": ["pc.h"],
-            "compilerPath": "/usr/local/clang_9.0.0/bin/clang",
-            "cppStandard": "c++17"
+            "compilerPath": "/usr/local/bin/clang-12",
+            "cppStandard": "c++20"
         },
         {
             "name": "Win32",

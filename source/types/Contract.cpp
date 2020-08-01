@@ -9,12 +9,12 @@ namespace Jde::Markets
 	Contract::Contract( const ibapi::Contract& other )noexcept:
 		Id{ other.conId },
 		Symbol{ other.symbol },
-		SecType{ other.secType },
+		SecType{ ToSecurityType(other.secType) },
 		Expiration{ ToDay(other.lastTradeDateOrContractMonth) },
 		Strike{ other.strike },
 		Right{ ToSecurityRight(other.right) },
 		Multiplier{ other.multiplier.size() ? (uint)stoi(other.multiplier) : 0 },
-		Exchange{other.exchange},
+		Exchange{ ToExchange(other.exchange) },
 		PrimaryExchange{ ToExchange(other.primaryExchange) },
 		Currency{other.currency},
 		LocalSymbol{other.localSymbol},
@@ -37,7 +37,7 @@ namespace Jde::Markets
 		auto& other = *pIB;
 		other.conId = Id;
 		other.symbol = Symbol;
-		other.secType = SecType;
+		other.secType = ToString(SecType);
 		if( Expiration )
 		{
 			const DateTime expiration{ Chrono::FromDays( Expiration ) };
@@ -47,9 +47,9 @@ namespace Jde::Markets
 		other.right = ToString( Right );
 		if( Multiplier )
 			other.multiplier = std::to_string( Multiplier );
-		other.exchange = Exchange;
+		other.exchange = ToString(Exchange);
 		if( PrimaryExchange!=Exchanges::Smart )
-			other.primaryExchange = to_string( PrimaryExchange );
+			other.primaryExchange = ToString( PrimaryExchange );
 		other.currency = Currency;
 		other.localSymbol = LocalSymbol;
 		other.tradingClass = TradingClass;
@@ -62,10 +62,10 @@ namespace Jde::Markets
 		SecType{ contract.security_type() },
 		Expiration{ contract.expiration() },
 		Strike{ contract.strike() },
-		Right{ ToSecurityRight(contract.right()) },
+		Right{ contract.right() },
 		Multiplier{ contract.multiplier() },
-		Exchange{ contract.exchange().size() ? contract.exchange() : "SMART" },
-		PrimaryExchange{ ToExchange(contract.primary_exchange()) },
+		Exchange{ contract.exchange() },
+		PrimaryExchange{ contract.primary_exchange() },
 		Currency{ contract.currency().size() ? contract.currency() : "USD" },
 		LocalSymbol{ contract.local_symbol() },
 		TradingClass{ contract.trading_class() },
@@ -94,10 +94,10 @@ namespace Jde::Markets
 		pProto->set_security_type( SecType );
 		pProto->set_expiration( Expiration );
 		pProto->set_strike( Strike );
-		pProto->set_right( string{ToString(Right)} );
+		pProto->set_right( Right );
 		pProto->set_multiplier( Multiplier );
 		pProto->set_exchange( Exchange );
-		pProto->set_primary_exchange( to_string(PrimaryExchange) );
+		pProto->set_primary_exchange( PrimaryExchange );
 		pProto->set_currency( Currency );
 		pProto->set_local_symbol( LocalSymbol );
 		pProto->set_trading_class( TradingClass );
@@ -200,7 +200,7 @@ namespace Jde::Markets
 	{
 		os << Id << Symbol << SecType << Expiration << Strike << ToString(Right) << Multiplier << Exchange;
 		if( includePrimaryExchange )
-			os  << to_string(PrimaryExchange);
+			os  << ToString(PrimaryExchange);
 		os << Currency << LocalSymbol << TradingClass;
 		return os;
 	}
@@ -310,7 +310,7 @@ namespace Jde::Markets
 	SecurityType ToSecurityType( string_view inputName )noexcept
 	{
 		CIString name{ inputName };
-		SecurityType type = SecurityType::None;
+		SecurityType type = SecurityType::Unknown;
 		if( name=="OPT" )
 			type = SecurityType::Option;
 		else if( name=="STK" )
@@ -320,9 +320,14 @@ namespace Jde::Markets
 		else if( name=="WAR" )
 			type = SecurityType::Warrant;
 		else
-			GetDefaultLogger()->warn( fmt::format("Could not parse security type {}", inputName) );
+			WARN( "Could not parse security type {}"sv, inputName );
 
 		return type;
+	}
+	constexpr std::array<std::string_view,12> SecurityTypes = {"None","STK","MutualFund","Etf","Future","Commodity","Bag","Cash","Fop","IND","OPT","WAR"};
+	string_view ToString( SecurityType type )noexcept
+	{
+		return SecurityTypes[ type<SecurityTypes.size() ? type : 0];
 	}
 #pragma endregion
 	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, string_view symbol )noexcept

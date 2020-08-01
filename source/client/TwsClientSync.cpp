@@ -92,22 +92,37 @@ namespace Jde::Markets
 		return time;
 	}
 
-/*	void TwsClientSync::OnReqHistoricalData( TickerId reqId, sp<list<ibapi::Bar>> pBars )
-	{
-		VERIFY( _historicalData.emplace(reqId, pBars).second );
-		auto pCv = _conditionVariables.Find( reqId );
-		if( pCv )
-			pCv->notify_one();
-	};
-*/
-	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( ContractPK contractId, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool cache, bool useRth )noexcept
+	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
-		TwsClientCache::ReqHistoricalData( reqId, contractId, endDay, dayCount, barSize, display, cache, useRth );
+		if( useCache )
+			TwsClientCache::ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
+		else
+			ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
 		return future;
-
 	}
+
+	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
+	{
+		var now = std::time(nullptr);
+		time_t end=start;
+		for( ; end<now; end+=barSize );
+		var seconds = end-start;
+		if( seconds )
+		{
+			var reqId = RequestId();
+			auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
+			const DateTime endTime{ end };
+			const string endTimeString{ fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
+			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} S", seconds), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+			return future;
+		}
+		std::promise<sp<vector<ibapi::Bar>>> promise;
+		promise.set_value( make_shared<vector<ibapi::Bar>>() );
+		return promise.get_future();
+	}
+
 /*	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
 	{
 		var reqId = RequestId();
@@ -178,7 +193,7 @@ namespace Jde::Markets
 		// }
 		// else if( !set )
 		// 	TwsClient::reqContractDetails( reqId, contract );
-		return std::move( future );
+		return future;
 	}
 	Proto::Results::OptionParams TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
 	{
@@ -193,7 +208,7 @@ namespace Jde::Markets
 		var reqId = RequestId();
 		auto future = Wrapper()->SecDefOptParamsPromise( reqId );
 		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
-		return std::move( future );
+		return future;
 	}
 /*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
 	{

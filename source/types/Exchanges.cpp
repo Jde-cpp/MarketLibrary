@@ -5,9 +5,9 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
-	string to_string( Exchanges exchange )noexcept
+	string_view ToString( Exchanges exchange )noexcept
 	{
-		string value;
+		string_view value="";
 		if( exchange==Exchanges::Nyse )
 			value = "Nyse";
 		else if( exchange==Exchanges::Nasdaq )
@@ -31,15 +31,13 @@ namespace Jde::Markets
 	Exchanges ToExchange( string_view pszName )noexcept
 	{
 		const CIString name( pszName );
-		Exchanges value = Exchanges::None;
+		Exchanges value = Exchanges::Smart;
 		if( name=="Nyse" )
 			value = Exchanges::Nyse;
 		else if( name=="Nasdaq" )
 			value = Exchanges::Nasdaq;
 		else if( name=="Amex" )
 			value = Exchanges::Amex;
-		else if( name=="Smart" || name.size()==0 )
-			value = Exchanges::Smart;
 		else if( name=="Arca" )
 			value = Exchanges::Arca;
 		else if( name=="Bats" )
@@ -48,7 +46,7 @@ namespace Jde::Markets
 			value = Exchanges::PinkSheets;
 		else if( name=="Value" )
 			value = Exchanges::Value;
-		else
+		else if( name!="Smart"sv && name.size() )
 			ERR( "Unknown exchange '{}'"sv, pszName );
 		return value;
 	}
@@ -410,7 +408,7 @@ namespace Jde::Markets
 		return isHoliday;
 	}
 
-	bool IsHoliday( DayIndex day )noexcept
+	bool IsHoliday( DayIndex day, Exchanges /*exchange*/ )noexcept
 	{
 		var mod = day%7;
 		constexpr array<DayIndex,27> last3years = {17546,17581,17620,17679,17716,17777,17857,17870,17890,17897,17917,17945,18005,18043,18081,18141,18228,18255,18262,18281,18309,18362,18407,18446,18512,18592,18621};
@@ -505,6 +503,10 @@ namespace Jde::Markets
 		DateTime etNow{ Timezone::EasternTimeNow() };
 		return !IsHoliday( DaysSinceEpoch(etNow) ) && etNow.Hour()>3 && etNow.Hour()<20;
 	}
+	bool IsOpen( const Contract& contract )noexcept
+	{
+		return IsOpen( contract.SecType );
+	}
 	bool IsOpen( SecurityType type )noexcept
 	{
 		bool isOpen;
@@ -516,6 +518,35 @@ namespace Jde::Markets
 		else
 			isOpen = IsOpen();
 		return isOpen;
+	}
+	TimePoint RthBegin( const Contract& contract, DayIndex day )noexcept
+	{
+		var time = FromDays( day );
+		DateTime utc{ time+Timezone::EasternTimezoneDifference(time)+9h+30min };
+		return utc.GetTimePoint();
+	}
+	TimePoint RthEnd( const Contract& contract, DayIndex day )noexcept
+	{
+		var time = FromDays( day );
+		DateTime utc{ time+Timezone::EasternTimezoneDifference(time)+16h };
+		return utc.GetTimePoint();
+	}
+	TimePoint ExtendedBegin( const Contract& contract, DayIndex day )noexcept
+	{
+		var midnight = FromDays( day );
+		DateTime utc{ midnight+Timezone::EasternTimezoneDifference(midnight)+4h };
+		return utc.GetTimePoint();
+	}
+	TimePoint ExtendedEnd( const Contract& contract, DayIndex day )noexcept
+	{
+		var midnight = FromDays( day );
+		DateTime utc{ midnight+Timezone::EasternTimezoneDifference(midnight)+20h };
+		return utc.GetTimePoint();
+	}
+	bool IsRth( const Contract& contract, TimePoint time )noexcept
+	{
+		DateTime et{ time+Timezone::EasternTimezoneDifference(time) };
+		return !IsHoliday( DaysSinceEpoch(et) ) && ((et.Hour()==9 && et.Minute()>29) || et.Hour()>9) && et.Hour()<16;
 	}
 	bool IsPreMarket( SecurityType type )noexcept
 	{

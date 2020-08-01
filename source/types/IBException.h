@@ -6,7 +6,7 @@ namespace Jde::Markets
 {
 	struct JDE_MARKETS_EXPORT IBException : public Exception
 	{
-		IBException()=default;
+		//IBException()=default;
 		IBException(const IBException&) = default;
 		IBException(IBException&&) = default;
 		IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, uint line )noexcept;

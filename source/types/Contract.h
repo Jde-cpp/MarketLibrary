@@ -24,17 +24,13 @@ namespace Jde::Markets
 	};
 #pragma endregion
 #pragma region SecurityRight
-	enum class SecurityRight : uint8
-	{
-		None=0,
-		Call=1,
-		Put=2
-	};
+	using SecurityRight = Proto::SecurityRight;
 	JDE_MARKETS_EXPORT SecurityRight ToSecurityRight( string_view name )noexcept;
 	JDE_MARKETS_EXPORT string_view ToString( SecurityRight right )noexcept;
 #pragma endregion
 #pragma region SecurityType
-	enum class SecurityType : uint8
+	using SecurityType=Proto::SecurityType;
+/*	enum class SecurityType : uint8
 	{
 		None=0,
 		Stock=1,
@@ -48,9 +44,10 @@ namespace Jde::Markets
 		Index=9,
 		Option=10,
 		Warrant=11
-	};
+	};*/
 
 	JDE_MARKETS_EXPORT SecurityType ToSecurityType( string_view inputName )noexcept;
+	string_view ToString( SecurityType type )noexcept;
 #pragma endregion
 #pragma region ComboLeg
 	struct ComboLeg
@@ -98,12 +95,12 @@ namespace Jde::Markets
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};
 		string Symbol;
-		string SecType;//"STK", "OPT"
+		SecurityType SecType{SecurityType::Stock};//"STK", "OPT"
 		DayIndex Expiration;
 		double Strike{0.0};
 		SecurityRight Right{SecurityRight::None};
 		uint32 Multiplier;
-		string Exchange{"SMART"};
+		Exchanges Exchange{ Exchanges::Smart };
 		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
 		string Currency;//TODOEXT make int
 		string LocalSymbol;

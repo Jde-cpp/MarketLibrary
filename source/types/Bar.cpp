@@ -1,9 +1,11 @@
 #include "Bar.h"
+#include "./proto/bar.pb.h"
 //#include "../../../framework/DateTime.h"
 #define var const auto
 
 namespace Jde::Markets
 {
+	using EBarSize=Proto::Requests::BarSize;
 	time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormatOptional )noexcept
 	{
 		var ymdFormat = ymdFormatOptional.value_or( time.size()==8 );
@@ -20,47 +22,59 @@ namespace Jde::Markets
 			: std::to_string( time.TimeT() );
 			//: fmt::format( "{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second() );
 	}
-
-	const char* BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
+	string_view BarSize::TryToString(const BarSize::Enum barSize )noexcept
 	{
-		const char* result = "";
+		string_view value = "1 hour";
+		Try( [barSize, &value](){ value = ToString(barSize);} );
+		return value;
+	}
+
+	string_view BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
+	{
+		string_view result = "";
 		switch( barSize )
 		{
-		case BarSize::Second:
+		case EBarSize::Second:
 			result = "1 sec";
 			break;
-		case BarSize::Second5:
+		case EBarSize::Second5:
 			result = "5 secs";
 			break;
-		case BarSize::Second15:
+		case EBarSize::Second15:
 			result = "15 secs";
 			break;
-		case BarSize::Second30:
+		case EBarSize::Second30:
 			result = "30 secs";
 			break;
-		case BarSize::Minute:
+		case EBarSize::Minute:
 			result = "1 min";
 			break;
-		case BarSize::Minute2:
+		case EBarSize::Minute2:
 			result = "2 mins";
 			break;
-		case BarSize::Minute3:
+		case EBarSize::Minute3:
 			result = "3 mins";
 			break;
-		case BarSize::Minute5:
+		case EBarSize::Minute5:
 			result = "5 mins";
 			break;
-		case BarSize::Minute15:
+		case EBarSize::Minute15:
 			result = "15 mins";
 			break;
-		case BarSize::Minute30:
+		case EBarSize::Minute30:
 			result = "30 mins";
 			break;
-		case BarSize::Hour:
+		case EBarSize::Hour:
 			result = "1 hour";
 			break;
-		case BarSize::Day:
+		case EBarSize::Week:
+			result = "1 week";
+			break;
+		case EBarSize::Day:
 			result = "1 day";
+			break;
+		case EBarSize::Month:
+			result = "1 month";
 			break;
 		default:
 			THROW( Exception(fmt::format("Unknown Barsize {}", barSize).c_str()) );
@@ -70,43 +84,43 @@ namespace Jde::Markets
 
 	Duration BarSize::BarDuration( const BarSize::Enum barSize )noexcept
 	{
-		Duration duration = 1440min;
+		Duration duration = 1440min;//can go off of enum value
 		switch( barSize )
 		{
-		case BarSize::Second:
+		case EBarSize::Second:
 			duration = 1s;
 			break;
-		case BarSize::Second5:
+		case EBarSize::Second5:
 			duration = 5s;
 			break;
-		case BarSize::Second15:
+		case EBarSize::Second15:
 			duration = 15s;
 			break;
-		case BarSize::Second30:
+		case EBarSize::Second30:
 			duration = 30s;
 			break;
-		case BarSize::Minute:
+		case EBarSize::Minute:
 			duration = 1min;
 			break;
-		case BarSize::Minute2:
+		case EBarSize::Minute2:
 			duration = 2min;
 			break;
-		case BarSize::Minute3:
+		case EBarSize::Minute3:
 			duration = 3min;
 			break;
-		case BarSize::Minute5:
+		case EBarSize::Minute5:
 			duration = 5min;
 			break;
-		case BarSize::Minute15:
+		case EBarSize::Minute15:
 			duration = 15min;
 			break;
-		case BarSize::Minute30:
+		case EBarSize::Minute30:
 			duration = 30min;
 			break;
-		case BarSize::Hour:
+		case EBarSize::Hour:
 			duration = 60min;
 			break;
-		case BarSize::Day:
+		case EBarSize::Day:
 			duration = 1440min;
 			break;
 		default:
@@ -123,10 +137,40 @@ namespace Jde::Markets
 			: perDay/duration + (perDay%duration ? 1 : 0);
 	}
 
- 	const char* TwsDisplay::StringValues[9] = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
-	const char* TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
+	CandleStick::CandleStick( const Proto::MinuteBar& minuteBar )noexcept:
+		Open{ minuteBar.firsttradedprice() },
+		High{ minuteBar.highesttradedprice() },
+		Low{ minuteBar.lowesttradedprice() },
+		Close{ minuteBar.lasttradedprice() },
+		Volume{ minuteBar.volume() }
+	{}
+	CandleStick::CandleStick( const ibapi::Bar& bar )noexcept:
+		Open{ bar.open },
+		High{ bar.high },
+		Low{ bar.low },
+		Close{ bar.close },
+		Volume{ static_cast<uint32>(bar.volume) }
+	{}
+	ibapi::Bar CandleStick::ToIB( TimePoint time )const noexcept
 	{
-		if( display>=sizeof(StringValues) )
+		return ibapi::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0.0, (long long)Volume, 0 };
+	}
+	Proto::MinuteBar CandleStick::ToProto()const noexcept
+	{
+		Proto::MinuteBar proto;
+		proto.set_firsttradedprice( static_cast<float>(Open) );
+		proto.set_highesttradedprice( static_cast<float>(High) );
+		proto.set_lowesttradedprice( static_cast<float>(Low) );
+		proto.set_lasttradedprice( static_cast<float>(Close) );
+		proto.set_volume( Volume );
+		return proto;
+	}
+
+
+	string_view TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
+	{
+		//static_assert( display<sizeof(StringValues) );
+		if( static_cast<uint>(display)>=sizeof(StringValues) )
 			THROW( Exception(fmt::format("Unknown TwsDisplay {}", display).c_str()) );
 		return StringValues[display];
 	}

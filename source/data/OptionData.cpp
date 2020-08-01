@@ -1,10 +1,11 @@
 #include "./OptionData.h"
+#include "BarData.h"
 #include "../types/Contract.h"
-#include "../../../XZ/source/XZ.h"
 #include "../types/proto/results.pb.h"
 #include "../../../Framework/source/io/File.h"
 #include "../../../Framework/source/db/Database.h"
 #include "../../../Framework/source/Cache.h"
+#include "../../../XZ/source/XZ.h"
 #define var const auto
 
 namespace Jde::Markets
@@ -250,7 +251,7 @@ namespace Jde::Markets
 		}
 		if( includeExpired )
 		{
-			for( var [optionId, pOptionDay] : options )
+			for( var& [optionId, pOptionDay] : options )
  			{
 				var pFromDay = get<1>( pOptionDay );
 				var pOption = get<0>( pOptionDay );
@@ -263,8 +264,8 @@ namespace Jde::Markets
 
 	fs::path OptionDir( const Contract& contract )
 	{
-		var exchangeString = to_string( contract.PrimaryExchange );
-		return RootMinuteBar()/StringUtilities::ToLower(exchangeString)/StringUtilities::ToUpper(contract.Symbol)/"options";
+		const string exchangeString{ ToString(contract.PrimaryExchange) };
+		return BarData::Path()/StringUtilities::ToLower(exchangeString)/StringUtilities::ToUpper(contract.Symbol)/"options";
 	}
 
 	fs::path OptionData::OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept

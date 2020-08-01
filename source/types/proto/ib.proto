@@ -27,17 +27,51 @@ message DeltaNeutralContract
 	double price=3;
 }
 
+enum SecurityRight
+{
+	None=0;
+	Call=1;
+	Put=2;
+};
+enum SecurityType
+{
+	Unknown=0;
+	Stock=1;
+	MutualFund=2;
+	Etf=3;
+	Future=4;
+	Commodity=5;
+	Bag=6;
+	Cash=7;
+	Fop=8;
+	Index=9;
+	Option=10;
+	Warrant=11;
+};
+
+enum Exchanges
+{
+	Smart   = 0;
+	Nyse   = 1;
+	Nasdaq = 2;
+	Amex   =3;
+	Arca   =4;
+	Bats   =5;
+	PinkSheets =6;
+	Value = 7;
+};
+
 message Contract
 {
 	uint32 id=1;
 	string symbol=2;
-	string security_type=3;//todo make enum.
+	SecurityType security_type=3;
 	uint32 expiration=4;
 	double strike=5;
-	string right=6;//todo make enum.
+	SecurityRight right=6;
 	uint32 multiplier=7;
-	string exchange=8;
-	string primary_exchange=9;
+	Exchanges exchange=8;
+	Exchanges primary_exchange=9;
 	string currency=10;
 	string local_symbol=11;
 	string trading_class=12;

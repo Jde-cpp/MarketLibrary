@@ -1,7 +1,7 @@
 #pragma once
 #include "../TypeDefs.h"
 #include "../Exports.h"
-//#include "./proto/MinuteBar.pb.h"
+#include "./proto/requests.pb.h"
 //namespace ibapi{struct Bar;}
 namespace Jde::Markets
 {
@@ -9,17 +9,37 @@ namespace Jde::Markets
 	string ToIBDate( TimePoint time )noexcept;
 	struct JDE_MARKETS_EXPORT BarSize
 	{
-		enum Enum{ None=0, Second=1, Second5=2, Second15=3, Second30=4, Minute=5, Minute2=6, Minute3=16, Minute5=7, Minute15=8, Minute30=9, Hour=10, Day=11, Week=12, Month=13, Month3=14, Year=15 };
+		//enum Enum{ None=0, Second=1, Second5=2, Second15=3, Second30=4, Minute=5, Minute2=6, Minute3=7, Minute5=8, Minute15=9, Minute30=10, Hour=11, Day=12, Week=13, Month=14, Month3=14, Year=15 };//TODO use proto
+		using Enum=Proto::Requests::BarSize;
+
 		static Duration BarDuration( const BarSize::Enum barSize )noexcept;
 		static uint16 BarsPerDay( const BarSize::Enum barSize )noexcept;
-		static const char* ToString(const BarSize::Enum barSize )noexcept(false);
+		static string_view ToString(const BarSize::Enum barSize )noexcept(false);
+		static string_view TryToString(const BarSize::Enum barSize )noexcept;
+	};
+
+	namespace Proto{ class MinuteBar; }
+	struct JDE_MARKETS_EXPORT CandleStick
+	{
+		CandleStick()=default;
+		CandleStick( const Proto::MinuteBar& minuteBar )noexcept;
+		CandleStick( const ibapi::Bar& bar )noexcept;
+		//CandleStick& operator=(const CandleStick&)=default;
+		ibapi::Bar ToIB( TimePoint time )const noexcept;
+		Proto::MinuteBar ToProto()const noexcept;
+		const Amount Open{0.0};
+		const Amount High{0.0};
+		const Amount Low{0.0};
+		const Amount Close{0.0};
+		const uint32 Volume{0};
 	};
 
 	struct JDE_MARKETS_EXPORT TwsDisplay
 	{
-		enum Enum{ Trades, Midpoint, Bid, Ask, BidAsk, HistoricalVolatility, OptionImpliedVolatility, FeeRate, RebateRate };
-		static const char* StringValues[9];
-		static const char* ToString(const TwsDisplay::Enum display )noexcept(false);
+		//enum Enum{ Trades, Midpoint, Bid, Ask, BidAsk, HistoricalVolatility, OptionImpliedVolatility, FeeRate, RebateRate };
+		using Enum=Proto::Requests::Display;
+		static constexpr array<string_view,9> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
+		static string_view ToString( const TwsDisplay::Enum display )noexcept(false);
 		static TwsDisplay::Enum FromString( string_view stringValue )noexcept(false);
 	};
 	std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value );

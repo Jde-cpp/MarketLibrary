@@ -204,21 +204,28 @@ enum BarSize
 {
 	None=0;
 	Second=1;
-	Second5=2;
-	Second15=3;
-	Second30=4;
-	Minute=5;
-	Minute2=6;
-	Minute3=16;
-	Minute5=7;
-	Minute15=8;
-	Minute30=9;
-	Hour=10;
-	Day=11;
-	Week=12;
-	Month=13;
-	Month3=14;
-	Year=15;
+	Second5=5;
+	Second10=10;
+	Second15=15;
+	Second30=30;
+	Minute=60;
+	Minute2=120;
+	Minute3=180;
+	Minute5=300;
+	Minute10=600;
+	Minute15=900;
+	Minute20=1200;
+	Minute30=1800;
+	Hour=3600;
+	Hour2=7200;
+	Hour3=10800;
+	Hour4=14400;
+	Hour8=28800;
+	Day=86400;
+	Week=604800;
+	Month=18144000;
+	//Month3=15;
+	//Year=16;
 }
 
 enum ERequests

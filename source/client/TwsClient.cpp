@@ -1,11 +1,14 @@
 #include "TwsClient.h"
 #include "../TwsProcessor.h"
 #include "../wrapper/WrapperLog.h"
+#include "../types/Bar.h"
+#include "../types/Contract.h"
 
 #define var const auto
 
 namespace Jde::Markets
 {
+	using namespace Chrono;
 	sp<TwsClient> TwsClient::_pInstance;
 	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
@@ -57,6 +60,12 @@ namespace Jde::Markets
 	{
 		LOG( _logLevel, "reqExecutions( {}, {}, {}, {} )"sv, reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
 		EClient::reqExecutions( reqId, filter );
+	}
+	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
+	{
+		const DateTime endTime{ EndOfDay(FromDays(endDay)) };
+		const string endTimeString{ fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
+		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{

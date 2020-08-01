@@ -4,6 +4,7 @@
 #include "../../Framework/source/math/Decimal.h"
 namespace Jde::Markets
 {
+	using fmt::format;
 	typedef int32 AccountPK;
 	typedef long ContractPK;
 	typedef int32 DecisionTreePK;

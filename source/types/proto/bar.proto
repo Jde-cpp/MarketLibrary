@@ -1,0 +1,24 @@
+//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. bar.proto
+syntax = "proto3";
+
+package Jde.Markets.Proto;
+
+message MinuteBar
+{
+  float FirstTradedPrice = 1;
+  float HighestTradedPrice = 2;
+  float LowestTradedPrice = 3;
+  float LastTradedPrice = 4;
+  uint32 Volume = 5;
+}
+
+message BarDay
+{
+	uint32 Day=1;
+	repeated MinuteBar Bars=2;
+}
+
+message BarFile
+{
+	repeated BarDay Days=1;
+}
