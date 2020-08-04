@@ -11,7 +11,7 @@ namespace Jde::Markets
 	using namespace Chrono;
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/StringUtilities::ToLower(string{ToString(contract.PrimaryExchange)})/StringUtilities::Replace(contract.Symbol, " ", "_"); }
 
-	sp<Proto::BarFile> Load( const fs::path& path )noexcept(false)
+	sp<Proto::BarFile> BarData::Load( const fs::path& path )noexcept(false)
 	{
 		var pBytes = IO::Zip::XZ::Read( path );
 		auto pFile = pBytes ? make_shared<Proto::BarFile>() : sp<Proto::BarFile>();
@@ -30,7 +30,7 @@ namespace Jde::Markets
 		return pFile;
 	}
 
-	MapPtr<DayIndex,VectorPtr<CandleStick>> FromFile( const fs::path& path, string_view symbol, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false)
+	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const fs::path& path, string_view symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 
@@ -38,7 +38,7 @@ namespace Jde::Markets
 		if( !pFile )
 			return pResults;
 
-		var dayCount = pFile->days_size();
+		DayIndex dayCount = pFile->days_size();
 		for( DayIndex i=0; i<dayCount; ++i )
 		{
 			var& day = pFile->days(i);
@@ -78,7 +78,7 @@ namespace Jde::Markets
 		return make_tuple( DaysSinceEpoch(start), DaysSinceEpoch(end) );
 	}
 
-	void ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex end, string_view prefix=nullptr )noexcept(false)//fnctn could throw
+	void BarData::ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex end, string_view prefix )noexcept//fnctn better not throw
 	{
 		//var now = Clock::now();
 		var root = BarData::Path( contract );
@@ -89,8 +89,8 @@ namespace Jde::Markets
 		{
 			var path = entry.path();
 			//DBG0( entry.path().stem().string() );
-			if( 	(prefix!=nullptr && path.stem().string().find(prefix)!=0)
-				|| (prefix==nullptr && std::isalpha(path.stem().string()[0])) )
+			if( 	(prefix.size() && path.stem().string().find(prefix)!=0)
+				|| (!prefix.size() && std::isalpha(path.stem().string()[0])) )
 			{
 				continue;
 			}
@@ -99,7 +99,7 @@ namespace Jde::Markets
 			var [fileStart,fileEnd] = ExtractTimeframe( path, contract.IssueDate );
 			if( fileEnd==0 )
 			{
-				DBG( "could not find ent to '{}' prefix==nullptr=={}"sv, path.stem().string(), prefix==nullptr );
+				DBG( "could not find ent to '{}' prefix='{}'"sv, path.stem().string(), prefix );
 				continue;
 			}
 			if( end==0 || (start<=fileEnd && end>=fileStart) )
@@ -107,11 +107,11 @@ namespace Jde::Markets
 		}
 	}
 
-	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::TryReqHistoricalData( const Contract& contract, DayIndex start, DayIndex end )noexcept
+	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept
 	{
 		try
 		{
-			return ReqHistoricalData( contract, start, end );
+			return Load( contract, start, end );
 		}
 		catch( const Exception& e )
 		{
@@ -119,13 +119,13 @@ namespace Jde::Markets
 		}
 		return make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 	}
-	MapPtr<DayIndex,VectorPtr<CandleStick>> ReqHistoricalData( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
+	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
 	{
 		var root = BarData::Path( contract );
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 		auto fnctn = [&]( const fs::path& path, DayIndex, DayIndex )
 		{
-			var pFileValues = FromFile( path, contract.Symbol );
+			var pFileValues = Load( path, contract.Symbol );
 			for( var& [day,pBars] : *pFileValues )
 			{
 				if( day>=start && day<=end )
@@ -186,7 +186,7 @@ namespace Jde::Markets
 			auto addExisting = [&,&proto2=proto]( const fs::path& path, DayIndex _=0, DayIndex _2=0)noexcept
 			{
 				combinedFiles.emplace( path.string() );
-				var pExisting = FromFile( path, contract.Symbol, pPartials );
+				var pExisting = Load( path, contract.Symbol, pPartials );
 				for( var& [day, pBars] : *pExisting )
 				{
 					if( days.find(day)!=days.end() )

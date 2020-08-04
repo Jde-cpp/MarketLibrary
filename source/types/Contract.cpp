@@ -327,7 +327,7 @@ namespace Jde::Markets
 	constexpr std::array<std::string_view,12> SecurityTypes = {"None","STK","MutualFund","Etf","Future","Commodity","Bag","Cash","Fop","IND","OPT","WAR"};
 	string_view ToString( SecurityType type )noexcept
 	{
-		return SecurityTypes[ type<SecurityTypes.size() ? type : 0];
+		return SecurityTypes[ type<(int)SecurityTypes.size() ? type : 0];
 	}
 #pragma endregion
 	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, string_view symbol )noexcept

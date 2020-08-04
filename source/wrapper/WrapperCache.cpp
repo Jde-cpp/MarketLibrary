@@ -41,7 +41,6 @@ namespace Jde::Markets
 		return a;
 	}
 
-	//Log -> Cache -> Sync -> [Web|Historian]
 	void WrapperCache::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		var cacheId = _cacheIds.Find( reqId, string{} );
@@ -54,7 +53,6 @@ namespace Jde::Markets
 		}
 	}
 
-	//Proto::Results::OptionParams securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
 	void WrapperCache::securityDefinitionOptionalParameterEnd( int reqId )noexcept
 	{
 		var cacheId = _cacheIds.Find( reqId, string{} );

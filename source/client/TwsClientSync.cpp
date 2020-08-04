@@ -6,6 +6,7 @@
 #define var const auto
 namespace Jde::Markets
 {
+	using namespace Chrono;
 	sp<TwsClientSync> pInstance;
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
 	void TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
@@ -99,7 +100,11 @@ namespace Jde::Markets
 		if( useCache )
 			TwsClientCache::ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
 		else
-			ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
+		{
+			const DateTime endTime{ Chrono::FromDays(endDay) };
+			const string endTimeString{ fmt::format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };
+			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+		}
 		return future;
 	}
 

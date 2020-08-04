@@ -14,8 +14,11 @@ namespace BarData
 	inline fs::path Path()noexcept(false){ return Settings::Global().Get<fs::path>("barPath"); }
 	inline bool HavePath()noexcept(false){ return Settings::Global().Have("barPath"); }
 
-	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> TryReqHistoricalData( const Contract& contract, DayIndex start, DayIndex end )noexcept;
-	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> ReqHistoricalData( const Contract& contract, DayIndex start, DayIndex end )noexcept(false);
+	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept;
+	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false);
+	MapPtr<DayIndex,VectorPtr<CandleStick>> Load( const fs::path& path, string_view symbol, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);
+	sp<Proto::BarFile> Load( const fs::path& path )noexcept(false);
+	void ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex end, string_view prefix=""sv )noexcept;
 	JDE_MARKETS_EXPORT void Save( const Contract&, map<DayIndex,vector<sp<ibapi::Bar>>>& rthBars )noexcept;
 	JDE_MARKETS_EXPORT void Save( const Contract& contract, const map<DayIndex,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,TimePoint_>> pExcluded=nullptr, bool checkExisting=false, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);
 }}

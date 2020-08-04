@@ -2,7 +2,6 @@
 #include "../Exports.h"
 #include "../TypeDefs.h"
 #include "proto/ib.pb.h"
-//#include "DateTime.h"
 
 namespace Jde::Markets
 {
@@ -46,11 +45,9 @@ namespace Jde::Markets
 	TimePoint ExtendedEnd( const Contract& contract, DayIndex day )noexcept;
 
 	JDE_MARKETS_EXPORT bool IsHoliday( const TimePoint& date )noexcept;
-	JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day, Exchanges exchange=Exchanges::Nyse )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.
-	//JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }//TODO calc on day.
+	JDE_MARKETS_EXPORT bool IsHoliday( DayIndex day, Exchanges exchange=Exchanges::Nyse )noexcept;//{return IsHoliday( Chrono::FromDays(date) ); }
 	namespace ExchangeTime
 	{
-		//JDE_MARKETS_EXPORT MinuteIndex MinuteCount( const TimePoint& timePoint )noexcept;
 		JDE_MARKETS_EXPORT MinuteIndex MinuteCount( DayIndex day )noexcept;
 	}
 }

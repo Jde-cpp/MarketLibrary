@@ -113,7 +113,7 @@ namespace Jde::Markets
 			var isOpen = IsOpen( contract );
 			if( !pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )
 			{
-				DayIndex endDayCount = 0, endDay = endDay;
+				DayIndex endDayCount = 0, currentDay = endDay;
 				time_t lastTime = 0;
 				for( auto p = pData->rbegin(); p!=pData->rend(); ++p )
 				{
@@ -124,9 +124,9 @@ namespace Jde::Markets
 						break;
 					}
 					++endDayCount;
-					endDay = p->first;
+					currentDay = p->first;
 				}
-				addBars( endDay, endDayCount, *pData, lastTime );
+				addBars( currentDay, endDayCount, *pData, lastTime );
 			}
 		}
 		else
@@ -134,17 +134,6 @@ namespace Jde::Markets
 			pData = make_shared<map<DayIndex,VectorPtr<sp<ibapi::Bar>>>>();
 			addBars( endDay, dayCount, *pData );
 		}
-			//Cache needs to handle initial load.
-			//Make sure current day works.
-			//UnitTests:
-				// ask for week ago, then last 2 weeks, then last 3 weeks.
-				//2x 1 load.
-				//save to file.
-				//make sure load from file.
-				//combine into day,week,month.
-					//if have minute bars, use that else just request.
-				//during day cache then save.
-				//some kind of cache cleanup.
 
 		var now = time( nullptr ); time_t minTime=now, maxTime=0;
 		for( var& dayBars : *pData )

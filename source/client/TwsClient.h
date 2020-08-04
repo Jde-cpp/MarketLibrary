@@ -1,4 +1,5 @@
 #pragma once
+#include <EClientSocket.h>
 #include "../Exports.h"
 #include "../types/TwsConnectionSettings.h"
 #include "../types/proto/requests.pb.h"

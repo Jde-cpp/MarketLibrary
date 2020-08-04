@@ -2,14 +2,14 @@
 #include "../TypeDefs.h"
 #include "../Exports.h"
 #include "./proto/requests.pb.h"
-//namespace ibapi{struct Bar;}
+namespace ibapi{struct Bar;}
 namespace Jde::Markets
 {
 	time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormat={} )noexcept;
 	string ToIBDate( TimePoint time )noexcept;
 	struct JDE_MARKETS_EXPORT BarSize
 	{
-		//enum Enum{ None=0, Second=1, Second5=2, Second15=3, Second30=4, Minute=5, Minute2=6, Minute3=7, Minute5=8, Minute15=9, Minute30=10, Hour=11, Day=12, Week=13, Month=14, Month3=14, Year=15 };//TODO use proto
+		//enum Enum{ None=0, Second=1, Second5=2, Second15=3, Second30=4, Minute=5, Minute2=6, Minute3=7, Minute5=8, Minute15=9, Minute30=10, Hour=11, Day=12, Week=13, Month=14, Month3=14, Year=15 };
 		using Enum=Proto::Requests::BarSize;
 
 		static Duration BarDuration( const BarSize::Enum barSize )noexcept;
