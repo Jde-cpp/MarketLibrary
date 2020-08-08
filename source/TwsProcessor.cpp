@@ -21,7 +21,10 @@ namespace Jde::Markets
 	TwsProcessor::~TwsProcessor()
 	{
 		if( _pThread )
+		{
+			_pThread->Interrupt();
 			_pThread->Join();
+		}
 	}
 
 	void TwsProcessor::Stop()noexcept

@@ -72,7 +72,7 @@ namespace Jde::Markets
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
-		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ){}"sv, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions, send ? "*" : "" );
+		LOGN( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions, send ? "*" : "" );
 		if( send )
 		{
 			WrapperLogPtr()->AddHistoricalDataRequest( reqId );

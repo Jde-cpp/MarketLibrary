@@ -140,6 +140,7 @@ namespace Jde::Markets
 		extern const Contract Qqq;
 		extern const Contract Psq;
 		JDE_MARKETS_EXPORT extern const Contract Tsla;
+		JDE_MARKETS_EXPORT extern const Contract Aig;
 	}
 #pragma endregion
 }

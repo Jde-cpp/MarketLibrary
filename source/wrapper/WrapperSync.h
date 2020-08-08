@@ -5,11 +5,15 @@
 #include "WrapperPromise.h"
 #include "../types/proto/results.pb.h"
 
+namespace Jde::Settings{ struct Container; }
+struct EReaderSignal;
 namespace Jde::Markets
 {
 	//struct OptionsData{ const std::string Exchange; int UnderlyingConId; const std::string TradingClass; const std::string Multiplier; const std::set<std::string> Expirations; const std::set<double> Strikes; };
-	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperCache
+	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperCache, std::enable_shared_from_this<WrapperSync>
 	{
+		WrapperSync()noexcept;
+		void CreateClient( uint twsClientId )noexcept;
 		typedef function<void(TickerId id, int errorCode, const std::string& errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;
@@ -60,13 +64,15 @@ namespace Jde::Markets
 		bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
 		void contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
-	protected:
 
+	protected:
 		WrapperData<ibapi::ContractDetails> _detailsData;
+
 	private:
+		shared_ptr<EReaderSignal> _pReaderSignal;
 		void SendCurrentTime( const TimePoint& time )noexcept;
-		forward_list<CurrentTimeCallback> _currentTimeCallbacks; mutable shared_mutex _currentTimeCallbacksMutex;
-		forward_list<DisconnectCallback> _disconnectCallbacks; mutable shared_mutex _disconnectCallbacksMutex;
+		std::forward_list<CurrentTimeCallback> _currentTimeCallbacks; mutable shared_mutex _currentTimeCallbacksMutex;
+		std::forward_list<DisconnectCallback> _disconnectCallbacks; mutable shared_mutex _disconnectCallbacksMutex;
 
 		//map<ReqId,ReqHistoricalDataCallback> _requestCallbacks; mutable shared_mutex _requestCallbacksMutex;
 		//map<ReqId,sp<ReqHistoricalData>> _requestData; mutable mutex _requestDataMutex;

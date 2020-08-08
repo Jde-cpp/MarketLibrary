@@ -10,6 +10,7 @@
 #define var const auto
 namespace Jde::Markets
 {
+	using namespace Chrono;
 	TwsClientCache::TwsClientCache( const TwsConnectionSettings& settings, shared_ptr<WrapperCache> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClient( settings, wrapper, pReaderSignal, clientId )
 	{}
@@ -23,7 +24,7 @@ namespace Jde::Markets
 		ibapi::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
 		if( dayIndex>0 )
 		{
-			const DateTime date{ Chrono::FromDays(dayIndex) };
+			const DateTime date{ FromDays(dayIndex) };
 			contract.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
 		}
 		contract.right = ToString( right );
@@ -58,7 +59,7 @@ namespace Jde::Markets
 				std::set<std::string> expirations;
 				for( auto i=0; i<param.expirations_size(); ++i )
 				{
-					const DateTime date{ Chrono::FromDays(param.expirations(i)) };
+					const DateTime date{ FromDays(param.expirations(i)) };
 					expirations.emplace( fmt::format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
 				}
 				std::set<double> strikes;
@@ -87,10 +88,22 @@ namespace Jde::Markets
 			if( pBars )
 			{
 				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars );
+				auto pExisting = existing.end(); auto currentStart = 0; auto currentEnd = 0;
 				for( var& bar : *pBars )
 				{
-					var day = Chrono::DaysSinceEpoch( Clock::from_time_t(ConvertIBDate(bar.time)) );
-					existing.emplace( day, VectorPtr<sp<ibapi::Bar>>{new vector<sp<ibapi::Bar>>{}} ).first->second->push_back( make_shared<ibapi::Bar>(bar) );
+					var time = ConvertIBDate( bar.time );
+					if( time<currentStart || time>currentEnd )
+					{
+						var tp = Clock::from_time_t( time );
+						var day = DaysSinceEpoch( tp );
+						currentStart = Clock::to_time_t(BeginningOfDay(tp) ); currentEnd = currentStart+24*60*60;
+						pExisting = existing.find( day );
+						if( pExisting==existing.end() )
+							pExisting = existing.emplace( day, make_shared<vector<sp<ibapi::Bar>>>() ).first;
+						if( !pExisting->second )
+							pExisting->second = make_shared<vector<sp<ibapi::Bar>>>();
+					}
+					pExisting->second->push_back( make_shared<ibapi::Bar>(bar) );
 				}
 			}
 		};

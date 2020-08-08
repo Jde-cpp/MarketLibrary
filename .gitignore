@@ -36,3 +36,8 @@
 *.cc
 source/.vscode/c_cpp_properties.json
 /source/.bin
+tests/client.ts
+tests/my.natvis
+tests/.vscode/launch.json
+tests/.vscode/settings.json
+tests/.vscode/tasks.json

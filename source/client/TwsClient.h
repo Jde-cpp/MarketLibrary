@@ -27,6 +27,7 @@ namespace Jde::Markets
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;
+		static constexpr uint32 ReqHistoricalDataLogId = 2998346204;
 		void reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept;
 		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
 		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }

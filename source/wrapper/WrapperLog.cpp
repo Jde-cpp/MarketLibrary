@@ -5,7 +5,7 @@ namespace Jde::Markets
 {
 
 	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
-	{ //callback reqHistoricalData...
+	{
 		_historicalDataRequests.erase( id );
 		LOG( _logLevel, "({})WrapperLog::error( {}, {} )"sv, id, errorCode, errorMsg );
 	}

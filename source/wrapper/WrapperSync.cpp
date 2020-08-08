@@ -1,11 +1,24 @@
 #include "WrapperSync.h"
+#include <EReaderOSSignal.h>
 #include "../client/TwsClientSync.h"
+#include "../../../Framework/source/Settings.h"
 #include "../types/Contract.h"
 #include "../types/IBException.h"
 
 #define var const auto
 namespace Jde::Markets
 {
+	WrapperSync::WrapperSync()noexcept:
+		_pReaderSignal{ make_shared<EReaderOSSignal>(1000) }
+	{
+	}
+	void WrapperSync::CreateClient( uint twsClientId )noexcept
+	{
+		TwsConnectionSettings twsSettings;
+		from_json( Jde::Settings::Global().SubContainer("tws")->Json(), twsSettings );
+		TwsClientSync::CreateInstance( twsSettings, shared_from_this(), _pReaderSignal, twsClientId );
+	}
+
 	void WrapperSync::SendCurrentTime( const TimePoint& time )noexcept
 	{
 		unique_lock l{ _currentTimeCallbacksMutex };

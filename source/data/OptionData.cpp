@@ -97,6 +97,8 @@ namespace Jde::Markets
 			else
 			{
 				var pBytes = Jde::IO::Zip::XZ::Read( file );
+				if( !pBytes )
+					THROW( Exception("{} has 0 bytes.", file.string().c_str()) );
 				google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
 				pUnderlying = make_shared<Proto::UnderlyingOIValues>();
 				pUnderlying->ParseFromCodedStream( &input );

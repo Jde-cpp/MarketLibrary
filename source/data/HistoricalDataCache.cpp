@@ -16,7 +16,7 @@ namespace Jde::Markets::HistoricalDataCache
 		optional<tuple<DayIndex,DayIndex>> Contains( EBarSize barSize, bool useRth, const set<DayIndex>& days )noexcept;
 		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, EBarSize barSize, bool useRth )noexcept;
 		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<ibapi::Bar>& bars )noexcept;
-		void Push( map<DayIndex,vector<BarPtr>> dayBars, bool extended )noexcept;
+		void Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept;
 		static constexpr EBarSize Size{EBarSize::Minute};
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return format("HistoricalDataCache.{}.{}", contractId, display); }
 	private:
@@ -105,8 +105,11 @@ namespace Jde::Markets::HistoricalDataCache
 		auto contains = Size>EBarSize::None && ( Size==EBarSize::Day || Size<=EBarSize::Hour ) && barSize%Size==0;
 		if( contains )
 		{
-			shared_lock l1{_rthMutex};
-			auto pBegin = _rth.lower_bound( *days.begin() ), pEnd = _rth.lower_bound( *days.rbegin() );
+			shared_lock l1{ _rthMutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
+			var start = *days.begin();
+			var end = *days.rbegin();
+			DBG( "_rth.size={}"sv, _rth.size() );
+			auto pBegin = _rth.lower_bound( start ), pEnd = _rth.lower_bound( end );
 			contains = pBegin!=_rth.end() || pEnd!=_rth.end();
 			if( contains && !useRth )
 			{
@@ -115,14 +118,14 @@ namespace Jde::Markets::HistoricalDataCache
 					contains = _extended.find(p->first)!=_extended.end();
 			}
 			if( contains )
-				result = make_tuple( pBegin->first, pEnd->first );//
+				result = make_tuple( pBegin->first, pEnd==_rth.end() ? _rth.rbegin()->first : pEnd->first );//
 		}
 		return result;
 	}
 	VectorPtr<BarPtr> DataCache::Get( const Contract& contract, DayIndex day, EBarSize barSize, bool useRth )noexcept
 	{
 		auto pResult = make_shared<vector<BarPtr>>();
-		shared_lock l1{_rthMutex};
+		shared_lock l1{_rthMutex}; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };//
 		var pRth = _rth.find(day);  if( pRth==_rth.end() ){ ERR("trying to add bars but does not contain {}"sv, DateDisplay(FromDays(day)) ); return pResult; }
 		var& rth = pRth->second;
 		vector<BarPtr>* pExtended; vector<BarPtr>::iterator ppExtendedBegin;
@@ -137,7 +140,7 @@ namespace Jde::Markets::HistoricalDataCache
 		}
 		for( var& pBar : rth )
 			pResult->push_back( pBar );
-		_rthMutex.unlock();
+		l1.unlock(); //_rthMutex.unlock();
 		if( !useRth )
 		{
 			shared_lock l1{_extendedMutex};
@@ -204,10 +207,11 @@ namespace Jde::Markets::HistoricalDataCache
 		if( extendedBars.size() )
 			pValues->Push( extendedBars, true );
 	}
-	void DataCache::Push( map<DayIndex,vector<BarPtr>> dayBars, bool extended )noexcept
+	void DataCache::Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept
 	{
-		auto cache = extended ? _extended : _rth;
-		unique_lock l{ extended ? _extendedMutex : _rthMutex };
+		auto& cache = extended ? _extended : _rth;
+		auto& mutex = extended ? _extendedMutex : _rthMutex;
+		unique_lock l{ mutex }; //MyLock l{mutex, extended ? "_extendedMutex" : "_rthMutex", "Push", __LINE__};
 		for( var& [day,bars] : dayBars )
 		{
 			auto result = cache.emplace( day, bars );

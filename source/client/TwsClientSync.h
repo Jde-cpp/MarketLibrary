@@ -44,7 +44,7 @@ namespace Jde::Markets
 		shared_ptr<WrapperSync> Wrapper()noexcept;
 		//static sp<TwsClientSync> _pInstance;
 		TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
-		Collections::UnorderedMap<TickerId,condition_variable> _conditionVariables;
+		Collections::UnorderedMap<TickerId,std::condition_variable> _conditionVariables;
 		Collections::UnorderedMap<TickerId,IBException> _errors;
 		UnorderedMapValue<TickerId,TimePoint> _headTimestamps;
 

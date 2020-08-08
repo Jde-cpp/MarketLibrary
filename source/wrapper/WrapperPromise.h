@@ -1,3 +1,4 @@
+#include <future>
 #include "../../../Framework/source/Cache.h"
 
 namespace Jde::Markets
