@@ -7,9 +7,9 @@ namespace Jde::Markets
 {
 	//enum class SecurityType : uint8;
 	struct Contract;
-
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
+	using namespace Chrono;
 	// enum class Exchanges : uint
 	// {
 	// 	None   = 0,
@@ -25,15 +25,15 @@ namespace Jde::Markets
 
 	JDE_MARKETS_EXPORT string_view ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( string_view pszName )noexcept;
-	JDE_MARKETS_EXPORT TimePoint PreviousTradingDay( const TimePoint& time )noexcept;
-	JDE_MARKETS_EXPORT TimePoint NextTradingDay( const TimePoint& time )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;
-	inline DayIndex NextTradingDay( DayIndex day )noexcept{ return Chrono::DaysSinceEpoch( NextTradingDay(Chrono::FromDays(day)) ); }
+	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
+	inline TimePoint PreviousTradingDay( const TimePoint& time )noexcept{ return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) ); }
+	inline TimePoint NextTradingDay( const TimePoint& time )noexcept{ return FromDays( NextTradingDay(DaysSinceEpoch(time)) ); }
 
-	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }//weekend=monday, monday=monday.
-	inline DayIndex CurrentTradingDay( Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay( Chrono::DaysSinceEpoch(Timezone::EasternTimeNow())) ); }//weekend=monday, monday=monday.
+	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
+	inline DayIndex CurrentTradingDay( Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
 	inline DayIndex CurrentTradingDay( const Contract& details )noexcept{ return CurrentTradingDay(); }
-	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }//weekend=monday, monday=monday.
+	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
 	bool IsOpen()noexcept;
 	bool IsOpen( SecurityType type )noexcept;
 	bool IsOpen( const Contract& contract )noexcept;

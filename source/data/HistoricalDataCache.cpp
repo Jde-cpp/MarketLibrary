@@ -65,8 +65,13 @@ namespace Jde::Markets::HistoricalDataCache
 		var startEnd = load();
 		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 )//look in files
 		{
-			auto add = [pBars, pValues, contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )
+			auto add = [pBars, &days, pValues, contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )mutable
 			{
+				if( !pBars )
+				{
+					pBars = make_shared<map<DayIndex,VectorPtr<BarPtr>>>();
+					for_each( days.begin(), days.end(), [pBars](var day){pBars->emplace(day, VectorPtr<BarPtr>{});} );
+				}
 				map<DayIndex,vector<BarPtr>> bars;
 				for( auto [day,pSticks] : additional )
 				{

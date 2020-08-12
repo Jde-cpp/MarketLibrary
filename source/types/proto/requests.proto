@@ -5,12 +5,26 @@
 syntax = "proto3";
 package Jde.Markets.Proto.Requests;
 import "ib.proto";
+import "watch.proto";
 
 message GenericRequests
 {
 	uint32 request_id=1;
 	ERequests type=2;
 	repeated int32 ids=3;
+}
+
+message StringRequest
+{
+	uint32 request_id=1;
+	ERequests type=2;
+	string name=3;
+}
+
+message EditWatchListRequest
+{
+	uint32 request_id=1;
+	Watch.File file=2;
 }
 
 message RequestAccountUpdates
@@ -178,6 +192,8 @@ message RequestUnion
 		PlaceOrder place_order=10;
 		RequestPositions request_positions = 11;
 		RequestExecutions request_executions = 12;
+		StringRequest string_request = 13;
+		EditWatchListRequest edit_watch_list = 14;
 		//Request Historical data like normal...
 	}
 }
@@ -232,6 +248,11 @@ enum ERequests
 {
 	Ping									= 0;
 	RequsetPrevOptionValues			= -1;/*TODO remove Options*/
+	WatchLists							= -2;
+	WatchList							= -3;
+	Portfolios							= -4;
+	DeleteWatchList					= -5;
+	EditWatchList						= -6;
 
 	MarketData             			= 1;
 	CancelMarketData              = 2;

@@ -61,6 +61,63 @@ enum Exchanges
 	Value = 7;
 };
 
+enum Currencies
+{
+	NoCurrency = 0;
+	ArgentinaPeso = 1;
+	BrazilReal = 2;
+	CanadaDollar = 3;
+	ChilePeso = 4;
+	ColombiaPeso = 5;
+	EcuadorUsDollar = 6;
+	MexicoPeso = 7;
+	PeruNewSol = 8;
+	UruguayPeso = 9;
+	VenezuelaBolivar = 10;
+	AustralianDollar = 11;
+	ChinaYuan = 12;
+	HongKongDollar = 13;
+	IndiaRupee = 14;
+	IndonesiaRupiah = 15;
+	JapanYen = 16;
+	MalaysiaRinggit = 17;
+	NewZealandDollar = 18;
+	PakistanRupee = 19;
+	PhilippinesPeso = 20;
+	SingaporeDollar = 21;
+	SouthKoreaWon = 22;
+	TaiwanDollar = 23;
+	ThailandBaht = 24;
+	CzechRepKoruna = 25;
+	DenmarkKrone = 26;
+	EuroAreaEuro = 27;
+	HungaryForint = 28;
+	MaltaLira = 29;
+	NorwayKrone = 30;
+	PolandZloty = 31;
+	RussiaRuble = 32;
+	SlovakRepKoruna = 33;
+	SwedenKrona = 34;
+	SwitzerlandFranc = 35;
+	TurkeyLira = 36;
+	UKPound = 37;
+	BahrainDinar = 38;
+	EgyptPound = 39;
+	IsraelShekel = 40;
+	JordanDinar = 41;
+	KuwaitDinar = 42;
+	LebanonPound = 43;
+	SaudiArabiaRiyal = 44;
+	SouthAfricaRand = 45;
+	UaeDirham = 46;
+	Sdr = 47;
+	UsDollar = 48;
+	VenezuelaBolivarFuerte = 49;
+	VietnamDong = 50;
+	RomaniaLeu = 51;
+	KenyaShilling = 52;
+}
+
 message Contract
 {
 	uint32 id=1;

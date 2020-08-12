@@ -421,23 +421,17 @@ namespace Jde::Markets
 
 	DayIndex PreviousTradingDay( DayIndex day )noexcept
 	{
-		if( day==0 )
-			day = Chrono::DaysSinceEpoch( Timezone::EasternTimeNow() );
-		return Chrono::DaysSinceEpoch( PreviousTradingDay(Chrono::FromDays(day)) );
-	}
-	TimePoint PreviousTradingDay( const TimePoint& time )noexcept
-	{
-		//auto start = time;
-		auto previous = time-std::chrono::hours( 24 );
-		for( ; IsHoliday(previous); previous-=std::chrono::hours(24)  );
+		auto previous = day ? day : Chrono::DaysSinceEpoch( Timezone::EasternTimeNow() );
+		for( ;IsHoliday(previous); --previous );
+		--previous;
+		for( ;IsHoliday(previous); --previous );
 		return previous;
 	}
-	TimePoint NextTradingDay( const TimePoint& time )noexcept
+	DayIndex NextTradingDay( DayIndex day )noexcept
 	{
-		auto next = time+std::chrono::hours( 24 );;
-		for( ; IsHoliday(next); next+=std::chrono::hours(24)  );
+		auto next = day+1;
+		for( ;IsHoliday(next); ++next );
 		return next;
-
 	}
 	mutex _lock;
 	MinuteIndex ExchangeTime::MinuteCount( DayIndex day )noexcept
@@ -522,13 +516,13 @@ namespace Jde::Markets
 	TimePoint RthBegin( const Contract& contract, DayIndex day )noexcept
 	{
 		var time = FromDays( day );
-		DateTime utc{ time+Timezone::EasternTimezoneDifference(time)+9h+30min };
+		DateTime utc{ time+9h+30min-Timezone::EasternTimezoneDifference(time) };
 		return utc.GetTimePoint();
 	}
 	TimePoint RthEnd( const Contract& contract, DayIndex day )noexcept
 	{
 		var time = FromDays( day );
-		DateTime utc{ time+Timezone::EasternTimezoneDifference(time)+16h };
+		DateTime utc{ time+16h-Timezone::EasternTimezoneDifference(time) };
 		return utc.GetTimePoint();
 	}
 	TimePoint ExtendedBegin( const Contract& contract, DayIndex day )noexcept

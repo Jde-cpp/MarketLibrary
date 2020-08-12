@@ -8,7 +8,6 @@
 #include "../types/proto/results.pb.h"
 
 struct EReaderSignal;
-
 namespace Jde::Markets
 {
 	struct WrapperSync;

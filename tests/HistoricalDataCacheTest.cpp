@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../../Framework/source/log/server/ServerSink.h"
 #include "../../MarketLibrary/source/client/TwsClientSync.h"
+#include "../../MarketLibrary/source/data/BarData.h"
 #include "../../MarketLibrary/source/types/Contract.h"
 #include "../../MarketLibrary/source/types/Exchanges.h"
 #include <bar.h>
@@ -8,12 +9,9 @@
 #define var const auto
 #define _client TwsClientSync::Instance()
 //UnitTests:
-
-	//make sure load from file.
-	//combine into day,week,month.
-		//if have minute bars, use that else just request.
 	//during day cache then save.
 	//some kind of cache cleanup.
+	//test no data, like future date.
 namespace Jde::Markets
 {
 	Jde::Markets::BarSize b;
@@ -31,6 +29,7 @@ namespace Jde::Markets
 	};
 
 	using namespace Chrono;
+#if 0
 	// ask for 2 days ago, then last 2 days, then last 3 days.
 	TEST_F(HistoricalDataCacheTest, PartialCache)
 	{
@@ -58,18 +57,59 @@ namespace Jde::Markets
 		req( end, 2 );
 		req( end, 3, PreviousTradingDay(start) );
 	}
-	//save to file.
-	TEST_F(HistoricalDataCacheTest, PartialCache)
+	TEST_F(HistoricalDataCacheTest, SaveToFile)
 	{
 		ClearMemoryLog();
-		var end = PreviousTradingDay();
-		var file = BarData::File( Contracts::Aig );
-		
-		var start = PreviousTradingDay( end );
-		req( start, 1 );
-		req( end, 2 );
-		req( end, 3, PreviousTradingDay(start) );
+		var& contract = Contracts::Aig;
+
+		var dates = BarData::FindExisting( Contracts::Aig, DaysSinceEpoch(DateTime{2020,1,1}) );
+		bool tested = false;
+		var start = IsOpen( contract ) ? PreviousTradingDay() : CurrentTradingDay();
+		var end = dates.size() ? *dates.rbegin() : start;
+		for( auto day = start; !tested && day>end; day=PreviousTradingDay(day) )
+		{
+			var file = BarData::File( contract, day );
+			tested = !fs::exists( file );
+			if( !tested )
+				continue;
+			auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, true ).get();
+			ASSERT_GT( pBars->size(), 0 );
+			ASSERT_TRUE( fs::exists(file) );
+		}
+		EXPECT_TRUE( tested );
 	}
+
+		//make sure load from file.
+	TEST_F(HistoricalDataCacheTest, LoadFromFile)
+	{
+		var& contract = Contracts::Spy;
+
+		var dates = BarData::FindExisting( Contracts::Spy, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
+		DBG( "typename={}"sv, GetTypeName<decltype(dates)>() );
+		var day = *dates.rbegin();
+		ClearMemoryLog();
+		auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, true ).get();
+		ASSERT_GT( pBars->size(), 0 );
+		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
+		ASSERT_EQ( logs.size(), 0 );
+	}
+#endif
+	TEST_F(HistoricalDataCacheTest, CombineMinuteBars)
+	{
+		var& contract = Contracts::Spy;
+
+		var dates = BarData::FindExisting( Contracts::Spy, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
+		var day = *dates.rbegin();
+		ClearMemoryLog();
+		auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Day, EDisplay::Trades, true, true ).get();
+		ASSERT_GT( pBars->size(), 0 );
+		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
+		ASSERT_EQ( logs.size(), 0 );
+	}
+		//combine into day,week,month.
+		//if have minute bars, use that else just request.
+
+
 	/*
 	TEST_F(HistoricalDataCacheTest, DoesXyz)
 	{

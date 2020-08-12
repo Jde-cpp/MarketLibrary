@@ -1,13 +1,9 @@
-//C:\code\libraries\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe -I. -I=C:\code\libraries\protobuf\src --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. results.proto
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. results.proto
-//\code\7.0\web2\ClientApp>MKLINK ib.proto C:\code\7.0\native\framework\markets\types\proto\ib.proto
-//npx pbjs -r result_root -t static-module -w es6 -o src/app/proto/results.js results.proto & npx pbts -o src/app/proto/results.d.ts src/app/proto/results.js
-//npx pbjs -r result_root -t static-module -w es6 -o results.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/results.proto & npx pbts -o results.d.ts results.js
 
 syntax = "proto3";
 package Jde.Markets.Proto.Results;
-//import "google/protobuf/timestamp.proto";
 import "ib.proto";
+import "watch.proto";
 
 message MessageValue
 {
@@ -147,7 +143,6 @@ message Bar
 
 message CommissionReport
 {
-	//string id=1;
 	string exec_id=2;
 	double commission=3;
 	string currency=4;
@@ -219,9 +214,6 @@ message Trade
 	string order_type=11;
 	uint32 order_time=12;
 	bool is_api=13;
-
-	//string symbol=3;
-	//uint32 contract_id=4;
 }
 message Execution
 {
@@ -273,8 +265,6 @@ message Option
 	uint32 open_interest=7;
 	int32 oi_change=8;
 	float	 previous_price=9;
-//	float delta=10;
-//	float delta_previous=11;
 }
 
 message OptionDay
@@ -307,6 +297,18 @@ message OrderStatus
 	double market_cap_price=12;
 }
 
+message StringList
+{
+	uint32 request_id=1;
+	repeated string values=2;
+}
+
+message WatchList
+{
+	uint32 request_id=1;
+	Watch.File file=2;
+}
+
 message MessageUnion
 {
 	oneof Value
@@ -337,6 +339,9 @@ message MessageUnion
 		DaySummary day_summary=24;
 		Fundamentals fundamentals=25;
 		PositionMulti position_multi=26;
+		WatchList watch_list=27;
+		StringList string_list=28;
+		
 	}
 }
 message Transmission

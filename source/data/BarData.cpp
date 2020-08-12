@@ -1,11 +1,15 @@
 #include "BarData.h"
+#include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
 #include "../types/Contract.h"
 #include "../types/proto/bar.pb.h"
 #include "../../../XZ/source/XZ.h"
+#include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/File.h"
 
 #define var const auto
+#define _client TwsClientSync::Instance()
+
 namespace Jde::Markets
 {
 	using namespace Chrono;
@@ -78,13 +82,14 @@ namespace Jde::Markets
 		return make_tuple( DaysSinceEpoch(start), DaysSinceEpoch(end) );
 	}
 
-	void BarData::ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex end, string_view prefix )noexcept//fnctn better not throw
+	void BarData::ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, string_view prefix )noexcept//fnctn better not throw
 	{
 		//var now = Clock::now();
 		var root = BarData::Path( contract );
 		if( !fs::exists(root) )
 			return;
 		var pEntries = IO::FileUtilities::GetDirectory( root );
+		var end = endInput ? endInput : std::numeric_limits<DayIndex>::max();
 		for( var& entry : *pEntries )
 		{
 			var path = entry.path();
@@ -96,13 +101,22 @@ namespace Jde::Markets
 			}
 			//if( path.stem()=="2019-12-31.dat" )
 			//	DBG0( "here" );
-			var [fileStart,fileEnd] = ExtractTimeframe( path, contract.IssueDate );
+			auto issueDate = contract.IssueDate;
+			if( issueDate==TimePoint::max() )
+			{
+				issueDate = DateTime{2010,1,1}.GetTimePoint();
+				//var pDetails = _client.ReqContractDetails( contract.Id ).get();
+				//ASSERT( pDetails->size()==1 )
+				//issueDate = Clock::from_time_t( ConvertIBDate(pDetails->front().issueDate) );
+			}
+			ASSERT( issueDate!=TimePoint::max() );
+			var [fileStart,fileEnd] = ExtractTimeframe( path, issueDate );
 			if( fileEnd==0 )
 			{
 				DBG( "could not find ent to '{}' prefix='{}'"sv, path.stem().string(), prefix );
 				continue;
 			}
-			if( end==0 || (start<=fileEnd && end>=fileStart) )
+			if( start<=fileEnd && end>=fileStart )
 				fnctn( path, fileStart, fileEnd );
 		}
 	}
@@ -250,6 +264,45 @@ namespace Jde::Markets
 				fs::remove( combinedFile );
 			}
 		}
+	}
+
+	flat_set<DayIndex> BarData::FindExisting( const Contract& contract, DayIndex start2, DayIndex end2, string_view prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	{
+		flat_set<DayIndex> existing;
+		list<fs::path> consolodate;
+		const DateTime today{ DateTime::Today() };
+		auto fnctn = [&]( const fs::path& path, DayIndex fileStart, DayIndex fileEnd )
+		{
+			if( StringUtilities::EndsWith(path.stem().stem().string(), "_partial") /*|| (end2==18269 && path.stem().stem().string()=="2019")*/  )
+			{
+				var pExisting = pPartials ? Jde::Find( *pPartials, path.string() ) : nullptr;
+				auto pPartial = pExisting ? pExisting : BarData::Load( path );
+				if( !pPartial )
+				{
+					fs::remove( path );
+					DBG( "removed empty file '{}'"sv, path.string() );
+					return;
+				}
+				if( pPartials && !pExisting )
+					pPartials->emplace( path.string(), pPartial );
+				for( auto i=0; i<pPartial->days_size(); ++i )
+				{
+					var day2 = pPartial->days(i).day();
+				//	if( day2==18261 )
+				//		DBG( "({}) 12/31/2019 barCount={}", contract.Symbol, pPartial->days(i).bars_size() );
+					if( pPartial->days(i).bars_size()>0 )
+						existing.emplace( day2 );
+				}
+			}
+			else
+			{
+				for( auto date=fileStart; date<=fileEnd; date=NextTradingDay(date) )
+					existing.emplace( date );
+			}
+		};
+		BarData::ForEachFile( contract, fnctn, start2, end2, prefix );
+
+		return existing;
 	}
 
 	//JDE_MARKETS_EXPORT void Push( const Contract& contract, Proto::Requests::Display display, Proto::Requests::BarSize barSize, bool useRth, const vector<ibapi::Bar>& bars )noexcept;

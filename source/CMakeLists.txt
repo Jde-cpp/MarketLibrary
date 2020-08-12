@@ -11,7 +11,7 @@ add_library( Jde.Markets SHARED TwsProcessor.cpp
 	wrapper/WrapperLog.cpp wrapper/WrapperSync.cpp wrapper/WrapperCache.cpp
 	data/OptionData.cpp data/HistoricalDataCache.cpp data/BarData.cpp
 	types/Bar.cpp types/Contract.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/TwsConnectionSettings.cpp
-	types/proto/ib.pb.cc types/proto/bar.pb.cc types/proto/OptionOI.pb.cc types/proto/requests.pb.cc types/proto/results.pb.cc )
+	types/proto/ib.pb.cc types/proto/bar.pb.cc types/proto/OptionOI.pb.cc types/proto/requests.pb.cc types/proto/results.pb.cc types/proto/watch.pb.cc )
 #############################################################
 target_precompile_headers(Jde.Markets
   PRIVATE

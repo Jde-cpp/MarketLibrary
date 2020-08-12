@@ -17,7 +17,14 @@ namespace Jde::Markets
 		Cache::CreateInstance();
 
 		auto pInstance = make_shared<WrapperSync>();
-		pInstance->CreateClient( Settings::Global().Get<uint>("twsClientId") );
+		try
+		{
+			pInstance->CreateClient( Settings::Global().Get<uint>("twsClientId") );
+		}
+		catch( const Jde::Exception& e )
+		{
+			pInstance = sp<WrapperSync>{};
+		}
 		return pInstance;
 	}
 }
@@ -29,21 +36,12 @@ int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest( &argc, argv );
 	auto p = Jde::Markets::Startup();
-
-	std::map<uint,std::shared_ptr<std::string_view>> x;
-	std::string_view test = "Test String";
-	std::string fooString{ "Test String" };
-	std::shared_ptr<std::string_view> test2{};
-	//std::optional<uint> x2{5};
-	//var has = x2.has_value();
-	std::shared_ptr<std::string_view> xxx = std::make_shared<std::string_view>( test );
-	//x.emplace( 1, xxx );
-	//var z = x.begin();
-	//var& first = z->first;
-	//var& second = z->second;
-	//DBG( "x.size=", x.size() );
-
-   var result = RUN_ALL_TESTS();
-	p = nullptr;
+	auto result = EXIT_FAILURE;
+	if( p )
+	{
+		::testing::GTEST_FLAG(filter) = "HistoricalDataCacheTest*";
+	   result = RUN_ALL_TESTS();
+		p = nullptr;
+	}
 	return result;
 }

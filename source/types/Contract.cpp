@@ -280,7 +280,7 @@ namespace Jde::Markets
 		const Contract Qqq{ 320227571, "USD", "QQQ", 0, "POWERSHARES QQQ TRUST SERIES", Exchanges::Arca, "QQQ", "QQQ" };
 		const Contract Psq{ 43661924, "USD", "PSQ", 0, "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
 		const Contract Tsla{ 76792991, "USD", "TSLA", 0, "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
-		const Contract Aig{ 61319701, "USD", "AIG", 0, "AMERICAN INTERNATIONAL GROUP", Exchanges::Nyse, "AIG", "AIG" };
+		const Contract Aig{ 61319701, "USD", "AIG", 0, "AMERICAN INTERNATIONAL GROUP", Exchanges::Nyse, "AIG", "AIG", DateTime(2004,1,23,14,30,00).GetTimePoint() };
 	}
 #pragma region SecurityRight
 	SecurityRight ToSecurityRight( string_view inputName )noexcept
