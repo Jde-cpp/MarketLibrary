@@ -25,7 +25,7 @@ namespace Jde::Markets
 		if( dayIndex>0 )
 		{
 			const DateTime date{ FromDays(dayIndex) };
-			contract.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
+			contract.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
 		}
 		contract.right = ToString( right );
 
@@ -34,7 +34,7 @@ namespace Jde::Markets
 	void TwsClientCache::ReqContractDetails( TickerId reqId, const ibapi::Contract& contract )noexcept
 	{
 		var suffix = contract.conId ? std::to_string( contract.conId ) : contract.symbol;
-		var cacheId = fmt::format( "reqContractDetails.{}.{}.{}.{}.{}", contract.secType, contract.right, contract.lastTradeDateOrContractMonth, contract.strike, suffix );
+		var cacheId = format( "reqContractDetails.{}.{}.{}.{}.{}", contract.secType, contract.right, contract.lastTradeDateOrContractMonth, contract.strike, suffix );
 		var pContracts = Cache::Get<vector<ibapi::ContractDetails>>( cacheId );
 		if( pContracts )
 		{
@@ -50,7 +50,7 @@ namespace Jde::Markets
 	}
 	void TwsClientCache::ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept
 	{
-		auto cacheId = fmt::format( "OptParams.{}", underlyingConId );
+		auto cacheId = format( "OptParams.{}", underlyingConId );
 		var pData = Cache::Get<vector<Proto::Results::OptionParams>>( cacheId );
 		if( pData )
 		{
@@ -60,7 +60,7 @@ namespace Jde::Markets
 				for( auto i=0; i<param.expirations_size(); ++i )
 				{
 					const DateTime date{ FromDays(param.expirations(i)) };
-					expirations.emplace( fmt::format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
+					expirations.emplace( format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
 				}
 				std::set<double> strikes;
 				for( auto i=0; i<param.strikes_size(); ++i )
@@ -75,7 +75,7 @@ namespace Jde::Markets
 			TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
 		}
 	}
-	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
+	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
 		var current = CurrentTradingDay( contract.Exchange );
 		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<ibapi::Bar>>>& existing, time_t lastTime=0 )

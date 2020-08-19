@@ -9,21 +9,21 @@ import "watch.proto";
 
 message GenericRequests
 {
-	uint32 request_id=1;
+	uint32 id=1;
 	ERequests type=2;
 	repeated int32 ids=3;
 }
 
 message StringRequest
 {
-	uint32 request_id=1;
+	uint32 id=1;
 	ERequests type=2;
 	string name=3;
 }
 
 message EditWatchListRequest
 {
-	uint32 request_id=1;
+	uint32 id=1;
 	Watch.File file=2;
 }
 
@@ -35,7 +35,7 @@ message RequestAccountUpdates
 
 message RequestAccountUpdatesMulti
 {
-	int32 id=1;
+	uint32 id=1;
 	string account_number=2;
 	string model_code=3;
 	bool ledger_and_nlv=4;
@@ -43,7 +43,7 @@ message RequestAccountUpdatesMulti
 
 message RequestPositions
 {
-	int32 id=1;
+	uint32 id=1;
 	string account_number=2;
 	string model_code=3;
 }
@@ -113,7 +113,7 @@ enum ETickList
 
 message RequestHistoricalData
 {
-	int32 id=1;
+	uint32 id=1;
 	Contract contract=2;
 	int32 date=3;
 	uint32 days=4;
@@ -124,7 +124,7 @@ message RequestHistoricalData
 }
 message RequestMrkDataSmart
 {
-	int32 id=1;
+	uint32 id=1;
 	int32 contract_id=2;
 	repeated ETickList tick_list=3;
 	bool snapshot=4;
@@ -132,7 +132,7 @@ message RequestMrkDataSmart
 
 message RequestContractDetails
 {
-	int32 id=1;
+	uint32 id=1;
 	repeated Contract contracts=2;
 }
 
@@ -149,7 +149,7 @@ message RequestOptions
 
 message FlexExecutions
 {
-	int32 id=1;
+	uint32 id=1;
 	string account_number=2;
 	uint32 start=3;
 	uint32 end=4;
@@ -239,9 +239,9 @@ enum BarSize
 	Hour8=28800;
 	Day=86400;
 	Week=604800;
-	Month=18144000;
+	Month=2592000;
 	//Month3=15;
-	//Year=16;
+	Year=31104000;
 }
 
 enum ERequests

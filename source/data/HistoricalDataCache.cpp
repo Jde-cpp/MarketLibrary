@@ -41,7 +41,6 @@ namespace Jde::Markets::HistoricalDataCache
 			if( !IsHoliday(i, contract.Exchange) )//change to Exchanges...080
 				days.emplace( i );
 		}
-		DBG( "days.size()={}"sv, days.size() );
 		auto pValues = Cache::TryGet<DataCache>( DataCache::CacheId(contract.Id, display) );
 		uint missingCount;
 		auto load = [&]()
@@ -63,7 +62,7 @@ namespace Jde::Markets::HistoricalDataCache
 			return startEnd;
 		};
 		var startEnd = load();
-		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 )//look in files
+		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && BarData::HavePath() )//look in files
 		{
 			auto add = [pBars, &days, pValues, contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )mutable
 			{
@@ -113,7 +112,7 @@ namespace Jde::Markets::HistoricalDataCache
 			shared_lock l1{ _rthMutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
 			var start = *days.begin();
 			var end = *days.rbegin();
-			DBG( "_rth.size={}"sv, _rth.size() );
+			//DBG( "_rth.size={}"sv, _rth.size() );
 			auto pBegin = _rth.lower_bound( start ), pEnd = _rth.lower_bound( end );
 			contains = pBegin!=_rth.end() || pEnd!=_rth.end();
 			if( contains && !useRth )

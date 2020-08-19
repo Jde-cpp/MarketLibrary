@@ -135,7 +135,7 @@ namespace Jde::Markets
 	}
 	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
 	{
-		var root = BarData::Path( contract );
+		//var root = BarData::Path( contract );
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 		auto fnctn = [&]( const fs::path& path, DayIndex, DayIndex )
 		{
@@ -146,7 +146,8 @@ namespace Jde::Markets
 					pResults->try_emplace( pResults->end(), day, pBars );
 			}
 		};
-		ForEachFile( contract, fnctn, start, end );
+		if( HavePath() )
+			ForEachFile( contract, fnctn, start, end );
 		return pResults;
 	}
 

@@ -93,7 +93,7 @@ namespace Jde::Markets
 		return time;
 	}
 
-	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept
+	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
@@ -102,7 +102,7 @@ namespace Jde::Markets
 		else
 		{
 			const DateTime endTime{ Chrono::FromDays(endDay) };
-			const string endTimeString{ fmt::format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };
+			const string endTimeString{ format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };
 			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 		}
 		return future;
@@ -119,7 +119,7 @@ namespace Jde::Markets
 			var reqId = RequestId();
 			auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
 			const DateTime endTime{ end };
-			const string endTimeString{ fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
+			const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} S", seconds), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 			return future;
 		}
@@ -172,7 +172,7 @@ namespace Jde::Markets
 		if( dayIndex>0 )
 		{
 			const DateTime date{ Chrono::FromDays(dayIndex) };
-			contract.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
+			contract.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
 		}
 		contract.right = ToString( right );
 
@@ -229,7 +229,7 @@ namespace Jde::Markets
 				for( auto i=0; i<param.expirations_size(); ++i )
 				{
 					const DateTime date{ Chrono::FromDays(param.expirations(i)) };
-					expirations.emplace( fmt::format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
+					expirations.emplace( format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
 				}
 				std::set<double> strikes;
 				for( auto i=0; i<param.strikes_size(); ++i )

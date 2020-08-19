@@ -209,6 +209,7 @@ namespace Jde::Markets
 
 	WrapperData<ibapi::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
 	{
+		//DBG( "({}) - Promise"sv, reqId );
 		return _historicalData.Promise( reqId );
 	}
 	void WrapperSync::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
@@ -218,7 +219,7 @@ namespace Jde::Markets
 	bool WrapperSync::historicalDataSync( TickerId reqId, const ibapi::Bar& bar )noexcept
 	{
 		WrapperCache::historicalData( reqId, bar );
-		var captured = _historicalData.Contains(reqId);
+		var captured = _historicalData.Contains( reqId );
 		if( captured )
 			_historicalData.Push( reqId, bar );
 		return captured;
@@ -230,7 +231,7 @@ namespace Jde::Markets
 	bool WrapperSync::historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{
 		WrapperCache::historicalDataEnd( reqId, startDateStr, endDateStr );
-		var captured = _historicalData.Contains(reqId);
+		var captured = _historicalData.Contains( reqId );
 		if( captured )
 			_historicalData.End( reqId );
 		return captured;

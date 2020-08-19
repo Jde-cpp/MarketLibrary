@@ -107,6 +107,7 @@ namespace Jde::Markets
 			e.Log();
 			auto& promise = pValue->second;
 			promise.set_exception( std::make_exception_ptr(e) );
+			DBG( "({}) erase exception"sv, reqId );
 			_promises.erase( pValue );
 		}
 		return found;
@@ -117,25 +118,30 @@ namespace Jde::Markets
 		unique_lock lck{_promiseMutex};
 		auto pPromise = _promises.find( reqId );
 		if( pPromise!=_promises.end() )
+		{
+			//DBG( "({}) erase End"sv, reqId );
 			_promises.erase( pPromise );
+		}
 		else
 			WARN( "Could not find _promises={}"sv, reqId );
 	}
 	template<typename T>
 	void WrapperData<T>::End( ReqId reqId )noexcept
 	{
-		lock_guard<std::mutex> lck2{ _dataMutex };
-		var pIdBars = _data.find( reqId );
-		auto pPromise = Base::_promises.find( reqId );
-		if( pIdBars==_data.end() || pPromise==Base::_promises.end() )
-			DBG( "Could not find reqId={} in Data"sv, reqId );
-		else
 		{
-			auto& promise = pPromise->second;
-			var pBars = pIdBars->second;
-			promise.set_value( pBars );
-			//LOG( WrapperHistorian::Instance().GetLogLevel(), "End( {}, count={} )", reqId, _data.size() );
-			_data.erase( pIdBars );
+			lock_guard<std::mutex> lck2{ _dataMutex };
+			var pIdBars = _data.find( reqId );
+			shared_lock lck{ Base::_promiseMutex };
+			auto pPromise = Base::_promises.find( reqId );
+			if( pPromise==Base::_promises.end() )
+				ERR( "({})Could not promise"sv, reqId );
+			else
+			{
+				var haveData = pIdBars!=_data.end();
+				pPromise->second.set_value( haveData ? pIdBars->second : make_shared<Collection>() );
+				if( haveData )
+					_data.erase( pIdBars );
+			}
 		}
 		Base::End( reqId );
 	}

@@ -41,7 +41,7 @@ namespace Jde::Markets
 		if( Expiration )
 		{
 			const DateTime expiration{ Chrono::FromDays( Expiration ) };
-			other.lastTradeDateOrContractMonth = fmt::format( "{}{:0>2}{:0>2}", expiration.Year(), expiration.Month(), expiration.Day() );
+			other.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", expiration.Year(), expiration.Month(), expiration.Day() );
 		}
 		other.strike = Strike;
 		other.right = ToString( Right );
@@ -59,7 +59,7 @@ namespace Jde::Markets
 	Contract::Contract( const Proto::Contract& contract )noexcept:
 		Id{ (ContractPK)contract.id() },
 		Symbol{  contract.symbol() },
-		SecType{ contract.security_type() },
+		SecType{ contract.security_type()==SecurityType::Unknown ? SecurityType::Stock : contract.security_type() },
 		Expiration{ contract.expiration() },
 		Strike{ contract.strike() },
 		Right{ contract.right() },

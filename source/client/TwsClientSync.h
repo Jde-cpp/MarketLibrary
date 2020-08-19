@@ -22,7 +22,7 @@ namespace Jde::Markets
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ibapi::Contract &contract, const std::string& whatToShow )noexcept(false);
 
-		Future<ibapi::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept override;
+		Future<ibapi::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		Future<ibapi::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
 
 		Future<ibapi::ContractDetails> ReqContractDetails( string_view symbol )noexcept;

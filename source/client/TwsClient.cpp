@@ -64,7 +64,7 @@ namespace Jde::Markets
 	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
 	{
 		const DateTime endTime{ EndOfDay(FromDays(endDay)) };
-		const string endTimeString{ fmt::format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
+		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
@@ -79,7 +79,7 @@ namespace Jde::Markets
 			EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 		}
 		else
-			_pWrapper->error( reqId, 322, fmt::format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
+			_pWrapper->error( reqId, 322, format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
 	}
 	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{
@@ -128,7 +128,7 @@ namespace Jde::Markets
 
 	void TwsClient::placeOrder( const ibapi::Contract& contract, const ibapi::Order& order )noexcept
 	{
-		var contractDisplay = fmt::format( "({}){}",  contract.symbol, contract.conId );
+		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
 		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )"sv, order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
 		ibapi::Order order2;
 		order2.orderId = order.orderId;
