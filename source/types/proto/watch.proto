@@ -19,6 +19,7 @@ message CashEntry
 message File
 {
 	string name=1;
-	repeated Entry securities=2;
-	repeated CashEntry currencies=3;
+	bool is_portfolio=2;
+	repeated Entry securities=3;
+	repeated CashEntry currencies=4;
 }

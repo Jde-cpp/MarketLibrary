@@ -2,8 +2,11 @@
 
 //#include "../../ai/dts/LightGbm/TypeDefs.h"
 #include "../../Framework/source/math/Decimal.h"
+#include <boost/container/flat_map.hpp>
+
 namespace Jde::Markets
 {
+	using boost::container::flat_map;
 	using fmt::format;
 	typedef int32 AccountPK;
 	typedef long ContractPK;

@@ -22,6 +22,7 @@ namespace Jde::Markets
 			: std::to_string( time.TimeT() );
 			//: fmt::format( "{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second() );
 	}
+
 	string_view BarSize::TryToString(const BarSize::Enum barSize )noexcept
 	{
 		string_view value = "1 hour";

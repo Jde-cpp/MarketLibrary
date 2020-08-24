@@ -62,7 +62,7 @@ namespace Jde::Markets::HistoricalDataCache
 			return startEnd;
 		};
 		var startEnd = load();
-		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && BarData::HavePath() )//look in files
+		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && BarData::HavePath() && contract.SecType==SecurityType::Stock )//look in files
 		{
 			auto add = [pBars, &days, pValues, contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )mutable
 			{

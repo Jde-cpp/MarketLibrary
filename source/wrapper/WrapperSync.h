@@ -2,6 +2,7 @@
 #include "../../../Framework/source/collections/Queue.h"
 #include "../Exports.h"
 #include "WrapperCache.h"
+#include <Contract.h>
 #include "WrapperPromise.h"
 #include "../types/proto/results.pb.h"
 
@@ -27,6 +28,7 @@ namespace Jde::Markets
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		WrapperData<ibapi::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
 		WrapperData<ibapi::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
+		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId); }
 		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
 		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId )noexcept;
@@ -56,7 +58,10 @@ namespace Jde::Markets
 
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ibapi::OrderId orderId)noexcept override;
+		void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
+		void newsProviders( const std::vector<NewsProvider>& providers )noexcept override{ newsProviders(providers, false); }
 		void openOrderEnd()noexcept override;
+
 	public:
 		void securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
 		bool securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
@@ -85,5 +90,6 @@ namespace Jde::Markets
 
 		//QueueValue<ReqIdCallback> _requestIds;
 		QueueValue<EndCallback> _openOrderEnds;
+		WrapperData<NewsProvider> _newsProviderData;
 	};
 }

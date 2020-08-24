@@ -23,6 +23,7 @@ namespace Jde::Markets
 		void ReqContractDetails( TickerId cacheReqId, const ibapi::Contract& contract )noexcept;
 		void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex current, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false);
+		void RequestNewsProviders()noexcept;
 		virtual std::future<VectorPtr<ibapi::Bar>> ReqHistoricalDataSync( const Contract& contract, DayIndex end, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)=0;
 		virtual std::future<VectorPtr<ibapi::Bar>> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept=0;
 

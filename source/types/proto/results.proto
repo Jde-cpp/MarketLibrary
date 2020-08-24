@@ -22,6 +22,38 @@ message StringResult
 	string value=3;
 }
 
+message NewsArticle
+{
+	uint32 id=1;
+	bool is_text=2;
+	string value=3;
+}
+
+message TickNews
+{
+	uint32 id = 1;
+	uint32 time=2;
+	string provider_code=3;
+	string article_id=4;
+	string headline=5;
+	string extra_data=6;
+}
+
+message HistoricalNews
+{
+	uint32 id = 1;
+	uint32 time=2;
+	string provider_code=3;
+	string article_id=4;
+	string headline=5;
+}
+message HistoricalNewsCollection
+{
+	uint32 id = 1;
+	repeated HistoricalNews values = 2;
+	bool has_more = 3;
+}
+
 message TagValue
 {
 	string tag=1;
@@ -90,9 +122,10 @@ message Position
 	double avg_cost=4;
 }
 
-message AccountList
+message StringMap
 {
-	map<string,string> values=1;
+	EResults result=1;
+	map<string,string> values=2;
 }
 
 message Fundamentals
@@ -316,7 +349,7 @@ message MessageUnion
 		Position position = 1;
 		Contract contract = 2;
 		MessageValue message = 3;
-		AccountList account_list=4;
+		StringMap string_map=4;
 		AccountUpdate account_update=5;
 		AccountUpdateMulti account_update_multi=6;
 		CommissionReport commission_report=7;
@@ -341,7 +374,9 @@ message MessageUnion
 		PositionMulti position_multi=26;
 		WatchList watch_list=27;
 		StringList string_list=28;
-		
+		NewsArticle news_article=29;
+		TickNews tick_news=30;
+		HistoricalNewsCollection historical_news=31;
 	}
 }
 message Transmission
@@ -579,11 +614,11 @@ enum EResults
 	MKT_DEPTH_EXCHANGES                       = 80;
 	TickRequiredParams                        = 81;
 	SMART_COMPONENTS                          = 82;
-	NEWS_ARTICLE                              = 83;
-	TICK_NEWS                                 = 84;
-	NEWS_PROVIDERS                            = 85;
-	HISTORICAL_NEWS                           = 86;
-	HISTORICAL_NEWS_END                       = 87;
+	NewsArticle_                              = 83;
+	TickNews_                                 = 84;
+	NewsProviders                             = 85;
+	HistoricalNews_                           = 86;
+	HistoricalNewsEnd                         = 87;
 	HEAD_TIMESTAMP                            = 88;
 	HISTOGRAM_DATA                            = 89;
 	HISTORICAL_DATA_UPDATE                    = 90;

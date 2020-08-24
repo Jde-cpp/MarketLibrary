@@ -75,6 +75,20 @@ namespace Jde::Markets
 			TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
 		}
 	}
+	void TwsClientCache::RequestNewsProviders()noexcept
+	{
+		auto cacheId = format( "RequestProviders" );
+		var pData = Cache::Get<Proto::Results::StringMap>( cacheId );
+		if( pData )
+		{
+			vector<NewsProvider> newsProviders;
+			for( var& param : pData->values() )
+				newsProviders.push_back( NewsProvider{param.first, param.second} );
+			Wrapper()->newsProviders( newsProviders );
+		}
+		else
+			TwsClient::reqNewsProviders();
+	}
 	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
 		var current = CurrentTradingDay( contract.Exchange );

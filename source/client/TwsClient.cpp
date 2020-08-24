@@ -107,7 +107,37 @@ namespace Jde::Markets
 		LOG( _logLevel, "reqFundamentalData( '{}', '{}', '{}' )"sv, tickerId, contract.conId, reportType );
 		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
 	}
+	void TwsClient::reqNewsProviders()noexcept
+	{
+		LOGN0( _logLevel, "reqNewsProviders"sv, ReqNewsProvidersLogId );
+		EClientSocket::reqNewsProviders();
+	}
 
+	void TwsClient::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept
+	{
+		var providers = StringUtilities::AddSeparators( providerCodes, "+"sv );
+		auto toIBTime = []( TimePoint t )
+		{
+			string result;
+			if( t!=TimePoint{} )
+			{
+				const DateTime x{ t };
+				result = format( "{}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}", x.Year(), x.Month(), x.Day(), x.Hour(), x.Minute(), x.Second() );
+			}
+			return result;
+		};
+
+		var startString = toIBTime( start ); var endString = toIBTime( end );
+
+		LOG( _logLevel, "({})reqHistoricalNews( '{}', '{}', '{}', '{}', '{}' )"sv, requestId, conId, providers, startString, endString, totalResults );
+
+		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, totalResults, nullptr );
+	}
+	void TwsClient::reqNewsArticle( TickerId requestId, const string& providerCode, const string& articleId )noexcept
+	{
+		LOG( _logLevel, "({})reqNewsArticle( '{}', '{}' )"sv, requestId, providerCode, articleId );
+		EClientSocket::reqNewsArticle( requestId, providerCode, articleId, nullptr );
+	}
 
 	void TwsClient::reqCurrentTime()noexcept
 	{

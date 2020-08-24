@@ -13,6 +13,7 @@
 	//some kind of cache cleanup.
 	//test no data, like future date.
 	//1 year gold, day bars
+	//test options.
 namespace Jde::Markets
 {
 	Jde::Markets::BarSize b;

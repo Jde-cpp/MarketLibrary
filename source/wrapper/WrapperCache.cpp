@@ -107,4 +107,14 @@ namespace Jde::Markets
 			_cacheIds.erase( reqId );
 		}
 	}
+
+	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept
+	{
+		WrapperLog::newsProviders( newsProviders );
+
+		auto pResults = make_shared<Proto::Results::StringMap>();
+		for( var& provider : newsProviders )
+			(*pResults->mutable_values())[provider.providerCode] = provider.providerName;
+		Cache::Set( "RequestProviders", pResults );
+	}
 }

@@ -194,8 +194,27 @@ message RequestUnion
 		RequestExecutions request_executions = 12;
 		StringRequest string_request = 13;
 		EditWatchListRequest edit_watch_list = 14;
+		NewsArticleRequest news_article_request = 15;
+		HistoricalNewsRequest historical_news_request = 16;
 		//Request Historical data like normal...
 	}
+}
+
+message NewsArticleRequest
+{
+	uint32 id=1;
+	string provider_code=2;
+	uint32 article_id=3;
+}
+
+message HistoricalNewsRequest
+{
+	uint32 id=1;
+	uint32 contract_id=2;
+	repeated string provider_codes=3;
+	uint32 total_results=4;
+	uint32 start=5;
+	uint32 end=6;
 }
 
 message RequestTransmission
@@ -313,9 +332,9 @@ enum ERequests
 	REQ_MATCHING_SYMBOLS          = 81;
 	REQ_MKT_DEPTH_EXCHANGES       = 82;
 	REQ_SMART_COMPONENTS          = 83;
-	REQ_NEWS_ARTICLE              = 84;
-	REQ_NEWS_PROVIDERS            = 85;
-	REQ_HISTORICAL_NEWS           = 86;
+	ReqNewsArticle                = 84;
+	ReqNewsProviders              = 85;
+	ReqHistoricalNews           	= 86;
 	REQ_HEAD_TIMESTAMP            = 87;
 	REQ_HISTOGRAM_DATA            = 88;
 	CANCEL_HISTOGRAM_DATA         = 89;

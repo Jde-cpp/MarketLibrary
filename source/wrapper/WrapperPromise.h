@@ -33,6 +33,7 @@ namespace Jde::Markets
 		typedef WrapperPromise<Collection> Base;
 		void Push( ReqId id, const T& value )noexcept;
 		void End( ReqId id )noexcept;
+		bool End( const VectorPtr<T>& value );
 	protected:
 		map<ReqId,sp<Collection>> _data; mutable mutex _dataMutex;
 	};
@@ -144,6 +145,17 @@ namespace Jde::Markets
 			}
 		}
 		Base::End( reqId );
+	}
+	template<typename T>
+	bool WrapperData<T>::End( const VectorPtr<T>& value )
+	{
+		//unique_lock lck2{ _dataMutex };
+		unique_lock lck{ Base::_promiseMutex };
+		var havePromises = Base::_promises.size()>0;
+		for( auto& promise : Base::_promises )
+			promise.second.set_value( value );
+		Base::_promises.clear();
+		return havePromises;
 	}
 	template<typename T>
 	void WrapperData<T>::Push( ReqId reqId, const T& value )noexcept

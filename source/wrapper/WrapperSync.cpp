@@ -138,6 +138,7 @@ namespace Jde::Markets
 		WrapperCache::contractDetailsEnd( reqId );
 		_detailsData.End( reqId );
 	}
+
 	std::shared_future<TickerId> WrapperSync::ReqIdsPromise()noexcept
 	{
 		unique_lock l{ _requestIdsPromiseMutex };
@@ -247,7 +248,13 @@ namespace Jde::Markets
 			_requestIdsFuturePtr = nullptr;
 		}
 	}
-
+	void WrapperSync::newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept
+	{
+		if( !isCache )
+			WrapperCache::newsProviders( providers );
+		if( !_newsProviderData.End(make_shared<std::vector<NewsProvider>>(providers)) )
+			DBG0( "no listeners for newsProviders."sv );
+	}
 	void WrapperSync::openOrderEnd()noexcept
 	{
 		WrapperLog::openOrderEnd();

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	auto result = EXIT_FAILURE;
 	if( p )
 	{
-		::testing::GTEST_FLAG(filter) = "HistoricalDataCacheTest*";
+		::testing::GTEST_FLAG(filter) = "NewsTest*";
 	   result = RUN_ALL_TESTS();
 		p = nullptr;
 	}
