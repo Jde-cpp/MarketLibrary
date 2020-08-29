@@ -52,7 +52,7 @@ namespace Jde::Markets
 	private:
 		static sp<TwsClient> _pInstance;
 		TwsConnectionSettings _settings;
-		std::atomic<TickerId> _requestId{0};
+		std::atomic<TickerId> _requestId{1};
 		ELogLevel _logLevel{ ELogLevel::Debug };
 	};
 }

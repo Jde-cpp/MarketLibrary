@@ -204,7 +204,7 @@ message NewsArticleRequest
 {
 	uint32 id=1;
 	string provider_code=2;
-	uint32 article_id=3;
+	string article_id=3;
 }
 
 message HistoricalNewsRequest

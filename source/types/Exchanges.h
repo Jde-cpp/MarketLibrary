@@ -10,19 +10,8 @@ namespace Jde::Markets
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
 	using namespace Chrono;
-	// enum class Exchanges : uint
-	// {
-	// 	None   = 0,
-	// 	Nyse   = 1,
-	// 	Nasdaq = 2,
-	// 	Amex   =0x20,
-	// 	Smart  =0x20000000,//30
-	// 	Arca   =0x40000000,//32
-	// 	Bats   =0x200000000,
-	// 	PinkSheets =0x100000000000,
-	// 	Value = 0x80000000000000
-	// };
 
+	constexpr std::array<std::string_view,9> ExchangeStrings={ "Smart", "Nyse", "Nasdaq", "Amex", "Arca", "Bats", "PINK", "Value", "IBIS" };
 	JDE_MARKETS_EXPORT string_view ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( string_view pszName )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;

@@ -59,6 +59,7 @@ enum Exchanges
 	Bats   =5;
 	PinkSheets =6;
 	Value = 7;
+	Ibis = 8;
 };
 
 enum Currencies
@@ -129,7 +130,7 @@ message Contract
 	uint32 multiplier=7;
 	Exchanges exchange=8;
 	Exchanges primary_exchange=9;
-	string currency=10;
+	Currencies currency=10;
 	string local_symbol=11;
 	string trading_class=12;
 	bool include_expired=13;

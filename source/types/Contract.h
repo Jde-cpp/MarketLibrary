@@ -8,7 +8,7 @@
 namespace ibapi{ struct Contract; struct ContractDetails;}
 namespace Jde::Markets
 {
-	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; }
+	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; enum Currencies : int; }
 	namespace Proto::Results{  class ContractDetails; }
 #pragma region DeltaNeutralContract
 	struct DeltaNeutralContract
@@ -84,7 +84,7 @@ namespace Jde::Markets
 		Contract()=default;
 		Contract( IO::IncomingMessage& message, bool havePrimaryExchange=true )noexcept(false);
 		explicit Contract( ContractPK id, string_view symbol="" )noexcept;
-		Contract( ContractPK id, string_view currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
+		Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
 		Contract( const ibapi::Contract& contract )noexcept;
 		Contract( const ibapi::ContractDetails& details )noexcept;
 		Contract( const Proto::Contract& contract )noexcept;
@@ -102,7 +102,7 @@ namespace Jde::Markets
 		uint32 Multiplier;
 		Exchanges Exchange{ Exchanges::Smart };
 		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
-		string Currency;//TODOEXT make int
+		Proto::Currencies Currency;
 		string LocalSymbol;
 		string TradingClass;
 		bool IncludeExpired{false};

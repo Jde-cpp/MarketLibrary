@@ -58,8 +58,7 @@ namespace Jde::Markets
 
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ibapi::OrderId orderId)noexcept override;
-		void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
-		void newsProviders( const std::vector<NewsProvider>& providers )noexcept override{ newsProviders(providers, false); }
+		//void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
 		void openOrderEnd()noexcept override;
 
 	public:

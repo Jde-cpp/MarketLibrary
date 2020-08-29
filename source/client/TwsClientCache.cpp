@@ -165,6 +165,8 @@ namespace Jde::Markets
 		var now = time( nullptr ); time_t minTime=now, maxTime=0;
 		for( var& dayBars : *pData )
 		{
+			if( !dayBars.second )//not sure why this is happening.
+				continue;
 			for( var& pBar : *dayBars.second )
 			{
 				var timet = ConvertIBDate( pBar->time );

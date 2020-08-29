@@ -5,50 +5,26 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
-	string_view ToString( Exchanges exchange )noexcept
+	string_view ToString( Exchanges x )noexcept
 	{
-		string_view value="";
-		if( exchange==Exchanges::Nyse )
-			value = "Nyse";
-		else if( exchange==Exchanges::Nasdaq )
-			value = "Nasdaq";
-		else if( exchange==Exchanges::Amex )
-			value = "Amex";
-		else if( exchange==Exchanges::Smart )
-			value = "Smart";
-		else if( exchange==Exchanges::Arca )
-			value = "Arca";
-		else if( exchange==Exchanges::Bats )
-			value = "Bats";
-		else if( exchange==Exchanges::PinkSheets )
-			value = "PINK";
-		else if( exchange==Exchanges::Value )
-			value = "Value";
-		else
-			ERR( "Unknown exchange '{}'"sv, (uint)exchange );
-		return value;
+		var found = x>=0 && x<ExchangeStrings.size();
+		if( !found )
+			DBG( "could not find exchange value='{}'"sv, (uint)x );
+		return found ? ExchangeStrings[x] : "";
 	}
 	Exchanges ToExchange( string_view pszName )noexcept
 	{
-		const CIString name( pszName );
-		Exchanges value = Exchanges::Smart;
-		if( name=="Nyse" )
-			value = Exchanges::Nyse;
-		else if( name=="Nasdaq" )
-			value = Exchanges::Nasdaq;
-		else if( name=="Amex" )
-			value = Exchanges::Amex;
-		else if( name=="Arca" )
-			value = Exchanges::Arca;
-		else if( name=="Bats" )
-			value = Exchanges::Bats;
-		else if( name=="Pink Sheets" || name=="PinkSheets" || name=="PINK" )
-			value = Exchanges::PinkSheets;
-		else if( name=="Value" )
-			value = Exchanges::Value;
-		else if( name!="Smart"sv && name.size() )
-			ERR( "Unknown exchange '{}'"sv, pszName );
-		return value;
+		auto found = pszName.length()>0;
+		std::array<std::string_view,9>::const_iterator p;
+		if( found )
+		{
+			const CIString name( pszName );
+			p = std::find_if( ExchangeStrings.begin(), ExchangeStrings.end(), [&name](var item){return name==item;} );
+			found = p != ExchangeStrings.end();
+			if( !found )
+				DBG( "could not find exchange '{}'"sv, pszName );
+		}
+		return found ? static_cast<Proto::Exchanges>( std::distance(ExchangeStrings.begin(), p) ) : Proto::Exchanges::Smart;
 	}
 
 	bool IsHoliday( const TimePoint& time )noexcept

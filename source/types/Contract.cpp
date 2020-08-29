@@ -1,4 +1,5 @@
 #include "Contract.h"
+#include "Currencies.h"
 #include "proto/results.pb.h"
 
 #define var const auto
@@ -16,7 +17,7 @@ namespace Jde::Markets
 		Multiplier{ other.multiplier.size() ? (uint)stoi(other.multiplier) : 0 },
 		Exchange{ ToExchange(other.exchange) },
 		PrimaryExchange{ ToExchange(other.primaryExchange) },
-		Currency{other.currency},
+		Currency{ ToCurrency(other.currency) },
 		LocalSymbol{other.localSymbol},
 		TradingClass{ other.tradingClass }
 	{}
@@ -50,7 +51,7 @@ namespace Jde::Markets
 		other.exchange = ToString(Exchange);
 		if( PrimaryExchange!=Exchanges::Smart )
 			other.primaryExchange = ToString( PrimaryExchange );
-		other.currency = Currency;
+		other.currency = ToString( Currency );
 		other.localSymbol = LocalSymbol;
 		other.tradingClass = TradingClass;
 
@@ -66,7 +67,7 @@ namespace Jde::Markets
 		Multiplier{ contract.multiplier() },
 		Exchange{ contract.exchange() },
 		PrimaryExchange{ contract.primary_exchange() },
-		Currency{ contract.currency().size() ? contract.currency() : "USD" },
+		Currency{ contract.currency() },
 		LocalSymbol{ contract.local_symbol() },
 		TradingClass{ contract.trading_class() },
 		IncludeExpired{ contract.include_expired() },
@@ -118,7 +119,7 @@ namespace Jde::Markets
 
 		return pProto;
 	}
-	Contract::Contract( ContractPK id, string_view currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
+	Contract::Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
 		Id{id},
 		Symbol{symbol},
 		Multiplier{multiplier},
@@ -275,21 +276,21 @@ namespace Jde::Markets
 	}
 	namespace Contracts
 	{
-		const Contract Spy{ 756733, "USD", "SPY", 0, "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
-		const Contract SH{ 236687911, "USD", "SH", 0, "PROSHARES SHORT S&P500", Exchanges::Arca, "SH", "SH" };
-		const Contract Qqq{ 320227571, "USD", "QQQ", 0, "POWERSHARES QQQ TRUST SERIES", Exchanges::Arca, "QQQ", "QQQ" };
-		const Contract Psq{ 43661924, "USD", "PSQ", 0, "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
-		const Contract Tsla{ 76792991, "USD", "TSLA", 0, "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
-		const Contract Aig{ 61319701, "USD", "AIG", 0, "AMERICAN INTERNATIONAL GROUP", Exchanges::Nyse, "AIG", "AIG", DateTime(2004,1,23,14,30,00).GetTimePoint() };
+		const Contract Spy{ 756733, Proto::Currencies::UsDollar, "SPY", 0, "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
+		const Contract SH{ 236687911, Proto::Currencies::UsDollar, "SH", 0, "PROSHARES SHORT S&P500", Exchanges::Arca, "SH", "SH" };
+		const Contract Qqq{ 320227571, Proto::Currencies::UsDollar, "QQQ", 0, "POWERSHARES QQQ TRUST SERIES", Exchanges::Arca, "QQQ", "QQQ" };
+		const Contract Psq{ 43661924, Proto::Currencies::UsDollar, "PSQ", 0, "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
+		const Contract Tsla{ 76792991, Proto::Currencies::UsDollar, "TSLA", 0, "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
+		const Contract Aig{ 61319701, Proto::Currencies::UsDollar, "AIG", 0, "AMERICAN INTERNATIONAL GROUP", Exchanges::Nyse, "AIG", "AIG", DateTime(2004,1,23,14,30,00).GetTimePoint() };
 	}
 #pragma region SecurityRight
 	SecurityRight ToSecurityRight( string_view inputName )noexcept
 	{
 		CIString name{inputName};
 		auto securityRight = SecurityRight::None;
-		if( name=="call" || name=="C" )
+		if( name=="call"sv || name=="C"sv )
 			securityRight = SecurityRight::Call;
-		else if( name=="put" || name=="P" )
+		else if( name=="put"sv || name=="P"sv )
 			securityRight = SecurityRight::Put;
 		else if( name.size() && name!="?"sv && name!="0"sv )
 			WARN( "Could not parse security right '{}'."sv, inputName );
@@ -312,13 +313,13 @@ namespace Jde::Markets
 	{
 		CIString name{ inputName };
 		SecurityType type = SecurityType::Unknown;
-		if( name=="OPT" )
+		if( name=="OPT"sv )
 			type = SecurityType::Option;
-		else if( name=="STK" )
+		else if( name=="STK"sv )
 			type = SecurityType::Stock;
-		else if( name=="IND" )
+		else if( name=="IND"sv )
 			type = SecurityType::Index;
-		else if( name=="WAR" )
+		else if( name=="WAR"sv )
 			type = SecurityType::Warrant;
 		else
 			WARN( "Could not parse security type {}"sv, inputName );
