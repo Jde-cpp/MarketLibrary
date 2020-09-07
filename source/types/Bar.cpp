@@ -139,17 +139,17 @@ namespace Jde::Markets
 	}
 
 	CandleStick::CandleStick( const Proto::MinuteBar& minuteBar )noexcept:
-		Open{ minuteBar.firsttradedprice() },
-		High{ minuteBar.highesttradedprice() },
-		Low{ minuteBar.lowesttradedprice() },
-		Close{ minuteBar.lasttradedprice() },
+		Open{ minuteBar.first_traded_price() },
+		High{ minuteBar.highest_traded_price() },
+		Low{ minuteBar.lowest_traded_price() },
+		Close{ minuteBar.last_traded_price() },
 		Volume{ minuteBar.volume() }
 	{}
 	CandleStick::CandleStick( const ibapi::Bar& bar )noexcept:
-		Open{ bar.open },
-		High{ bar.high },
-		Low{ bar.low },
-		Close{ bar.close },
+		Open{ static_cast<CandleStick::Amount>(bar.open) },
+		High{ static_cast<CandleStick::Amount>(bar.high) },
+		Low{ static_cast<CandleStick::Amount>(bar.low) },
+		Close{ static_cast<CandleStick::Amount>(bar.close) },
 		Volume{ static_cast<uint32>(bar.volume) }
 	{}
 	ibapi::Bar CandleStick::ToIB( TimePoint time )const noexcept
@@ -159,10 +159,10 @@ namespace Jde::Markets
 	Proto::MinuteBar CandleStick::ToProto()const noexcept
 	{
 		Proto::MinuteBar proto;
-		proto.set_firsttradedprice( static_cast<float>(Open) );
-		proto.set_highesttradedprice( static_cast<float>(High) );
-		proto.set_lowesttradedprice( static_cast<float>(Low) );
-		proto.set_lasttradedprice( static_cast<float>(Close) );
+		proto.set_first_traded_price( static_cast<float>(Open) );
+		proto.set_highest_traded_price( static_cast<float>(High) );
+		proto.set_lowest_traded_price( static_cast<float>(Low) );
+		proto.set_last_traded_price( static_cast<float>(Close) );
 		proto.set_volume( Volume );
 		return proto;
 	}

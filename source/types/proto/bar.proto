@@ -5,20 +5,20 @@ package Jde.Markets.Proto;
 
 message MinuteBar
 {
-  float FirstTradedPrice = 1;
-  float HighestTradedPrice = 2;
-  float LowestTradedPrice = 3;
-  float LastTradedPrice = 4;
-  uint32 Volume = 5;
+  float first_traded_price = 1;
+  float highest_traded_price = 2;
+  float lowest_traded_price = 3;
+  float last_traded_price = 4;
+  uint32 volume = 5;
 }
 
 message BarDay
 {
-	uint32 Day=1;
-	repeated MinuteBar Bars=2;
+	uint32 day=1;
+	repeated MinuteBar bars=2;
 }
 
 message BarFile
 {
-	repeated BarDay Days=1;
+	repeated BarDay days=1;
 }

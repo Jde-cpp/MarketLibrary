@@ -166,6 +166,35 @@ namespace Jde::Markets
 		}
 		Try( [&](){ Save( contract, days ); } );
 	}
+
+	void BarData::ApplySplit( const Contract& contract, uint multiplier )noexcept
+	{
+		auto fnctn = [&]( const fs::path& path, DayIndex, DayIndex )
+		{
+			var pExisting = Load( path );//BarFile
+			Proto::BarFile newFile;
+			for( uint i=0; i<pExisting->days_size(); ++i )
+			{
+				var& day = pExisting->days( i );
+				auto pDays = newFile.add_days();
+				for( uint j=0; j<day.bars_size(); ++j )
+				{
+					auto bar = day.bars( j );
+					auto pNew = pDays->add_bars();
+					pNew->set_first_traded_price( bar.first_traded_price() );
+					pNew->set_highest_traded_price( bar.highest_traded_price() );
+					pNew->set_lowest_traded_price( bar.lowest_traded_price() );
+					pNew->set_last_traded_price( bar.last_traded_price() );
+					pNew->set_volume( bar.volume() );
+				}
+			}
+			string output;
+			newFile.SerializeToString( &output );
+			IO::Zip::XZ::Write( path, output );
+		};
+		ForEachFile( contract, fnctn, 0, CurrentTradingDay() );
+	}
+
 	void BarData::Save( const Contract& contract, const map<DayIndex,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,TimePoint_>> pExcluded, bool checkExisting, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		const DateTime now{ CurrentTradingDay(Clock::now()) };
