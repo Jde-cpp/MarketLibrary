@@ -24,9 +24,9 @@ namespace Jde::Markets
 	{
 		CandleStick()=default;
 		CandleStick( const Proto::MinuteBar& minuteBar )noexcept;
-		CandleStick( const ibapi::Bar& bar )noexcept;
+		CandleStick( const ::Bar& bar )noexcept;
 		//CandleStick& operator=(const CandleStick&)=default;
-		ibapi::Bar ToIB( TimePoint time )const noexcept;
+		::Bar ToIB( TimePoint time )const noexcept;
 		Proto::MinuteBar ToProto()const noexcept;
 		const Amount Open{0.0};
 		const Amount High{0.0};

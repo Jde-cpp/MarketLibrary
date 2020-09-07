@@ -5,7 +5,7 @@
 //#include "../../../framework/io/Buffer.h"
 #include "../TypeDefs.h"
 
-namespace ibapi{ struct Contract; struct ContractDetails;}
+namespace ibapi{ struct Contract; }
 namespace Jde::Markets
 {
 	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; enum Currencies : int; }
@@ -84,9 +84,9 @@ namespace Jde::Markets
 		Contract()=default;
 		Contract( IO::IncomingMessage& message, bool havePrimaryExchange=true )noexcept(false);
 		explicit Contract( ContractPK id, string_view symbol="" )noexcept;
-		Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
+		Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint32 multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
 		Contract( const ibapi::Contract& contract )noexcept;
-		Contract( const ibapi::ContractDetails& details )noexcept;
+		Contract( const ::ContractDetails& details )noexcept;
 		Contract( const Proto::Contract& contract )noexcept;
 		~Contract();
 		bool operator <(const Contract &b)const noexcept{return Id<b.Id;}
@@ -130,8 +130,8 @@ namespace Jde::Markets
 	std::ostream& operator<<( std::ostream& os, const Contract& contract )noexcept;
 	JDE_MARKETS_EXPORT ContractPtr_ Find( const map<ContractPK, ContractPtr_>&, string_view symbol )noexcept;
 
-	//JDE_MARKETS_EXPORT sp<Proto::ContractDetails> ToProto( const ibapi::ContractDetails& details )noexcept;
-	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ibapi::ContractDetails& details )noexcept;
+	//JDE_MARKETS_EXPORT sp<Proto::ContractDetails> ToProto( const ::ContractDetails& details )noexcept;
+	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ::ContractDetails& details )noexcept;
 
 	namespace Contracts
 	{

@@ -145,16 +145,16 @@ namespace Jde::Markets
 		Close{ minuteBar.lasttradedprice() },
 		Volume{ minuteBar.volume() }
 	{}
-	CandleStick::CandleStick( const ibapi::Bar& bar )noexcept:
+	CandleStick::CandleStick( const ::Bar& bar )noexcept:
 		Open{ bar.open },
 		High{ bar.high },
 		Low{ bar.low },
 		Close{ bar.close },
 		Volume{ static_cast<uint32>(bar.volume) }
 	{}
-	ibapi::Bar CandleStick::ToIB( TimePoint time )const noexcept
+	::Bar CandleStick::ToIB( TimePoint time )const noexcept
 	{
-		return ibapi::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0.0, (long long)Volume, 0 };
+		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0.0, (long long)Volume, 0 };
 	}
 	Proto::MinuteBar CandleStick::ToProto()const noexcept
 	{

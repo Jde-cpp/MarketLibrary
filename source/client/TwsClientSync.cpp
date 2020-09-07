@@ -93,7 +93,7 @@ namespace Jde::Markets
 		return time;
 	}
 
-	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, uint dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
+	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
@@ -108,7 +108,7 @@ namespace Jde::Markets
 		return future;
 	}
 
-	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
+	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
 	{
 		var now = std::time(nullptr);
 		time_t end=start;
@@ -123,12 +123,12 @@ namespace Jde::Markets
 			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} S", seconds), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 			return future;
 		}
-		std::promise<sp<vector<ibapi::Bar>>> promise;
-		promise.set_value( make_shared<vector<ibapi::Bar>>() );
+		std::promise<sp<vector<::Bar>>> promise;
+		promise.set_value( make_shared<vector<::Bar>>() );
 		return promise.get_future();
 	}
 
-/*	TwsClientSync::Future<ibapi::Bar> TwsClientSync::ReqHistoricalData( const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
+/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalData( const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
@@ -154,9 +154,9 @@ namespace Jde::Markets
 		var pResults = _historicalData.Find( reqId );
 		_historicalData.erase( reqId );
 		_conditionVariables.erase( reqId );
-		return pResults ? pResults : make_shared<list<ibapi::Bar>>();*/
+		return pResults ? pResults : make_shared<list<::Bar>>();*/
 	//}
-	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol )noexcept
 	{
 		ibapi::Contract contract;
 		contract.symbol = symbol;
@@ -166,9 +166,9 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}
-/*	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol, DayIndex dayIndex, SecurityRight right )noexcept
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol, DayIndex dayIndex, SecurityRight right )noexcept
 	{
-		ibapi::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
+		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
 		if( dayIndex>0 )
 		{
 			const DateTime date{ Chrono::FromDays(dayIndex) };
@@ -178,13 +178,13 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}*/
-	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
 	{
 		ASSERT( id!=0 );
 		ibapi::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
 		return ReqContractDetails( contract );
 	}
-	TwsClientSync::Future<ibapi::ContractDetails> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->ContractDetailsPromise( reqId );

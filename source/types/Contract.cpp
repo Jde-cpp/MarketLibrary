@@ -119,7 +119,7 @@ namespace Jde::Markets
 
 		return pProto;
 	}
-	Contract::Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
+	Contract::Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint32 multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
 		Id{id},
 		Symbol{symbol},
 		Multiplier{multiplier},
@@ -130,7 +130,7 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
-	Contract::Contract( const ibapi::ContractDetails& details )noexcept:
+	Contract::Contract( const ::ContractDetails& details )noexcept:
 		Contract{ details.contract }
 	{
 
@@ -346,7 +346,7 @@ namespace Jde::Markets
 		return pContract;
 	}
 
-	Proto::Results::ContractDetails* ToProto( const ibapi::ContractDetails& details )noexcept
+	Proto::Results::ContractDetails* ToProto( const ::ContractDetails& details )noexcept
 	{
 		var pResult = new Proto::Results::ContractDetails();
 		pResult->set_allocated_contract( Contract(details.contract).ToProto(true).get() );
@@ -364,7 +364,7 @@ namespace Jde::Markets
 		pResult->set_time_zone_id( details.timeZoneId );
 		auto parseTimeframe = [&details]( const string& timeFrame )noexcept(false)
 		{
-			auto parseDateTime = [&details]( const string& value )noexcept(false) //20200131:0930, 20200104:CLOSED
+			auto parseDateTime = [&details]( const string& value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
 			{
 				var dateTime = StringUtilities::Split( value, ':' );
 				var& date = dateTime[0];
@@ -388,7 +388,7 @@ namespace Jde::Markets
 				THROW( Exception("Could not parse parseTimeframe '{}'.", timeFrame) );
 			var end = startEnd.size()==2 ? parseDateTime( startEnd[1] ) : 0;
 
-			Proto::Results::ContractHours hours; hours.set_start( start ); hours.set_end( end );
+			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end((int)end );
 			return hours;
 		};
 		var tradingHours = StringUtilities::Split( details.tradingHours, ';' );

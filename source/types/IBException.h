@@ -8,7 +8,7 @@ namespace Jde::Markets
 	{
 		IBException( const IBException& ) = default;
 		IBException( IBException&& ) = default;
-		IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, uint line )noexcept;
+		IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, long line )noexcept;
 		IBException( string_view message, int errorCode, long reqId=-1 )noexcept:
 			Exception( message ),
 			ErrorCode( errorCode ),

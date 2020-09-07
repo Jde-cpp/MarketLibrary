@@ -6,7 +6,7 @@
 #define var const auto
 namespace Jde::Markets
 {
-	MyOrder::MyOrder( ibapi::OrderId id, const Proto::Order& proto )
+	MyOrder::MyOrder( ::OrderId id, const Proto::Order& proto )
 	{
 		orderId = id;
 		clientId = proto.client_id();
@@ -102,9 +102,9 @@ namespace Jde::Markets
 		proto.set_aux( auxPrice==UNSET_DOUBLE ? 0 : auxPrice );
 		proto.set_time_in_force( TimeInForce() );
 		if( activeStartTime.size() )
-			proto.set_active_start_time( ParseDateTime(activeStartTime) ); // for GTC orders
+			proto.set_active_start_time( static_cast<int32>(ParseDateTime(activeStartTime)) ); // for GTC orders
 		if( activeStopTime.size() )
-			proto.set_active_stop_time( ParseDateTime(activeStopTime) );
+			proto.set_active_stop_time(static_cast<int32>(ParseDateTime(activeStopTime)) );
 		proto.set_oca_group( ocaGroup ); // one cancels all group name
 		proto.set_oca_type( ocaType ); // 1 = CANCEL_WITH_BLOCK, 2 = REDUCE_WITH_BLOCK, 3 = REDUCE_NON_BLOCK
 		proto.set_order_ref( orderRef );      // order reference
@@ -117,9 +117,9 @@ namespace Jde::Markets
 		proto.set_outside_rth( outsideRth );
 		proto.set_hidden( hidden );
 		if( goodAfterTime.size() )
-			proto.set_good_after_time( ParseDateTime(goodAfterTime) );    // Format: 20060505 08:00:00 {time zone}
+			proto.set_good_after_time(static_cast<int32>(ParseDateTime(goodAfterTime)) );    // Format: 20060505 08:00:00 {time zone}
 		if( goodTillDate.size() )
-			proto.set_good_till_date( ParseDateTime(goodTillDate) );     // Format: 20060505 08:00:00 {time zone}
+			proto.set_good_till_date(static_cast<int32>(ParseDateTime(goodTillDate)) );     // Format: 20060505 08:00:00 {time zone}
 		proto.set_rule_80a( rule80A ); // Individual = 'I', Agency = 'A', AgentOtherMember = 'W', IndividualPTIA = 'J', AgencyPTIA = 'U', AgentOtherMemberPTIA = 'M', IndividualPT = 'K', AgencyPT = 'Y', AgentOtherMemberPT = 'N'
 		proto.set_all_or_none( allOrNone );
 		proto.set_min_qty( minQty==UNSET_INTEGER ? 0 : minQty );
@@ -208,7 +208,7 @@ namespace Jde::Markets
 		}
 		return result;
 	}
-	Proto::Results::OrderState* MyOrder::ToAllocatedProto( const ibapi::OrderState& state )noexcept
+	Proto::Results::OrderState* MyOrder::ToAllocatedProto( const ::OrderState& state )noexcept
 	{
 		auto p = new Proto::Results::OrderState{};
 		p->set_status( state.status );

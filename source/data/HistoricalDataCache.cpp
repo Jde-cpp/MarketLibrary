@@ -10,12 +10,12 @@ namespace Jde::Markets::HistoricalDataCache
 	using namespace Chrono;
 	using EBarSize=Proto::Requests::BarSize;
 	using EDisplay=Proto::Requests::Display;
-	typedef sp<ibapi::Bar> BarPtr;
+	typedef sp<::Bar> BarPtr;
 	struct DataCache
 	{
 		optional<tuple<DayIndex,DayIndex>> Contains( EBarSize barSize, bool useRth, const set<DayIndex>& days )noexcept;
 		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, EBarSize barSize, bool useRth )noexcept;
-		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<ibapi::Bar>& bars )noexcept;
+		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept;
 		void Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept;
 		static constexpr EBarSize Size{EBarSize::Minute};
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return format("HistoricalDataCache.{}.{}", contractId, display); }
@@ -23,7 +23,7 @@ namespace Jde::Markets::HistoricalDataCache
 		map<DayIndex,vector<BarPtr>> _rth;	shared_mutex _rthMutex;
 		map<DayIndex,vector<BarPtr>> _extended; shared_mutex _extendedMutex;
 	};
-	void Push( const Contract& contract, EDisplay display, EBarSize barSize, bool useRth, const vector<ibapi::Bar>& bars )noexcept
+	void Push( const Contract& contract, EDisplay display, EBarSize barSize, bool useRth, const vector<::Bar>& bars )noexcept
 	{
 		if( barSize==EBarSize::Minute )
 			DataCache::Push( contract, display, useRth, bars );
@@ -31,7 +31,7 @@ namespace Jde::Markets::HistoricalDataCache
 			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::TryToString(barSize) );
 	}
 	//files
-	MapPtr<DayIndex,VectorPtr<sp<ibapi::Bar>>> ReqHistoricalData( const Contract& contract, DayIndex endDay, uint dayCount, EBarSize barSize, EDisplay display, bool useRth )noexcept
+	MapPtr<DayIndex,VectorPtr<sp<::Bar>>> ReqHistoricalData( const Contract& contract, DayIndex endDay, uint dayCount, EBarSize barSize, EDisplay display, bool useRth )noexcept
 	{
 		MapPtr<DayIndex,VectorPtr<BarPtr>> pBars;
 		if( !dayCount ){ ERR0("0 daycount sent in."sv); return pBars; }
@@ -81,7 +81,7 @@ namespace Jde::Markets::HistoricalDataCache
 					for( var& stick : *pSticks )
 					{
 						baseTime+=1min;
-						dayBars.push_back( make_shared<ibapi::Bar>(stick.ToIB(baseTime)) );
+						dayBars.push_back( make_shared<::Bar>(stick.ToIB(baseTime)) );
 					}
 				}
 				pValues->Push( bars, false );
@@ -161,7 +161,7 @@ namespace Jde::Markets::HistoricalDataCache
 			var duration = BarSize::BarDuration( barSize );
 			for( auto barEnd = start+duration; barEnd<=end; barEnd+=duration )
 			{
-				ibapi::Bar combined{ ToIBDate(barEnd), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
+				::Bar combined{ ToIBDate(barEnd), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
 				double sum = 0;
 				for( ;ppBar!=pResult->end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<=barEnd; ++ppBar )
 				{
@@ -178,7 +178,7 @@ namespace Jde::Markets::HistoricalDataCache
 				if( combined.low!=std::numeric_limits<double>::max() )
 				{
 					combined.wap = sum/combined.volume;
-					pNewResult->push_back( make_shared<ibapi::Bar>(combined) );
+					pNewResult->push_back( make_shared<::Bar>(combined) );
 				}
 			}
 			pResult = pNewResult;
@@ -186,7 +186,7 @@ namespace Jde::Markets::HistoricalDataCache
 		return pResult;
 	}
 
-	void DataCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<ibapi::Bar>& bars )noexcept
+	void DataCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept
 	{
 		map<DayIndex,vector<BarPtr>> rthBars;
 		map<DayIndex,vector<BarPtr>> extendedBars;
@@ -199,7 +199,7 @@ namespace Jde::Markets::HistoricalDataCache
 				if( !IsRth(contract, Clock::from_time_t(time)) )
 					saveBars = extendedBars;
 			}
-			saveBars.emplace( Chrono::ToDay(time), vector<BarPtr>{} ).first->second.push_back( make_shared<ibapi::Bar>(bar) );
+			saveBars.emplace( Chrono::ToDay(time), vector<BarPtr>{} ).first->second.push_back( make_shared<::Bar>(bar) );
 		}
 		auto pValues = Cache::TryGet<DataCache>( DataCache::CacheId(contract.Id, display) );
 		if( rthBars.size() )

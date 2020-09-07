@@ -128,7 +128,7 @@ namespace Jde::Markets
 		_requestIds.Push( fnctn );
 	}*/
 
-	void WrapperSync::contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept
+	void WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
 		WrapperCache::contractDetails( reqId, contractDetails );
 		_detailsData.Push( reqId, contractDetails );
@@ -150,7 +150,7 @@ namespace Jde::Markets
 		return *_requestIdsFuturePtr;
 	}
 
-	WrapperData<ibapi::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
+	WrapperData<::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
 	{
 		return _detailsData.Promise( reqId );
 	}
@@ -208,16 +208,16 @@ namespace Jde::Markets
 		return _ratioData.Promise( reqId );
 	}
 
-	WrapperData<ibapi::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
+	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
 	{
 		//DBG( "({}) - Promise"sv, reqId );
 		return _historicalData.Promise( reqId );
 	}
-	void WrapperSync::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
+	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
 		historicalDataSync( reqId, bar );
 	}
-	bool WrapperSync::historicalDataSync( TickerId reqId, const ibapi::Bar& bar )noexcept
+	bool WrapperSync::historicalDataSync( TickerId reqId, const ::Bar& bar )noexcept
 	{
 		WrapperCache::historicalData( reqId, bar );
 		var captured = _historicalData.Contains( reqId );
@@ -306,7 +306,7 @@ namespace Jde::Markets
 				{
 					AddRatioTick( tickerId, pair[0], stod(pair[1]) );
 				}
-				catch( std::invalid_argument& e )
+				catch( std::invalid_argument& )
 				{
 					DBG( "Could not convert [{}]='{}' to double."sv, pair[0], pair[1] );
 				}

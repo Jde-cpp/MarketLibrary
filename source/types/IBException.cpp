@@ -3,8 +3,8 @@
 
 namespace Jde::Markets
 {
-	IBException::IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, uint line )noexcept:
-		Exception( ELogLevel::Debug, message, function, file, line ),
+	IBException::IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, long line )noexcept:
+		Exception( ELogLevel::Debug, message, function, file, static_cast<uint>(line) ),
 		ErrorCode( errorCode ),
 		RequestId( reqId )
 	{}
