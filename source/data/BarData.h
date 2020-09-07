@@ -19,6 +19,7 @@ namespace BarData
 	inline fs::path File( const Contract& contract, DayIndex day )noexcept{ DateTime date{Chrono::FromDays(day)}; return File(contract, date.Year(), date.Month(), date.Day()); }
 	JDE_MARKETS_EXPORT flat_set<DayIndex> FindExisting( const Contract& contract, DayIndex start=0, DayIndex end=0, string_view prefix=string_view{}, map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);
 	inline bool HavePath()noexcept{ return Settings::Global().Have("barPath"); }
+	void ApplySplit( const Contract& contract, uint multiplier )noexcept;
 
 	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept;
 	JDE_MARKETS_EXPORT MapPtr<DayIndex,VectorPtr<CandleStick>> Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false);

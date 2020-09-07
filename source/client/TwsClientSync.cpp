@@ -251,7 +251,7 @@ namespace Jde::Markets
 	{
 		var reqId = RequestId();
 		auto future = Wrapper()->RatioPromise( reqId );
-		TwsClient::reqMktData( reqId, contract, "258", false, false, TagValueListSPtr{} );
+		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, TagValueListSPtr{} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		return future;
 	}
 

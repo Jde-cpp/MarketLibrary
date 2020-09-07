@@ -22,16 +22,17 @@ namespace Jde::Markets
 	namespace Proto{ class MinuteBar; }
 	struct JDE_MARKETS_EXPORT CandleStick
 	{
+		typedef float Amount;
 		CandleStick()=default;
 		CandleStick( const Proto::MinuteBar& minuteBar )noexcept;
 		CandleStick( const ::Bar& bar )noexcept;
 		//CandleStick& operator=(const CandleStick&)=default;
 		::Bar ToIB( TimePoint time )const noexcept;
 		Proto::MinuteBar ToProto()const noexcept;
-		const Amount Open{0.0};
-		const Amount High{0.0};
-		const Amount Low{0.0};
-		const Amount Close{0.0};
+		const CandleStick::Amount Open{0.0};
+		const CandleStick::Amount High{0.0};
+		const CandleStick::Amount Low{0.0};
+		const CandleStick::Amount Close{0.0};
 		const uint32 Volume{0};
 	};
 	using EDisplay=Proto::Requests::Display;

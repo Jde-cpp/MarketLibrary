@@ -177,4 +177,16 @@ namespace Jde::Markets
 		}
 		Wrapper()->historicalDataEnd( reqId, minTime==now ? "" : ToIBDate(DateTime{minTime}), maxTime==0 ? "" : ToIBDate(DateTime{maxTime}) );
 	}
+	//tws is very slow
+	void TwsClientCache::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept
+	{
+		var cacheId = format( "{}.{}.{}.{}.{}", conId, StringUtilities::AddCommas(providerCodes), totalResults, Clock::to_time_t(start), Clock::to_time_t(end) );
+		var pData = Cache::Get<Proto::Results::HistoricalNewsCollection>( cacheId );
+		if( pData )
+		{
+//TODO
+		}
+		else
+			TwsClient::reqHistoricalNews( requestId, conId, providerCodes, totalResults, start, end );
+	}
 }

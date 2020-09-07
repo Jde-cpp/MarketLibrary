@@ -295,20 +295,43 @@ namespace Jde::Markets
 		if( handled )
 		{
 			var values = StringUtilities::Split( value, ';' );
-			for( var& value : values )
+			for( var& subValue : values )
 			{
-				if( value.size()==0 )
+				if( subValue.size()==0 )
 					continue;
-				var pair = StringUtilities::Split( value, '=' );
-				if( pair.size()!=2 || pair[0]=="CURRENCY" )
-					continue;
-				try
+				if( tickType==TickType::IbDividends )
 				{
-					AddRatioTick( tickerId, pair[0], stod(pair[1]) );
+					var dividendValues = StringUtilities::Split( subValue );
+					if( dividendValues.size()!=4 )
+						DBG( "({})Could not convert '{}' to dividends."sv, tickerId, subValue );
+					else
+					{
+						AddRatioTick( tickerId, "DIV_PAST_YEAR", stod(dividendValues[0]) );
+						AddRatioTick( tickerId, "DIV_NEXT_YEAR", stod(dividendValues[1]) );
+						var& dateString = dividendValues[2];
+						if( dateString.size()==8 )
+						{
+							const DateTime date( stoi(dateString.substr(0,4)), (uint8)stoi(dateString.substr(4,2)), (uint8)stoi(dateString.substr(6,2)) );
+							AddRatioTick( tickerId, "DIV_NEXT_DAY", Chrono::DaysSinceEpoch(date.GetTimePoint()) );
+						}
+						else
+							DBG( "({})Could not read next dividend day '{}'."sv, tickerId, dateString );
+						AddRatioTick( tickerId, "DIV_NEXT", stod(dividendValues[3]) );
+					}
 				}
-				catch( std::invalid_argument& )
+				else
 				{
-					DBG( "Could not convert [{}]='{}' to double."sv, pair[0], pair[1] );
+					var pair = StringUtilities::Split( subValue, '=' );
+					if( pair.size()!=2 || pair[0]=="CURRENCY" )
+						continue;
+					try
+					{
+						AddRatioTick( tickerId, pair[0], stod(pair[1]) );
+					}
+					catch( std::invalid_argument& e )
+					{
+						DBG( "Could not convert [{}]='{}' to double."sv, pair[0], pair[1] );
+					}
 				}
 			}
 		}
@@ -333,11 +356,23 @@ namespace Jde::Markets
 			&& values.find("1")!=values.end()
 			&& values.find("9")!=values.end()
 			&& values.find("MKTCAP")!=values.end()
-			&& values.find("NPRICE")!=values.end() )
+			&& values.find("NPRICE")!=values.end()/*
+			&& values.find("AvgVolume")!=values.end()*/ )
 		{
-			TwsClientSync::Instance().cancelMktData( tickerId );
-			_ratioData.Push( tickerId, make_shared<map<string,double>>(values) );
-			_ratioValues.erase( tickerId );
+			static set<TickerId> setTickers;
+			if( !setTickers.contains(tickerId) )
+			{
+				setTickers.emplace(tickerId);
+				std::thread( [tickerId, this]()
+				{
+					std::this_thread::sleep_for( 4s );
+					TwsClientSync::Instance().cancelMktData( tickerId );
+					lock_guard l{_ratioMutex};
+					auto& values = _ratioValues[tickerId];
+					_ratioData.Push( tickerId, make_shared<map<string,double>>(values) );
+					_ratioValues.erase( tickerId );
+				}).detach();
+			}
 		}
 	}
 }
