@@ -37,7 +37,7 @@ namespace Jde::Markets
 	{
 		var suffix = contract.conId ? std::to_string( contract.conId ) : contract.symbol;
 		var cacheId = format( "reqContractDetails.{}.{}.{}.{}.{}", contract.secType, contract.right, contract.lastTradeDateOrContractMonth, contract.strike, suffix );
-		var pContracts = Cache::Get<vector<ibapi::ContractDetails>>( cacheId );
+		var pContracts = Cache::Get<vector<::ContractDetails>>( cacheId );
 		if( pContracts )
 		{
 			for( var& contract : *pContracts )
@@ -93,9 +93,9 @@ namespace Jde::Markets
 	}
 	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
-		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<ibapi::Bar>>>& existing, time_t lastTime=0 )
+		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
 		{
-			VectorPtr<ibapi::Bar> pBars;
+			VectorPtr<::Bar> pBars;
 			if( !lastTime )
 				pBars = ReqHistoricalDataSync( contract, end, subDayCount, barSize, display, useRth, false ).get();
 			else if( time(nullptr)-lastTime>barSize )
@@ -103,7 +103,7 @@ namespace Jde::Markets
 			if( pBars )
 			{
 				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars );
-				auto pExisting = existing.end(); auto currentStart = 0; auto currentEnd = 0;
+				auto pExisting = existing.end(); time_t currentStart = 0; time_t currentEnd = 0;
 				for( var& bar : *pBars )
 				{
 					var time = ConvertIBDate( bar.time );
@@ -114,21 +114,21 @@ namespace Jde::Markets
 						currentStart = Clock::to_time_t(BeginningOfDay(tp) ); currentEnd = currentStart+24*60*60;
 						pExisting = existing.find( day );
 						if( pExisting==existing.end() )
-							pExisting = existing.emplace( day, make_shared<vector<sp<ibapi::Bar>>>() ).first;
+							pExisting = existing.emplace( day, make_shared<vector<sp<::Bar>>>() ).first;
 						if( !pExisting->second )
-							pExisting->second = make_shared<vector<sp<ibapi::Bar>>>();
+							pExisting->second = make_shared<vector<sp<::Bar>>>();
 					}
-					pExisting->second->push_back( make_shared<ibapi::Bar>(bar) );
+					pExisting->second->push_back( make_shared<::Bar>(bar) );
 				}
 			}
 		};
-		auto pData = HistoricalDataCache::ReqHistoricalData( contract, endDay, dayCount, barSize, (Proto::Requests::Display)display, useRth );// : MapPtr<DayIndex,VectorPtr<sp<const ibapi::Bar>>>{};
+		auto pData = HistoricalDataCache::ReqHistoricalData( contract, endDay, dayCount, barSize, (Proto::Requests::Display)display, useRth );// : MapPtr<DayIndex,VectorPtr<sp<const ::Bar>>>{};
 		if( pData )
 		{
 			ASSERT( pData->size() );
 			if( !pData->begin()->second )
 			{
-				uint startDayCount = 0; DayIndex endDay = 0;
+				DayIndex startDayCount = 0; DayIndex endDay = 0;
 				for( var& [day,pBars] : *pData )
 				{
 					if( pBars )
@@ -160,7 +160,7 @@ namespace Jde::Markets
 		}
 		else
 		{
-			pData = make_shared<map<DayIndex,VectorPtr<sp<ibapi::Bar>>>>();
+			pData = make_shared<map<DayIndex,VectorPtr<sp<::Bar>>>>();
 			addBars( endDay, dayCount, *pData );
 		}
 

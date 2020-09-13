@@ -15,7 +15,7 @@
     <ProjectGuid>{B001A9CB-6EBC-470A-9760-4BFF763D9A16}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Markets</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -69,7 +69,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4068;4251;4275;4297</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4068;4251;4275;4297;4703</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
@@ -77,7 +77,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -93,7 +93,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4068;4251;4275;4297</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4068;4251;4275;4297;4703</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
     </ClCompile>
@@ -103,11 +103,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="client\TwsClient.cpp" />
+    <ClCompile Include="client\TwsClientCache.cpp" />
+    <ClCompile Include="client\TwsClientSync.cpp" />
+    <ClCompile Include="data\BarData.cpp" />
+    <ClCompile Include="data\HistoricalDataCache.cpp" />
     <ClCompile Include="pc.h">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -120,11 +125,12 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="TwsClient.cpp" />
     <ClCompile Include="TwsProcessor.cpp" />
     <ClCompile Include="types\Bar.cpp" />
+    <ClCompile Include="types\Currencies.cpp" />
     <ClCompile Include="types\IBException.cpp" />
     <ClCompile Include="types\MyOrder.cpp" />
+    <ClCompile Include="types\proto\bar.pb.cc" />
     <ClCompile Include="types\proto\requests.pb.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
@@ -138,8 +144,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4068;4251;4275;4297;4244</DisableSpecificWarnings>
-      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4068;4251;4275;4297;4244;4267</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4244;4267</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="types\Contract.cpp" />
     <ClCompile Include="types\Exchanges.cpp" />
@@ -149,8 +155,11 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4068;4251;4275;4297;4244</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4244</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="types\proto\watch.pb.cc" />
     <ClCompile Include="types\TwsConnectionSettings.cpp" />
-    <ClCompile Include="WrapperLog.cpp" />
+    <ClCompile Include="wrapper\WrapperCache.cpp" />
+    <ClCompile Include="wrapper\WrapperLog.cpp" />
+    <ClCompile Include="wrapper\WrapperSync.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

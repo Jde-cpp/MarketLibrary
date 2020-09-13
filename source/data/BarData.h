@@ -26,6 +26,6 @@ namespace BarData
 	MapPtr<DayIndex,VectorPtr<CandleStick>> Load( const fs::path& path, string_view symbol, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);
 	sp<Proto::BarFile> Load( const fs::path& path )noexcept(false);
 	void ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex end, string_view prefix=""sv )noexcept;
-	JDE_MARKETS_EXPORT void Save( const Contract&, map<DayIndex,vector<sp<ibapi::Bar>>>& rthBars )noexcept;
+	JDE_MARKETS_EXPORT void Save( const Contract&, map<DayIndex,vector<sp<Bar>>>& rthBars )noexcept;
 	JDE_MARKETS_EXPORT void Save( const Contract& contract, const map<DayIndex,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,TimePoint_>> pExcluded=nullptr, bool checkExisting=false, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);
 }}

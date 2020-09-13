@@ -131,7 +131,7 @@ namespace Jde::Markets
 
 		LOG( _logLevel, "({})reqHistoricalNews( '{}', '{}', '{}', '{}', '{}' )"sv, requestId, conId, providers, startString, endString, totalResults );
 
-		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, totalResults, nullptr );
+		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, (int)totalResults, nullptr );
 	}
 	void TwsClient::reqNewsArticle( TickerId requestId, const string& providerCode, const string& articleId )noexcept
 	{
@@ -156,11 +156,11 @@ namespace Jde::Markets
 		EClientSocket::reqAllOpenOrders();
 	}
 
-	void TwsClient::placeOrder( const ibapi::Contract& contract, const ibapi::Order& order )noexcept
+	void TwsClient::placeOrder( const ibapi::Contract& contract, const ::Order& order )noexcept
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
 		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )"sv, order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
-		ibapi::Order order2;
+		::Order order2;
 		order2.orderId = order.orderId;
 		order2.orderType = order.orderType;
 		order2.lmtPrice = order.lmtPrice;

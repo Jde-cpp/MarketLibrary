@@ -3,8 +3,14 @@
 #include "../Exports.h"
 #include "../types/TwsConnectionSettings.h"
 #include "../types/proto/requests.pb.h"
+#include "../TypeDefs.h"
 
 struct EReaderSignal;
+
+namespace ibapi
+{
+	typedef long OrderId;
+}
 
 namespace Jde::Markets
 {
@@ -43,7 +49,7 @@ namespace Jde::Markets
 		void reqCurrentTime()noexcept;
 		void reqOpenOrders()noexcept;
 		void reqAllOpenOrders()noexcept;
-		void placeOrder( const ibapi::Contract& contract, const ibapi::Order& order )noexcept;
+		void placeOrder( const ibapi::Contract& contract, const ::Order& order )noexcept;
 	protected:
 		shared_ptr<EWrapper> _pWrapper;
 		shared_ptr<WrapperLog> WrapperLogPtr()noexcept;

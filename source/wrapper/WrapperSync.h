@@ -19,15 +19,15 @@ namespace Jde::Markets
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;
 		typedef function<void(TimePoint)> HeadTimestampCallback; void AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept;
-		typedef vector<ibapi::Bar> ReqHistoricalData; //typedef function<void(sp<ReqHistoricalData>)> ReqHistoricalDataCallback;
+		typedef vector<::Bar> ReqHistoricalData; //typedef function<void(sp<ReqHistoricalData>)> ReqHistoricalDataCallback;
 		//typedef function<void(TickerId)> ReqIdCallback;
 		typedef function<void()> EndCallback;
 
 		void AddOpenOrderEnd( EndCallback& )noexcept;
 		void AddRatioTick( TickerId tickerId, string_view key, double value )noexcept;
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
-		WrapperData<ibapi::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
-		WrapperData<ibapi::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
+		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
+		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
 		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId); }
 		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
@@ -37,7 +37,7 @@ namespace Jde::Markets
 		unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;
 		void error( int id, int errorCode, const std::string& errorString )noexcept override{error2( id, errorCode, errorString );};
 		bool error2( int id, int errorCode, const std::string& errorString )noexcept;
-		bool historicalDataSync( TickerId reqId, const ibapi::Bar& bar )noexcept;
+		bool historicalDataSync( TickerId reqId, const ::Bar& bar )noexcept;
 		bool historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept;
 
 		bool TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept;
@@ -53,11 +53,11 @@ namespace Jde::Markets
 		void currentTime( long time )noexcept override;
 		void fundamentalData(TickerId reqId, const std::string& data)noexcept override;
 		void headTimestamp( int reqId, const std::string& headTimestamp )noexcept override;
-		void historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept override;
+		void historicalData( TickerId reqId, const ::Bar& bar )noexcept override;
 		void historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept override;
 
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
-		void nextValidId( ibapi::OrderId orderId)noexcept override;
+		void nextValidId( ::OrderId orderId)noexcept override;
 		//void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
 		void openOrderEnd()noexcept override;
 
@@ -66,11 +66,11 @@ namespace Jde::Markets
 		bool securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
 		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
 		bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
-		void contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept override;
+		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
 
 	protected:
-		WrapperData<ibapi::ContractDetails> _detailsData;
+		WrapperData<::ContractDetails> _detailsData;
 
 	private:
 		shared_ptr<EReaderSignal> _pReaderSignal;
@@ -81,7 +81,7 @@ namespace Jde::Markets
 		//map<ReqId,ReqHistoricalDataCallback> _requestCallbacks; mutable shared_mutex _requestCallbacksMutex;
 		//map<ReqId,sp<ReqHistoricalData>> _requestData; mutable mutex _requestDataMutex;
 		sp<std::promise<TickerId>> _requestIdsPromisePtr; sp<std::shared_future<TickerId>> _requestIdsFuturePtr; mutable shared_mutex _requestIdsPromiseMutex;
-		WrapperData<ibapi::Bar> _historicalData;
+		WrapperData<::Bar> _historicalData;
 		WrapperData<Proto::Results::OptionParams> _optionsData;
 
 		WrapperItem<string> _fundamentalData;

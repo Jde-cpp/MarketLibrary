@@ -6,13 +6,13 @@
 
 namespace Jde::Markets
 {
-	void WrapperCache::contractDetails( int reqId, const ibapi::ContractDetails& contractDetails )noexcept
+	void WrapperCache::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
 		if( _cacheIds.Has(reqId) )
 		{
 			WrapperLog::contractDetails( reqId, contractDetails );
 			unique_lock l{_detailsMutex};
-			_details.try_emplace( reqId, sp<vector<ibapi::ContractDetails>>{ new vector<ibapi::ContractDetails>{} } ).first->second->push_back( contractDetails );
+			_details.try_emplace( reqId, sp<vector<::ContractDetails>>{ new vector<::ContractDetails>{} } ).first->second->push_back( contractDetails );
 		}
 	}
 	void WrapperCache::contractDetailsEnd( int reqId )noexcept
@@ -23,7 +23,7 @@ namespace Jde::Markets
 			WrapperLog::contractDetailsEnd( reqId );
 			unique_lock l{_detailsMutex};
 			var pDetails = _details.find( reqId );
-			var pResults = pDetails==_details.end() ? sp<vector<ibapi::ContractDetails>>{} : pDetails->second;
+			var pResults = pDetails==_details.end() ? sp<vector<::ContractDetails>>{} : pDetails->second;
 			Cache::Set( cacheId, pResults );
 			_details.erase( reqId );
 			_cacheIds.erase( reqId );
@@ -68,7 +68,7 @@ namespace Jde::Markets
 		}
 	}
 
-	void WrapperCache::ToBar( const ibapi::Bar& bar, Proto::Results::Bar& proto )noexcept
+	void WrapperCache::ToBar( const ::Bar& bar, Proto::Results::Bar& proto )noexcept
 	{
 		var time = bar.time.size()==8 ? DateTime{ (uint16)stoi(bar.time.substr(0,4)), (uint8)stoi(bar.time.substr(4,2)), (uint8)stoi(bar.time.substr(6,2)) } : DateTime( stoi(bar.time) );
 		proto.set_time( (int)time.TimeT() );
@@ -81,7 +81,7 @@ namespace Jde::Markets
 		proto.set_volume( bar.volume );
 		proto.set_count( bar.count );
 	}
-	void WrapperCache::historicalData( TickerId reqId, const ibapi::Bar& bar )noexcept
+	void WrapperCache::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
 		var cacheId = _cacheIds.Find( reqId, string{} );
 		if( cacheId.size() )

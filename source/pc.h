@@ -1,4 +1,19 @@
 
+#ifdef _MSC_VER
+	#include <WinSock2.h>
+	#define TWSAPIDLLEXP __declspec( dllimport )
+	#include <SDKDDKVer.h>
+#else
+	//#define IB_POSIX 1
+	#define TWSAPIDLLEXP
+#endif
+
+//#ifndef __INTELLISENSE__
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/fmt/ostr.h>
+//#endif
+
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -7,23 +22,7 @@
 #include <boost/crc.hpp>
 #pragma warning( default : 4245)
 #include <boost/system/error_code.hpp>
-//#ifndef __INTELLISENSE__
-	#include <spdlog/spdlog.h>
-	#include <spdlog/sinks/basic_file_sink.h>
-	#include <spdlog/fmt/ostr.h>
-//#endif
 
-// #include <Eigen/Dense>
-// #include <Eigen/Sparse>
-// #include <Eigen/SVD>
-
-#ifdef _MSC_VER
-//	#define TWSAPIDLLEXP __declspec( dllimport )
-	#include <SDKDDKVer.h>
-#else
-	//#define IB_POSIX 1
-	#define TWSAPIDLLEXP
-#endif
 #include <nlohmann/json.hpp>
 
 #include <EClientSocket.h>

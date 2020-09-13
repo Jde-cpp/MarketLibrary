@@ -21,6 +21,18 @@
     <Filter Include="Source Files\types\proto">
       <UniqueIdentifier>{a9c3730d-d637-46cf-a3a6-5ab6d59ed428}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\client">
+      <UniqueIdentifier>{1837e2ce-8d8f-44da-a2ec-ee24f8a3b078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\wrapper">
+      <UniqueIdentifier>{1b8abe6c-73e0-46bb-94fd-5b73abfb6538}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\wrapper">
+      <UniqueIdentifier>{8d4013e5-e475-4a87-81d5-86e09a868053}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\data">
+      <UniqueIdentifier>{aded487f-aed6-4b49-baeb-93518dd10168}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="types\proto\ib.pb.h">
@@ -100,12 +112,6 @@
     <ClCompile Include="types\proto\requests.pb.cc">
       <Filter>Source Files\types\proto</Filter>
     </ClCompile>
-    <ClCompile Include="TwsClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WrapperLog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pc.h">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -114,6 +120,39 @@
     </ClCompile>
     <ClCompile Include="types\MyOrder.cpp">
       <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TwsClient.cpp">
+      <Filter>Source Files\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TwsClientCache.cpp">
+      <Filter>Source Files\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TwsClientSync.cpp">
+      <Filter>Source Files\client</Filter>
+    </ClCompile>
+    <ClCompile Include="wrapper\WrapperCache.cpp">
+      <Filter>Source Files\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="wrapper\WrapperLog.cpp">
+      <Filter>Source Files\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="wrapper\WrapperSync.cpp">
+      <Filter>Source Files\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="types\Currencies.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\watch.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="data\HistoricalDataCache.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\BarData.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\bar.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

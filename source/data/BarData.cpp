@@ -65,7 +65,7 @@ namespace Jde::Markets
 				barCount = ExchangeTime::MinuteCount( dayIndex );
 			}
 			pDays->reserve( barCount );
-			for( uint iBar=0; iBar<barCount; ++iBar )
+			for( int iBar=0; iBar<barCount; ++iBar )
 				pDays->push_back( CandleStick(day.bars(iBar)) );
 		}
 		return pResults;
@@ -151,7 +151,7 @@ namespace Jde::Markets
 		return pResults;
 	}
 
-	void BarData::Save( const Contract& contract, map<DayIndex,vector<sp<ibapi::Bar>>>& rthBars )noexcept
+	void BarData::Save( const Contract& contract, map<DayIndex,vector<sp<::Bar>>>& rthBars )noexcept
 	{
 		var current = CurrentTradingDay( contract );
 		var exclude = Clock::now()>ExtendedEnd( contract, current ) ? 0 : current;
@@ -335,5 +335,5 @@ namespace Jde::Markets
 		return existing;
 	}
 
-	//JDE_MARKETS_EXPORT void Push( const Contract& contract, Proto::Requests::Display display, Proto::Requests::BarSize barSize, bool useRth, const vector<ibapi::Bar>& bars )noexcept;
+	//JDE_MARKETS_EXPORT void Push( const Contract& contract, Proto::Requests::Display display, Proto::Requests::BarSize barSize, bool useRth, const vector<::Bar>& bars )noexcept;
 }
