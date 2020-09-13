@@ -96,13 +96,13 @@ namespace Jde::Markets
 		ContractPK Id{0};
 		string Symbol;
 		SecurityType SecType{SecurityType::Stock};//"STK", "OPT"
-		DayIndex Expiration;
+		DayIndex Expiration{0};
 		double Strike{0.0};
 		SecurityRight Right{SecurityRight::None};
-		uint32 Multiplier;
+		uint32 Multiplier{0};
 		Exchanges Exchange{ Exchanges::Smart };
-		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
-		Proto::Currencies Currency;
+		Exchanges PrimaryExchange{Exchanges::Smart}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
+		Proto::Currencies Currency{Proto::Currencies::NoCurrency};
 		string LocalSymbol;
 		string TradingClass;
 		bool IncludeExpired{false};

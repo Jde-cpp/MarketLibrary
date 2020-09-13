@@ -16,9 +16,11 @@ namespace Jde::Markets::HistoricalDataCache
 		optional<tuple<DayIndex,DayIndex>> Contains( EBarSize barSize, bool useRth, const set<DayIndex>& days )noexcept;
 		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, EBarSize barSize, bool useRth )noexcept;
 		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<ibapi::Bar>& bars )noexcept;
+		static void PushOption( const Contract& contract, EDisplay display, const vector<ibapi::Bar>& bars )noexcept;
 		void Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept;
 		static constexpr EBarSize Size{EBarSize::Minute};
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return format("HistoricalDataCache.{}.{}", contractId, display); }
+		static string OptionCacheId( ContractPK contractId, EDisplay display )noexcept{ return format("HistoricalDataCacheOption.{}.{}", contractId, display); }
 	private:
 		map<DayIndex,vector<BarPtr>> _rth;	shared_mutex _rthMutex;
 		map<DayIndex,vector<BarPtr>> _extended; shared_mutex _extendedMutex;
@@ -27,6 +29,8 @@ namespace Jde::Markets::HistoricalDataCache
 	{
 		if( barSize==EBarSize::Minute )
 			DataCache::Push( contract, display, useRth, bars );
+		else if( barSize==EBarSize::Hour && contract.SecType==SecurityType::Option )
+			DataCache::PushOption( contract, display, bars );
 		else
 			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::TryToString(barSize) );
 	}
@@ -41,7 +45,9 @@ namespace Jde::Markets::HistoricalDataCache
 			if( !IsHoliday(i, contract.Exchange) )//change to Exchanges...080
 				days.emplace( i );
 		}
-		auto pValues = Cache::TryGet<DataCache>( DataCache::CacheId(contract.Id, display) );
+		auto pValues = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
+			? Cache::TryGet<DataCache>( DataCache::OptionCacheId(contract.Id, display) )
+			: Cache::TryGet<DataCache>( DataCache::CacheId(contract.Id, display) );
 		uint missingCount;
 		auto load = [&]()
 		{
@@ -210,6 +216,21 @@ namespace Jde::Markets::HistoricalDataCache
 		}
 		if( extendedBars.size() )
 			pValues->Push( extendedBars, true );
+	}
+	void DataCache::PushOption( const Contract& contract, EDisplay display, const vector<ibapi::Bar>& bars )noexcept
+	{
+		map<DayIndex,vector<BarPtr>> rthBars;
+		for( var& bar : bars )
+		{
+			var day = Chrono::ToDay( ConvertIBDate(bar.time) );
+			auto pDay = rthBars.find( day );
+			if( pDay==rthBars.end() )
+				pDay = rthBars.emplace( day, vector<BarPtr>{} ).first;
+			pDay->second.push_back( make_shared<ibapi::Bar>(bar) );
+		}
+		auto pValues = Cache::TryGet<DataCache>( DataCache::OptionCacheId(contract.Id, display) );
+		if( rthBars.size() )
+			pValues->Push( rthBars, false );
 	}
 	void DataCache::Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept
 	{
