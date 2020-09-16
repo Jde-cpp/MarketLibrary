@@ -83,7 +83,7 @@ namespace Jde::Markets
 	}
 	void WrapperCache::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
-		var cacheId = _cacheIds.Find( reqId, string{} );
+		/*var cacheId = _cacheIds.Find( reqId, string{} );
 		if( cacheId.size() )
 		{
 			WrapperLog::historicalData( reqId, bar );
@@ -91,13 +91,13 @@ namespace Jde::Markets
 			ToBar( bar, proto );
 			unique_lock l{_historicalDataMutex};
 			_historicalData.try_emplace( reqId, sp<vector<Proto::Results::Bar>>{ new vector<Proto::Results::Bar>{} } ).first->second->push_back( proto );
-		}
+		}*/
 	}
 	void WrapperCache::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{
-		var cacheId = _cacheIds.Find( reqId, string{} );
+		//var cacheId = _cacheIds.Find( reqId, string{} );
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
-		if( cacheId.size() )
+		/*if( cacheId.size() )
 		{
 			unique_lock l{_historicalDataMutex};
 			var pParams = _historicalData.find( reqId );
@@ -105,7 +105,7 @@ namespace Jde::Markets
 			Cache::Set( cacheId, pResults );
 			_optionParams.erase( reqId );
 			_cacheIds.erase( reqId );
-		}
+		}*/
 	}
 
 	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept

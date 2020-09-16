@@ -31,6 +31,7 @@ namespace Jde::Markets
 	};
 
 	using namespace Chrono;
+
 #if 0
 	// ask for 2 days ago, then last 2 days, then last 3 days.
 	TEST_F(HistoricalDataCacheTest, PartialCache)
@@ -48,7 +49,7 @@ namespace Jde::Markets
 		};
 		auto req = [check]( DayIndex day, DayIndex dayCount, DayIndex checkDay=0 )
 		{
-			VectorPtr<ibapi::Bar> pBars = _client.ReqHistoricalDataSync( Contracts::Spy, day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true, true ).get();
+			VectorPtr<::Bar> pBars = _client.ReqHistoricalDataSync( Contracts::Spy, day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true, true ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
@@ -59,6 +60,7 @@ namespace Jde::Markets
 		req( end, 2 );
 		req( end, 3, PreviousTradingDay(start) );
 	}
+
 	TEST_F(HistoricalDataCacheTest, SaveToFile)
 	{
 		ClearMemoryLog();
@@ -95,8 +97,22 @@ namespace Jde::Markets
 		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
 		ASSERT_EQ( logs.size(), 0 );
 	}
+#endif
+	TEST_F(HistoricalDataCacheTest, DayBars)
+	{
+		var& contract = Contracts::SH;
+		var day = PreviousTradingDay();
+		auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Day, EDisplay::Trades, true, true ).get();
+		ASSERT_GT( pBars->size(), 0 );
+		ClearMemoryLog();
+		pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Day, EDisplay::Trades, true, true ).get();
+		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
+		ASSERT_EQ( logs.size(), 0 );
+	}
+#if 0
 	TEST_F(HistoricalDataCacheTest, CombineMinuteBars)
 	{
+		//reqHistoricalData( 'GLD', '20200914 23:59:59 GMT', '1 D', '1 day', 'BID', '1', '2', 'false', '(nil)' )
 		var& contract = Contracts::Spy;
 
 		var dates = BarData::FindExisting( Contracts::Spy, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
@@ -107,7 +123,7 @@ namespace Jde::Markets
 		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
 		ASSERT_EQ( logs.size(), 0 );
 	}
-#endif
+
 	TEST_F(HistoricalDataCacheTest, LoadOptions)
 	{
 		auto check = []( DayIndex day )
@@ -123,13 +139,12 @@ namespace Jde::Markets
 		};
 		auto req = [check]( const ibapi::Contract& contract, DayIndex day, DayIndex dayCount, DayIndex checkDay=0 )
 		{
-			VectorPtr<ibapi::Bar> pBars = _client.ReqHistoricalDataSync( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true, true ).get();
-			ASSERT_GT( pBars->size(), 0 );
+			VectorPtr<::Bar> pBars = _client.ReqHistoricalDataSync( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true, true ).get();
+			//ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
 		Contract contract; contract.Symbol = "SPY"; contract.SecType=SecurityType::Option; contract.Right=SecurityRight::Call; contract.Strike = 330; contract.Expiration = 19377; contract.Currency = Proto::Currencies::UsDollar;
-		var pDetails = _client.ReqContractDetails( *contract.ToTws() ).get();
-		ASSERT_EQ( pDetails->size(), 1 );
+		var pDetails = _client.ReqContractDetails( *contract.ToTws() ).get(); ASSERT_EQ( pDetails->size(), 1 );
 		var& ibContract = (*pDetails)[0].contract;
 		ClearMemoryLog();
 		var end = PreviousTradingDay();
@@ -139,7 +154,7 @@ namespace Jde::Markets
 		req( ibContract, end, 2 );
 		req( ibContract, end, 3, PreviousTradingDay(start) );
 	}
-
+#endif
 		//combine into day,week,month.
 		//if have minute bars, use that else just request.
 

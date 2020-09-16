@@ -9,6 +9,7 @@ namespace Jde::Markets
 	using namespace Chrono;
 	sp<TwsClientSync> pInstance;
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
+	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
 	void TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		DBG0( "TwsClientSync::CreateInstance"sv );
@@ -259,6 +260,13 @@ namespace Jde::Markets
 	{
 		auto future = Wrapper()->NewsProviderPromise( sessionId );
 		TwsClientCache::RequestNewsProviders();
+		return future;
+	}
+
+	std::future<VectorPtr<Proto::Results::Position>> TwsClientSync::RequestPositions()noexcept(false)//should throw if currently perpetual reqPositions.
+	{
+		auto future = Wrapper()->PositionPromise();
+		TwsClient::reqPositions();
 		return future;
 	}
 

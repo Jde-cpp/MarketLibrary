@@ -9,7 +9,7 @@ namespace Jde::Markets
 	//
 	struct JDE_MARKETS_EXPORT WrapperCache : public WrapperLog
 	{
-		void AddCacheId( ReqId reqId, const string& cacheId ){ if( cacheId.size() ) _cacheIds.emplace(reqId, cacheId); }
+		void AddCacheId( ReqId reqId, const string& cacheId ){ if( cacheId.size() ) _cacheIds.emplace(reqId, cacheId); }//reqContractDetails.OPT.CALL.20230120.330.0.SPY
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
 		void historicalData( TickerId reqId, const ::Bar& bar )noexcept override;

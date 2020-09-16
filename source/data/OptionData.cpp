@@ -10,7 +10,7 @@
 
 namespace Jde::Markets
 {
-	Option::Option( const ibapi::ContractDetails& ib ):
+	Option::Option( const ContractDetails& ib ):
 		Id{ ib.contract.conId },
 		IsCall{ ib.contract.right=="C" },
 		Strike{ ib.contract.strike },
@@ -45,7 +45,7 @@ namespace Jde::Markets
 		return less;
 	}
 
-	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& details )noexcept(false)
+	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )noexcept(false)
 	{
 		auto pExisting = Load( pContract->Id );
 		for( var& detail : details )
@@ -108,7 +108,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
 		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )

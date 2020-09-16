@@ -102,7 +102,7 @@ namespace Jde::Markets
 				pBars = ReqHistoricalDataSync( contract, lastTime, barSize, display, useRth ).get();
 			if( pBars )
 			{
-				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars );
+				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars, end, subDayCount );
 				auto pExisting = existing.end(); time_t currentStart = 0; time_t currentEnd = 0;
 				for( var& bar : *pBars )
 				{
@@ -140,7 +140,7 @@ namespace Jde::Markets
 			}
 			var isOpen = IsOpen( contract );
 			if( var current = CurrentTradingDay( contract.Exchange );
-				!pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )
+				!pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )//for current trading day bars
 			{
 				DayIndex endDayCount = 0, currentDay = endDay;
 				time_t lastTime = 0;
