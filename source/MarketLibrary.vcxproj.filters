@@ -154,5 +154,11 @@
     <ClCompile Include="types\proto\bar.pb.cc">
       <Filter>Source Files\types\proto</Filter>
     </ClCompile>
+    <ClCompile Include="data\OptionData.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\OptionOI.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

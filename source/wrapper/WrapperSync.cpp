@@ -59,7 +59,6 @@ namespace Jde::Markets
 				}
 				{ lock_guard l2{ _headTimestampMutex }; _headTimestamp.erase( id ); }
 			}
-			//{ lock_guard l2{ _requestCallbacksMutex }; _requestCallbacks.erase( id ); }
 		}
 		else if( errorCode==1100 )
 		{
@@ -111,22 +110,6 @@ namespace Jde::Markets
 			_errorCallbacks.emplace( reqId, errorFnctn );
 		}
 	}
-
-	/*void WrapperSync::AddRequestHistoricalData( TickerId reqId, ReqHistoricalDataCallback fnctn, ErrorCallback errorCallback )noexcept
-	{
-		{
-			unique_lock l{ _requestCallbacksMutex };
-			_requestCallbacks.emplace( reqId, fnctn );
-		}
-		{
-			lock_guard<mutex> l{ _errorCallbacksMutex };
-			_errorCallbacks.emplace( reqId, errorCallback );
-		}
-	}*/
-/*	void WrapperSync::AddRequestIds( ReqIdCallback& fnctn )noexcept
-	{
-		_requestIds.Push( fnctn );
-	}*/
 
 	void WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
@@ -210,7 +193,6 @@ namespace Jde::Markets
 
 	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
 	{
-		//DBG( "({}) - Promise"sv, reqId );
 		return _historicalData.Promise( reqId );
 	}
 	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
@@ -299,7 +281,7 @@ namespace Jde::Markets
 			{
 				if( subValue.size()==0 )
 					continue;
-				if( tickType==TickType::IbDividends )
+				if( tickType==TickType::IB_DIVIDENDS )
 				{
 					var dividendValues = StringUtilities::Split( subValue );
 					if( dividendValues.size()!=4 )
@@ -328,7 +310,7 @@ namespace Jde::Markets
 					{
 						AddRatioTick( tickerId, pair[0], stod(pair[1]) );
 					}
-					catch( std::invalid_argument& e )
+					catch( std::invalid_argument& )
 					{
 						DBG( "Could not convert [{}]='{}' to double."sv, pair[0], pair[1] );
 					}
@@ -360,12 +342,11 @@ namespace Jde::Markets
 			&& values.find("AvgVolume")!=values.end()*/ )
 		{
 			static set<TickerId> setTickers;
-			if( !setTickers.contains(tickerId) )
+			if( setTickers.emplace(tickerId).second )//.contains(tickerId)
 			{
-				setTickers.emplace(tickerId);
 				std::thread( [tickerId, this]()
 				{
-					std::this_thread::sleep_for( 4s );
+					std::this_thread::sleep_for( 4s );//TODO Remove this.
 					TwsClientSync::Instance().cancelMktData( tickerId );
 					lock_guard l{_ratioMutex};
 					auto& values = _ratioValues[tickerId];

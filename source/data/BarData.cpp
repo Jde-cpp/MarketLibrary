@@ -84,7 +84,6 @@ namespace Jde::Markets
 
 	void BarData::ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, string_view prefix )noexcept//fnctn better not throw
 	{
-		//var now = Clock::now();
 		var root = BarData::Path( contract );
 		if( !fs::exists(root) )
 			return;
@@ -93,22 +92,14 @@ namespace Jde::Markets
 		for( var& entry : *pEntries )
 		{
 			var path = entry.path();
-			//DBG0( entry.path().stem().string() );
 			if( 	(prefix.size() && path.stem().string().find(prefix)!=0)
 				|| (!prefix.size() && std::isalpha(path.stem().string()[0])) )
 			{
 				continue;
 			}
-			//if( path.stem()=="2019-12-31.dat" )
-			//	DBG0( "here" );
 			auto issueDate = contract.IssueDate;
 			if( issueDate==TimePoint::max() )
-			{
 				issueDate = DateTime{2010,1,1}.GetTimePoint();
-				//var pDetails = _client.ReqContractDetails( contract.Id ).get();
-				//ASSERT( pDetails->size()==1 )
-				//issueDate = Clock::from_time_t( ConvertIBDate(pDetails->front().issueDate) );
-			}
 			ASSERT( issueDate!=TimePoint::max() );
 			var [fileStart,fileEnd] = ExtractTimeframe( path, issueDate );
 			if( fileEnd==0 )
@@ -173,11 +164,11 @@ namespace Jde::Markets
 		{
 			var pExisting = Load( path );//BarFile
 			Proto::BarFile newFile;
-			for( uint i=0; i<pExisting->days_size(); ++i )
+			for( int i=0; i<pExisting->days_size(); ++i )
 			{
 				var& day = pExisting->days( i );
 				auto pDays = newFile.add_days();
-				for( uint j=0; j<day.bars_size(); ++j )
+				for( int j=0; j<day.bars_size(); ++j )
 				{
 					auto bar = day.bars( j );
 					auto pNew = pDays->add_bars();
@@ -318,8 +309,6 @@ namespace Jde::Markets
 				for( auto i=0; i<pPartial->days_size(); ++i )
 				{
 					var day2 = pPartial->days(i).day();
-				//	if( day2==18261 )
-				//		DBG( "({}) 12/31/2019 barCount={}", contract.Symbol, pPartial->days(i).bars_size() );
 					if( pPartial->days(i).bars_size()>0 )
 						existing.emplace( day2 );
 				}
@@ -334,6 +323,4 @@ namespace Jde::Markets
 
 		return existing;
 	}
-
-	//JDE_MARKETS_EXPORT void Push( const Contract& contract, Proto::Requests::Display display, Proto::Requests::BarSize barSize, bool useRth, const vector<::Bar>& bars )noexcept;
 }

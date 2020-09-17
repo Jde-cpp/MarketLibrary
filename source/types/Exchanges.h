@@ -5,7 +5,6 @@
 
 namespace Jde::Markets
 {
-	//enum class SecurityType : uint8;
 	struct Contract;
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
@@ -19,14 +18,14 @@ namespace Jde::Markets
 	inline TimePoint PreviousTradingDay( const TimePoint& time )noexcept{ return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) ); }
 	inline TimePoint NextTradingDay( const TimePoint& time )noexcept{ return FromDays( NextTradingDay(DaysSinceEpoch(time)) ); }
 
-	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
-	inline DayIndex CurrentTradingDay( Exchanges exchange=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
-	inline DayIndex CurrentTradingDay( const Contract& details )noexcept{ return CurrentTradingDay(); }
+	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
+	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
+	inline DayIndex CurrentTradingDay( const Contract& /*details*/ )noexcept{ return CurrentTradingDay(); }
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
 	bool IsOpen()noexcept;
-	bool IsOpen( SecurityType type )noexcept;
+	JDE_MARKETS_EXPORT bool IsOpen( SecurityType type )noexcept;
 	bool IsOpen( const Contract& contract )noexcept;
-	bool IsPreMarket( SecurityType type )noexcept;
+	JDE_MARKETS_EXPORT bool IsPreMarket( SecurityType type )noexcept;
 	bool IsRth( const Contract& contract, TimePoint time )noexcept;
 	TimePoint RthBegin( const Contract& contract, DayIndex day )noexcept;
 	TimePoint RthEnd( const Contract& contract, DayIndex day )noexcept;

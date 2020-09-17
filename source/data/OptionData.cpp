@@ -10,7 +10,7 @@
 
 namespace Jde::Markets
 {
-	Option::Option( const ibapi::ContractDetails& ib ):
+	Option::Option( const ContractDetails& ib ):
 		Id{ ib.contract.conId },
 		IsCall{ ib.contract.right=="C" },
 		Strike{ ib.contract.strike },
@@ -35,17 +35,15 @@ namespace Jde::Markets
 
 	bool Option::operator<( const Option& op2 )const noexcept
 	{
-		bool less = /*Id && op2.Id && Id!=op2.Id ? Id<op2.Id
-			:*/ UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
+		bool less = 
+			  UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
 			: ExpirationDay!=op2.ExpirationDay ? ExpirationDay<op2.ExpirationDay
 			: Strike!=op2.Strike ? Strike<op2.Strike
 			: IsCall<op2.IsCall;
-		//if( ExpirationDay==18423 && Strike==140 && ExpirationDay==op2.ExpirationDay && Strike==op2.Strike )
-			//DBG( "less={}, IsCall={}"sv, less, IsCall );
 		return less;
 	}
 
-	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& details )noexcept(false)
+	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )noexcept(false)
 	{
 		auto pExisting = Load( pContract->Id );
 		for( var& detail : details )
@@ -60,7 +58,7 @@ namespace Jde::Markets
 	void OptionData::Insert( const Option& value )noexcept(false)
 	{
 		var sql = "insert into sec_option_contracts( id, expiration_date, flags, strike, under_contract_id ) values( ?, ?, ?, ?, ? )";
-		DB::DataSource()->Execute( sql, {value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, value.UnderlyingId} );
+		DB::DataSource()->Execute( sql, {(uint)value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, (uint)value.UnderlyingId} );
 	}
 
 	OptionSetPtr OptionData::Load( ContractPK underlyingId, DayIndex earliestDay )noexcept(false)
@@ -81,7 +79,7 @@ namespace Jde::Markets
 
 			pResults->emplace( pOption );
 		};
-		DB::DataSource()->Select( sql, result, {underlyingId, earliestDay} );
+		DB::DataSource()->Select( sql, result, {(uint)underlyingId, (uint)earliestDay} );
 		return pResults;
 	}
 
@@ -108,7 +106,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
 		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )
@@ -143,7 +141,6 @@ namespace Jde::Markets
 			auto pDayValue = values.find( daysSinceEpoch );
 			if( pDayValue==values.end() )
 			{
-				//DBG( "Adding - {}({})", DateTime(DateTime::FromDays(daysSinceEpoch)).ToIsoString(), daysSinceEpoch );
 				pDayValue = values.emplace( daysSinceEpoch, results.add_option_days() ).first;
 				pDayValue->second->set_expiration_days( daysSinceEpoch );
 				pDayValue->second->set_is_call( option.Right==SecurityRight::Call );
@@ -158,8 +155,6 @@ namespace Jde::Markets
 			pValue->set_oi_change( toOI - (pFromDay ? pFromDay->open_interest() : 0) );
 			pValue->set_previous_price( pFromDay ? pFromDay->last()<pFromDay->bid() || pFromDay->last()>pFromDay->ask() ? (pFromDay->bid()+pFromDay->ask())/2 : pFromDay->last() : 0 );
 			pValue->set_volume( toDay.volume() );
-			//pValue->set_delta( toDay.delta() );
-			//pValue->set_delta_pr evious(pFromDay ? pFromDay->delta() : toDay.delta() );
 		};
 		var today = DateTime::Today();
 		for( auto i=0; i<toSize; ++i )
@@ -232,8 +227,6 @@ namespace Jde::Markets
 			const int toOI = toDay.open_interest();
 			pValue->set_oi_change( (expired ? -toOI : toOI) - (pFromDay ? pFromDay->open_interest() : 0) );
 			pValue->set_previous_price( pFromDay ? pFromDay->last()<pFromDay->bid() || pFromDay->last()>pFromDay->ask() ? (pFromDay->bid()+pFromDay->ask())/2 : pFromDay->last() : 0 );
-			//pValue->set_delta( toDay.delta() );
-			//pValue->set_delta_pr evious(pFromDay ? pFromDay->delta() : toDay.delta() );
 		};
 		for( auto i=0; i<toSize; ++i )
 		{

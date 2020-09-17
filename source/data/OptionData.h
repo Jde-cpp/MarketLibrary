@@ -5,7 +5,6 @@
 #include "../../../Framework/source/Settings.h"
 #include "../types/proto/OptionOI.pb.h"
 
-namespace ibapi{ struct ContractDetails;}
 namespace Jde::Markets
 {
 	namespace Proto::Results{class OptionValues;}
@@ -14,7 +13,7 @@ namespace Jde::Markets
 	struct Option
 	{
 		Option()=default;
-		Option( const ibapi::ContractDetails& ib );
+		Option( const ::ContractDetails& ib );
 		Option( DayIndex expirationDate, Amount Strike, bool isCall, ContractPK UnderlyingId=0 );
 		ContractPK Id{0};
 		DayIndex ExpirationDay;
@@ -22,7 +21,6 @@ namespace Jde::Markets
 		Amount Strike;
 		ContractPK UnderlyingId;
 		ContractPtr_ ContractPtr;
-		//uint16 DaysSinceEpoch()const noexcept{return std::chrono::duration_cast<std::chrono::hours>(ExpirationDate-DateTime(1970,1,1).GetTimePoint()).count()/24; }
 		bool operator<( const Option& op2 )const noexcept;
 	};
 	typedef sp<const Option> OptionPtr;
@@ -30,15 +28,12 @@ namespace Jde::Markets
 	typedef sp<OptionSet> OptionSetPtr;
 	namespace OptionData
 	{
-		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ibapi::ContractDetails>& pDetails )noexcept(false);
+		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<::ContractDetails>& pDetails )noexcept(false);
 		JDE_MARKETS_EXPORT OptionSetPtr Load( ContractPK underlyingId, DayIndex earliestDay=0 )noexcept(false);
 		map<DayIndex,sp<Proto::UnderlyingOIValues>> LoadFiles( const Contract& contract )noexcept;
 		JDE_MARKETS_EXPORT Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
-		JDE_MARKETS_EXPORT DayIndex LoadDiff( const Contract& underlying, const vector<ibapi::ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
+		JDE_MARKETS_EXPORT DayIndex LoadDiff( const Contract& underlying, const vector<::ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
 		void Insert( const Option& value )noexcept(false);
 		JDE_MARKETS_EXPORT fs::path OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept;
-		//JDE_MARKETS_EXPORT TimePoint LastOptionDate( const Contract& contract )noexcept;
 	}
-
-	//inline fs::path RootMinuteBar()noexcept(false){ return Settings::Global().Get<fs::path>("rootMinuteBar"); }
 }
