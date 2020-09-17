@@ -2,11 +2,12 @@
 #include "../TypeDefs.h"
 #include "../Exports.h"
 #include "./proto/requests.pb.h"
-namespace ibapi{struct Bar;}
+struct Bar;
+
 namespace Jde::Markets
 {
 	JDE_MARKETS_EXPORT time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormat={} )noexcept;
-	string ToIBDate( TimePoint time )noexcept;
+	JDE_MARKETS_EXPORT string ToIBDate( TimePoint time )noexcept;
 	using EBarSize=Proto::Requests::BarSize;
 	struct JDE_MARKETS_EXPORT BarSize
 	{

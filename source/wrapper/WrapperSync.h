@@ -29,6 +29,7 @@ namespace Jde::Markets
 		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
 		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId); }
+		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
 		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
 		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId )noexcept;
@@ -60,7 +61,8 @@ namespace Jde::Markets
 		void nextValidId( ::OrderId orderId)noexcept override;
 		//void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
 		void openOrderEnd()noexcept override;
-
+		void position( const std::string& account, const ibapi::Contract& contract, double position, double avgCost )noexcept override;
+		void positionEnd()noexcept override;
 	public:
 		void securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
 		bool securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
@@ -90,5 +92,6 @@ namespace Jde::Markets
 		//QueueValue<ReqIdCallback> _requestIds;
 		QueueValue<EndCallback> _openOrderEnds;
 		WrapperData<NewsProvider> _newsProviderData;
+		sp<std::promise<VectorPtr<Proto::Results::Position>>> _positionPromisePtr; mutable shared_mutex _positionPromiseMutex; VectorPtr<Proto::Results::Position> _positionsPtr;
 	};
 }

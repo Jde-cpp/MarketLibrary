@@ -24,7 +24,7 @@ namespace Jde::Markets
 		void updatePortfolio( const ibapi::Contract& contract, double position,	double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName)noexcept override;
 		void updateAccountTime(const std::string& timeStamp)noexcept override;
 		void accountDownloadEnd(const std::string& accountName)noexcept override;
-		void nextValidId( ::OrderId orderId)noexcept override;
+		void nextValidId( ::OrderId orderId )noexcept override;
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails)noexcept override;
 		void bondContractDetails( int reqId, const ::ContractDetails& contractDetails)noexcept  override;
 		void contractDetailsEnd( int reqId)noexcept override;

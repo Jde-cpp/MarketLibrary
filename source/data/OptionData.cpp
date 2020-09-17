@@ -106,7 +106,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<::ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
 		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )

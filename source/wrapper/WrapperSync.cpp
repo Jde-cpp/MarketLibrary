@@ -37,7 +37,10 @@ namespace Jde::Markets
 			if( (handled = _historicalData.Contains(id)) )
 			{
 				if( errorCode==162 )
+				{
 					WrapperCache::historicalDataEnd( id, "", "" );
+					_historicalData.End( id );
+				}
 				else
 					_historicalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
 			}
@@ -122,6 +125,38 @@ namespace Jde::Markets
 		_detailsData.End( reqId );
 	}
 
+	std::future<VectorPtr<Proto::Results::Position>> WrapperSync::PositionPromise()noexcept
+	{
+		_positionPromiseMutex.lock();
+		ASSERT( !_positionPromisePtr );  ASSERT( !_positionsPtr );
+
+		_positionPromisePtr = make_shared<std::promise<VectorPtr<Proto::Results::Position>>>();
+		_positionsPtr = make_shared<vector<Proto::Results::Position>>();
+		return _positionPromisePtr->get_future();
+	}
+	void WrapperSync::position( const std::string& account, const ibapi::Contract& contract, double position, double avgCost )noexcept
+	{
+		if( _positionsPtr )
+		{
+			ASSERT( _positionPromisePtr );
+			WrapperLog::position( account, contract, position, avgCost );
+			Proto::Results::Position y; y.set_allocated_contract( Contract{contract}.ToProto(true).get() ); y.set_account_number( account ); y.set_size( position ); y.set_avg_cost( avgCost );
+			_positionsPtr->emplace_back( y );
+		}
+	}
+	void WrapperSync::positionEnd()noexcept
+	{
+		WrapperLog::positionEnd();
+		if( _positionsPtr )
+		{
+			ASSERT( _positionPromisePtr );
+			_positionPromisePtr->set_value( _positionsPtr );
+			_positionsPtr = nullptr;
+			_positionPromisePtr = nullptr;
+			_positionPromiseMutex.unlock();
+		}
+	}
+
 	std::shared_future<TickerId> WrapperSync::ReqIdsPromise()noexcept
 	{
 		unique_lock l{ _requestIdsPromiseMutex };
@@ -132,7 +167,6 @@ namespace Jde::Markets
 		}
 		return *_requestIdsFuturePtr;
 	}
-
 	WrapperData<::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
 	{
 		return _detailsData.Promise( reqId );
@@ -284,7 +318,14 @@ namespace Jde::Markets
 				if( tickType==TickType::IB_DIVIDENDS )
 				{
 					var dividendValues = StringUtilities::Split( subValue );
-					if( dividendValues.size()!=4 )
+					if( subValue==",,," )
+					{
+						AddRatioTick( tickerId, "DIV_PAST_YEAR", 0.0 );
+						AddRatioTick( tickerId, "DIV_NEXT_YEAR", 0.0 );
+						AddRatioTick( tickerId, "DIV_NEXT_DAY", 0.0 );
+						AddRatioTick( tickerId, "DIV_NEXT", 0.0 );
+					}
+					else if( dividendValues.size()!=4 )
 						DBG( "({})Could not convert '{}' to dividends."sv, tickerId, subValue );
 					else
 					{

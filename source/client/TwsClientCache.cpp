@@ -19,7 +19,7 @@ namespace Jde::Markets
 	{
 		return std::dynamic_pointer_cast<WrapperCache>(_pWrapper);
 	}
-	ibapi::Contract TwsClientCache::ToContract( string_view symbol, DayIndex dayIndex, SecurityRight right )noexcept
+	ibapi::Contract TwsClientCache::ToContract( string_view symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
 	{
 		ibapi::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
 		if( dayIndex>0 )
@@ -27,6 +27,8 @@ namespace Jde::Markets
 			const DateTime date{ FromDays(dayIndex) };
 			contract.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
 		}
+		if( strike )
+			contract.strike = strike;
 		contract.right = ToString( right );
 
 		return contract;
@@ -91,7 +93,6 @@ namespace Jde::Markets
 	}
 	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
-		var current = CurrentTradingDay( contract.Exchange );
 		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
 		{
 			VectorPtr<::Bar> pBars;
@@ -101,7 +102,7 @@ namespace Jde::Markets
 				pBars = ReqHistoricalDataSync( contract, lastTime, barSize, display, useRth ).get();
 			if( pBars )
 			{
-				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars );
+				HistoricalDataCache::Push( contract, display, barSize, useRth, *pBars, end, subDayCount );
 				auto pExisting = existing.end(); time_t currentStart = 0; time_t currentEnd = 0;
 				for( var& bar : *pBars )
 				{
@@ -138,7 +139,8 @@ namespace Jde::Markets
 				addBars( endDay, startDayCount, *pData );
 			}
 			var isOpen = IsOpen( contract );
-			if( !pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )
+			if( var current = CurrentTradingDay( contract.Exchange );
+				!pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )//for current trading day bars
 			{
 				DayIndex endDayCount = 0, currentDay = endDay;
 				time_t lastTime = 0;

@@ -4,7 +4,7 @@
 #include "Exchanges.h"
 //#include "../../../framework/io/Buffer.h"
 #include "../TypeDefs.h"
-
+struct ContractDetails;
 namespace ibapi{ struct Contract; }
 namespace Jde::Markets
 {
@@ -86,7 +86,7 @@ namespace Jde::Markets
 		explicit Contract( ContractPK id, string_view symbol="" )noexcept;
 		Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint32 multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
 		Contract( const ibapi::Contract& contract )noexcept;
-		Contract( const ::ContractDetails& details )noexcept;
+		Contract( const ContractDetails& details )noexcept;
 		Contract( const Proto::Contract& contract )noexcept;
 		~Contract();
 		bool operator <(const Contract &b)const noexcept{return Id<b.Id;}
@@ -96,13 +96,13 @@ namespace Jde::Markets
 		ContractPK Id{0};
 		string Symbol;
 		SecurityType SecType{SecurityType::Stock};//"STK", "OPT"
-		DayIndex Expiration;
+		DayIndex Expiration{0};
 		double Strike{0.0};
 		SecurityRight Right{SecurityRight::None};
-		uint32 Multiplier;
+		uint32 Multiplier{0};
 		Exchanges Exchange{ Exchanges::Smart };
-		Exchanges PrimaryExchange{Exchanges::Nyse}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
-		Proto::Currencies Currency;
+		Exchanges PrimaryExchange{Exchanges::Smart}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
+		Proto::Currencies Currency{Proto::Currencies::NoCurrency};
 		string LocalSymbol;
 		string TradingClass;
 		bool IncludeExpired{false};
@@ -131,7 +131,7 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT ContractPtr_ Find( const map<ContractPK, ContractPtr_>&, string_view symbol )noexcept;
 
 	//JDE_MARKETS_EXPORT sp<Proto::ContractDetails> ToProto( const ::ContractDetails& details )noexcept;
-	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ::ContractDetails& details )noexcept;
+	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ContractDetails& details )noexcept;
 
 	namespace Contracts
 	{

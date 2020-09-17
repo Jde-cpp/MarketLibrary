@@ -35,11 +35,13 @@ namespace Jde::Markets
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ibapi::Contract &contract, string_view reportType )noexcept;
 		Future<NewsProvider> RequestNewsProviders( ReqId sessionId )noexcept;
+		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
 		std::future<sp<map<string,double>>> ReqRatios( const ibapi::Contract &contract )noexcept;
 
 
 		//vector<ActiveOrderPtr> ReqAllOpenOrders()noexcept(false);//timeout
 		static TwsClientSync& Instance()noexcept;//{ ASSERT(_pInstance); return *_pInstance;}
+		static bool IsConnected()noexcept;
 	private:
 		void ReqIds()noexcept;
 		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
