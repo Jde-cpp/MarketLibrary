@@ -3,6 +3,7 @@
 #include "../wrapper/WrapperLog.h"
 #include "../types/Bar.h"
 #include "../types/Contract.h"
+#include "../../../Framework/source/Cache.h"
 
 #define var const auto
 
@@ -69,13 +70,18 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
+		//if( contract.symbol=="BGGSQ" )
+		//	Cache::Set<uint>( format("breakpoint.{}",contract.symbol), make_shared<uint>(reqId) );
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
-		LOGN( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions, send ? "*" : "" );
+		LOGN( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
 		if( send )
 		{
-			WrapperLogPtr()->AddHistoricalDataRequest( reqId );
+			ASSERT( durationStr!="0 D" );
+			WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
+			if( contract.symbol=="CAT" )
+				DBG( "{}"sv, endDateTime );
 			EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 		}
 		else

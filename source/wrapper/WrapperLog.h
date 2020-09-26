@@ -96,7 +96,7 @@ namespace Jde::Markets
 
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
-		void AddHistoricalDataRequest( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
+		void AddHistoricalDataRequest2( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
