@@ -586,7 +586,7 @@ enum EResults
 	FUNDAMENTAL_DATA                          = 51;
 	ContractDataEnd                         	= 52;
 	OpenOrderEnd	                            = 53;
-	ACCT_DOWNLOAD_END                         = 54;
+	AccountDownloadEnd                         = 54;
 	ExecutionDataEnd                        = 55;
 	DELTA_NEUTRAL_VALIDATION                  = 56;
 	TickSnapshotEnd                           = 57;

@@ -6,8 +6,12 @@ namespace Jde::Markets
 {
 	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
 	{
-		_historicalDataRequests.erase( id );
+		if( _historicalDataRequests.erase(id) )
+			LOG( _logLevel, "({})_historicalDataRequests.erase(){}"sv, id, _historicalDataRequests.size() );
+
 		LOG( _logLevel, "({})WrapperLog::error( {}, {} )"sv, id, errorCode, errorMsg );
+		if( errorCode==509 )
+			ERR( "Disconnected:  {} - {}"sv, errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"sv); }
 	/***********TO Implement************/
@@ -28,8 +32,9 @@ namespace Jde::Markets
 	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{
 		_historicalDataRequests.erase( reqId );
-		var format = startDateStr.size() || endDateStr.size() ? "({})WrapperLog::historicalDataEnd( {}, {} )"sv : "({})WrapperLog::historicalDataEnd()"sv;
-		LOG( _logLevel, format, reqId, startDateStr, endDateStr );
+		var size = _historicalDataRequests.size();
+		var format = startDateStr.size() || endDateStr.size() ? "({}){}WrapperLog::historicalDataEnd( {}, {} )"sv : "({})WrapperLog::historicalDataEnd(){}"sv;
+		LOG( _logLevel, format, reqId, size, startDateStr, endDateStr );
 	}
 	void WrapperLog::managedAccounts( const std::string& accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
 	void WrapperLog::nextValidId( ::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )"sv, orderId ); }
