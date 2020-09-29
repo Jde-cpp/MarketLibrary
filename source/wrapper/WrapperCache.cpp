@@ -83,6 +83,7 @@ namespace Jde::Markets
 	}
 	void WrapperCache::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
+		WrapperLog::historicalData( reqId, bar );
 		/*var cacheId = _cacheIds.Find( reqId, string{} );
 		if( cacheId.size() )
 		{

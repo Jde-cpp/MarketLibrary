@@ -20,14 +20,14 @@ namespace Jde::Markets
 	void WrapperLog::bondContractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept  { LOG( _logLevel, "WrapperLog::bondContractDetails( {}, {} )"sv, reqId, contractDetails.contract.conId); }
 	void WrapperLog::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
-		LOG( _logLevel, "WrapperLog::contractDetails( '{}', ('{}', '{}', '{}', '{}', '{}') )"sv, reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
+		LOG( _logLevel, "({})WrapperLog::contractDetails( '{}', '{}', '{}', '{}', '{}' )"sv, reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
 	}
-	void WrapperLog::contractDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::contractDetailsEnd( '{}' )"sv, reqId ); }
+	void WrapperLog::contractDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "({})WrapperLog::contractDetailsEnd()"sv, reqId ); }
 	void WrapperLog::execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "({})WrapperLog::execDetails( {}, {}, {}, {}, {} )"sv, reqId, contract.symbol, execution.acctNumber, execution.side, execution.shares, execution.price );	}
 	void WrapperLog::execDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::execDetailsEnd( {} )"sv, reqId ); }
 	void WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
-		LOG( ELogLevel::Trace, "WrapperLog::historicalData( '{}', ['{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}'] )"sv, reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
+		LOG( ELogLevel::Trace, "({})WrapperLog::historicalData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )"sv, reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
 	}
 	void WrapperLog::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{

@@ -7,15 +7,15 @@
 namespace Jde::Markets
 {
 	sp<TwsProcessor> TwsProcessor::_pInstance{nullptr};
-	void TwsProcessor::CreateInstance( sp<EClientSocket> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
+	void TwsProcessor::CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
 		DBG0( "TwsProcessor::CreateInstance"sv );
 		Stop();
 		_pInstance = sp<TwsProcessor>{ new TwsProcessor{pTwsClient, pReaderSignal} };
 	}
 
-	TwsProcessor::TwsProcessor( sp<EClientSocket> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept:
-		_pThread{ make_unique<Threading::InterruptibleThread>( "TwsProcessor", [&,pTwsClient, pReaderSignal](){ProcessMessages(pTwsClient, pReaderSignal);} )  }
+	TwsProcessor::TwsProcessor( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept:
+		_pThread{ make_unique<Threading::InterruptibleThread>( "TwsProcessor", [&,p=pTwsClient, pReaderSignal](){ProcessMessages(p, pReaderSignal);} )  }
 	{}
 
 	TwsProcessor::~TwsProcessor()
@@ -40,7 +40,7 @@ namespace Jde::Markets
 		}
 		DBG0( "Leaving TwsProcessor::Stop"sv );
 	}
-	void TwsProcessor::ProcessMessages( sp<EClientSocket> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
+	void TwsProcessor::ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
 		Threading::SetThreadDescription( "IBMessageProcessor" );
 		EReader reader( pTwsClient.get(), pReaderSignal.get() );
@@ -51,6 +51,7 @@ namespace Jde::Markets
 		{
 			pReaderSignal->waitForSignal();
 			reader.processMsgs();
+			pTwsClient->CheckTimeouts();
 		}
 		DBG( "pTwsClient->isConnected={}, Threading::GetThreadInterruptFlag().IsSet={}"sv, pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
 		_isConnected = false;

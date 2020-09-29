@@ -6,9 +6,9 @@
     <LibraryPath>$(REPO_DIR)/boostorg/boost_1_73_0/stage/lib;$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(REPO_DIR)/vcpkg/buildtrees/protobuf/x64-windows-dbg;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/release;$(REPO_DIR)/vcpkg/buildtrees/protobuf/x64-windows-rel;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
 </Project>

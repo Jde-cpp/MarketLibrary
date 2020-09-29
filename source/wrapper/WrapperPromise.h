@@ -1,8 +1,10 @@
 #include <future>
 #include "../../../Framework/source/Cache.h"
+#include "../types/IBException.h"
 
 namespace Jde::Markets
 {
+	struct IBException;
 	template<typename T>
 	struct WrapperPromise
 	{
@@ -15,7 +17,7 @@ namespace Jde::Markets
 		Future Promise( ReqId id )noexcept;
 		virtual void End( ReqId reqId )noexcept;
 	protected:
-		map<ReqId,PromiseType> _promises; mutable shared_mutex _promiseMutex;
+		flat_map<ReqId,PromiseType> _promises; mutable shared_mutex _promiseMutex;
 	};
 
 	template<typename T>
@@ -27,15 +29,21 @@ namespace Jde::Markets
 
 
 	template<typename T>
-	struct WrapperData : public WrapperPromise<vector<T>>
+	struct WrapperData final : public WrapperPromise<vector<T>>
 	{
 		typedef vector<T> Collection;
 		typedef WrapperPromise<Collection> Base;
+		std::future<sp<vector<T>>> PromiseNoTimeout( ReqId id )noexcept{ return Base::Promise(id); }
+		std::future<sp<vector<T>>> Promise( ReqId id, Duration timeout )noexcept;
+		bool Error( ReqId id, const IBException& e )noexcept;
+
 		void Push( ReqId id, const T& value )noexcept;
 		void End( ReqId id )noexcept;
 		bool End( const VectorPtr<T>& value );
+		void CheckTimeouts()noexcept;
 	protected:
-		map<ReqId,sp<Collection>> _data; mutable mutex _dataMutex;
+		flat_map<ReqId,sp<Collection>> _data; mutable mutex _dataMutex;
+		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 	};
 
 /*	template<typename T>
@@ -59,7 +67,52 @@ namespace Jde::Markets
 		unique_lock l{_promiseMutex};
 		return _promises.emplace_hint( _promises.end(), id, PromiseType{} )->second.get_future();
 	}
+	template<typename T>
+	typename std::future<sp<vector<T>>> WrapperData<T>::Promise( ReqId id, Duration timeout )noexcept
+	{
+		std::unique_lock l{_timeoutMutex};
+		_timeouts.emplace( id, Clock::now()+timeout );
+		return Base::Promise( id );
+	}
 
+	template<typename T>
+	bool WrapperData<T>::Error( ReqId reqId, const IBException& e )noexcept
+	{
+		{
+			lock_guard<std::mutex> l{ _dataMutex };
+			if( var pIdBars = _data.find( reqId ); pIdBars!=_data.end() )
+			{
+				if( pIdBars->second->size()>0 )
+					DBG( "({}) - Error with data. {}"sv, reqId,  pIdBars->second->size() );
+				_data.erase( pIdBars );
+			}
+		}
+		{
+			std::unique_lock l{ _timeoutMutex };
+			_timeouts.erase( reqId );
+		}
+		return Base::Error( reqId, e );
+	}
+	
+	template<typename T>
+	void WrapperData<T>::CheckTimeouts()noexcept
+	{
+		TickerId reqId = 0;
+		{
+			std::unique_lock l{ _timeoutMutex };
+			for( auto p=_timeouts.begin(); p!=_timeouts.end() && !reqId; ++p )
+			{
+				//DBG( "timeout={} Clock::now()={}"sv, ToIsoString(timeout), ToIsoString(Clock::now()) );
+				if( Clock::now()>p->second )
+					reqId = p->first;
+			}
+		}
+		if( reqId )
+		{
+			DBG( "({}) - Timeout"sv, reqId );
+			Error( reqId, IBException{"Timeout", -2, reqId} );
+		}
+	}
 
 /*	template<typename T>
 	tuple<std::future<sp<vector<T>>>,bool> WrapperCache<T>::Promise( ReqId id, const string& cacheId )noexcept
@@ -143,6 +196,8 @@ namespace Jde::Markets
 				if( haveData )
 					_data.erase( pIdBars );
 			}
+			unique_lock l{ _timeoutMutex };
+			_timeouts.erase( reqId );
 		}
 		Base::End( reqId );
 	}

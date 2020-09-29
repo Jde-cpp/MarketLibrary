@@ -26,13 +26,14 @@ namespace Jde::Markets
 		void AddOpenOrderEnd( EndCallback& )noexcept;
 		void AddRatioTick( TickerId tickerId, string_view key, double value )noexcept;
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
-		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId )noexcept;
+		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept;
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
-		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId); }
+		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId, 5s); }
 		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
 		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
 		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId )noexcept;
+		void CheckTimeouts()noexcept;
 	protected:
 		map<ReqId,HeadTimestampCallback> _headTimestamp; mutable mutex _headTimestampMutex;
 		unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;

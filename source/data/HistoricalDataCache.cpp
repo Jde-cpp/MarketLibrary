@@ -189,7 +189,7 @@ namespace Jde::Markets::HistoricalDataCache
 		shared_lock l1{ mutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
 		var start = *days.begin();
 		var end = *days.rbegin();
-		DBG( "cache.size={}, key={}"sv, cache.size(), cache.size() ? cache.begin()->first : 0 );
+		//DBG( "cache.size={}, key={}"sv, cache.size(), cache.size() ? cache.begin()->first : 0 );
 		var pBegin = cache.lower_bound( start ), pEnd = cache.lower_bound( end );
 		var contains = pBegin!=cache.end() || pEnd!=cache.end();
 
@@ -305,7 +305,7 @@ namespace Jde::Markets::HistoricalDataCache
 				pDay = rthBars.emplace( day, vector<BarPtr>{} ).first;
 			pDay->second.push_back( make_shared<::Bar>(bar) );
 		}
-		for( uint i=0, iDay=end ; i<subDayCount; ++i, iDay=PreviousTradingDay(iDay) )
+		for( DayIndex i=0, iDay=end ; i<subDayCount; ++i, iDay=PreviousTradingDay(iDay) )
 			rthBars.emplace( iDay, vector<BarPtr>{} );
 
 		auto pValues = static_pointer_cast<SubDataCache>( Cache::TryGet<OptionCache>(CacheId(contract.Id, display)) );
@@ -352,10 +352,10 @@ namespace Jde::Markets::HistoricalDataCache
 	{
 		auto& cache = rth ? _rth : _extended;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
-		shared_lock l1{mutex}; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };//
+		shared_lock l1{ mutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };//
 		auto pResult = make_shared<vector<BarPtr>>();
-		var p = cache.find(day);
-		if( p==_rth.end() )
+		var p = cache.find( day );
+		if( p==cache.end() )
 			ERR("trying to add bars but does not contain {}"sv, DateDisplay(FromDays(day)) );
 		else
 			pResult->push_back( make_shared<::Bar>(p->second) );

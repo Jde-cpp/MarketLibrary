@@ -42,6 +42,7 @@ namespace Jde::Markets
 		if( !_port )
 			THROW( Exception("Could not connect to IB {}"sv, _settings) );
 	}
+
 	shared_ptr<WrapperLog> TwsClient::WrapperLogPtr()noexcept
 	{
 		return std::dynamic_pointer_cast<WrapperLog>(_pWrapper);
@@ -54,12 +55,12 @@ namespace Jde::Markets
 
 	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV )noexcept
 	{
-		LOG( _logLevel, "reqAccountUpdatesMulti( {}, {}, {}, {} )"sv, reqId, account, modelCode, ledgerAndNLV );
+		LOG( _logLevel, "({})reqAccountUpdatesMulti( {}, {}, {} )"sv, reqId, account, modelCode, ledgerAndNLV );
 		EClient::reqAccountUpdatesMulti( reqId, account, modelCode, ledgerAndNLV );
 	}
 	void TwsClient::reqExecutions( int reqId, const ExecutionFilter& filter )noexcept
 	{
-		LOG( _logLevel, "reqExecutions( {}, {}, {}, {} )"sv, reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
+		LOG( _logLevel, "({})reqExecutions( {}, {}, {} )"sv, reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
 		EClient::reqExecutions( reqId, filter );
 	}
 	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
@@ -89,28 +90,28 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{
-		LOG( _logLevel, "reqMktData( '{}', '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )"sv, reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
+		LOG( _logLevel, "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )"sv, reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
 	}
 
 	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
 	{
-		LOG( _logLevel, "reqSecDefOptParams( {}, '{}', '{}', '{}', {} )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
+		LOG( _logLevel, "({})reqSecDefOptParams( '{}', '{}', '{}', {} )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
 	void TwsClient::reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept
 	{
-		LOG( _logLevel, "reqContractDetails( {}, '{}', '{}', '{}' )"sv, reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
+		LOG( _logLevel, "({})reqContractDetails( '{}', '{}', '{}' )"sv, reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
 	void TwsClient::reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
 	{
-		LOG( _logLevel, "reqHeadTimestamp( '{}', '{}', '{}', useRTH:  '{}', formatDate:  '{}' )"sv, tickerId, contract.conId, whatToShow, useRTH, formatDate );
+		LOG( _logLevel, "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )"sv, tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
 	}
 	void TwsClient::reqFundamentalData( TickerId tickerId, const ibapi::Contract &contract, string_view reportType )noexcept
 	{
-		LOG( _logLevel, "reqFundamentalData( '{}', '{}', '{}' )"sv, tickerId, contract.conId, reportType );
+		LOG( _logLevel, "({})reqFundamentalData( '{}', '{}' )"sv, tickerId, contract.conId, reportType );
 		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
 	}
 	void TwsClient::reqNewsProviders()noexcept

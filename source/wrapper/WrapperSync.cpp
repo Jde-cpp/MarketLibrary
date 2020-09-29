@@ -113,7 +113,10 @@ namespace Jde::Markets
 			_errorCallbacks.emplace( reqId, errorFnctn );
 		}
 	}
-
+	void WrapperSync::CheckTimeouts()noexcept
+	{
+		_historicalData.CheckTimeouts();
+	}
 	void WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
 		WrapperCache::contractDetails( reqId, contractDetails );
@@ -169,7 +172,7 @@ namespace Jde::Markets
 	}
 	WrapperData<::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
 	{
-		return _detailsData.Promise( reqId );
+		return _detailsData.Promise( reqId, 5s );
 	}
 
 	void WrapperSync::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
@@ -211,7 +214,7 @@ namespace Jde::Markets
 
 	WrapperData<Proto::Results::OptionParams>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
-		return _optionsData.Promise( reqId );
+		return _optionsData.Promise( reqId, 15s );
 	}
 	WrapperItem<string>::Future WrapperSync::FundamentalDataPromise( ReqId reqId )noexcept
 	{
@@ -225,9 +228,11 @@ namespace Jde::Markets
 		return _ratioData.Promise( reqId );
 	}
 
-	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId )noexcept
+	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept
 	{
-		return _historicalData.Promise( reqId );
+		return duration==Duration::zero()
+			? _historicalData.PromiseNoTimeout( reqId )
+			: _historicalData.Promise( reqId, duration );
 	}
 	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{

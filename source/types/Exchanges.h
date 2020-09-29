@@ -24,7 +24,7 @@ namespace Jde::Markets
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
 	bool IsOpen()noexcept;
 	JDE_MARKETS_EXPORT bool IsOpen( SecurityType type )noexcept;
-	bool IsOpen( const Contract& contract )noexcept;
+	JDE_MARKETS_EXPORT bool IsOpen( const Contract& contract )noexcept;
 	JDE_MARKETS_EXPORT bool IsPreMarket( SecurityType type )noexcept;
 	bool IsRth( const Contract& contract, TimePoint time )noexcept;
 	TimePoint RthBegin( const Contract& contract, DayIndex day )noexcept;

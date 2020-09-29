@@ -18,6 +18,7 @@ namespace Jde::Markets
 
 	struct JDE_MARKETS_EXPORT TwsClient : public EClientSocket
 	{
+		virtual void CheckTimeouts()noexcept{};
 		static void CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static TwsClient& Instance()noexcept{return *_pInstance;}//ASSERT(_pInstance);
 		static bool HasInstance()noexcept{ return _pInstance!=nullptr;}

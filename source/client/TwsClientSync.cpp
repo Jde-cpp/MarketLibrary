@@ -4,9 +4,11 @@
 #include "../types/IBException.h"
 
 #define var const auto
+#define _wrapper (*Wrapper())
 namespace Jde::Markets
 {
 	using namespace Chrono;
+	using EBarSize=Proto::Requests::BarSize;
 	sp<TwsClientSync> pInstance;
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
 	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
@@ -28,12 +30,17 @@ namespace Jde::Markets
 	{
 		return std::dynamic_pointer_cast<WrapperSync>(_pWrapper);
 	}
+	void TwsClientSync::CheckTimeouts()noexcept
+	{
+		_wrapper.CheckTimeouts();
+	}
+
 	TimePoint TwsClientSync::CurrentTime()noexcept
 	{
 		std::condition_variable cv; mutex mutex;
 		TimePoint time;
 		WrapperSync::CurrentTimeCallback fnctn = [&time, &cv]( TimePoint t ){ time = t; cv.notify_one(); };
-		Wrapper()->AddCurrentTime( fnctn );
+		_wrapper.AddCurrentTime( fnctn );
 		TwsClient::reqCurrentTime();
 		unique_lock l{mutex};
 		if( cv.wait_for( l, 5s )==std::cv_status::timeout )
@@ -76,7 +83,7 @@ namespace Jde::Markets
 		var reqId = RequestId();
 		auto pCV = make_shared<std::condition_variable>();
 		_conditionVariables.emplace( reqId, pCV );
-		Wrapper()->AddHeadTimestamp( reqId, [&, reqId](auto t){OnHeadTimestamp(reqId,t);}, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
+		_wrapper.AddHeadTimestamp( reqId, [&, reqId](auto t){OnHeadTimestamp(reqId,t);}, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
 		mutex mutex;
 		unique_lock l{mutex};
 		TwsClient::reqHeadTimestamp( reqId, contract, whatToShow, 1, 2 );
@@ -94,10 +101,10 @@ namespace Jde::Markets
 		return time;
 	}
 
-	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
+	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, DayIndex dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
+		auto future = _wrapper.ReqHistoricalDataPromise( reqId, barSize==EBarSize::Day && dayCount<3 ? 10s : 5min );
 		if( useCache )
 			TwsClientCache::ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
 		else
@@ -109,7 +116,7 @@ namespace Jde::Markets
 		return future;
 	}
 
-	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
+	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, EBarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
 	{
 		var now = std::time(nullptr);
 		time_t end=start;
@@ -118,7 +125,7 @@ namespace Jde::Markets
 		if( seconds )
 		{
 			var reqId = RequestId();
-			auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
+			auto future = _wrapper.ReqHistoricalDataPromise( reqId, 10s );
 			const DateTime endTime{ end };
 			const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} S", seconds), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
@@ -132,7 +139,7 @@ namespace Jde::Markets
 /*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalData( const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->ReqHistoricalDataPromise( reqId );
+		auto future = _wrapper->ReqHistoricalDataPromise( reqId );
 		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/ *keepUpToDate* /, TagValueListSPtr() );
 		return future;
 	}*/
@@ -140,7 +147,7 @@ namespace Jde::Markets
 		auto pCV = make_shared<std::condition_variable>();
 		_conditionVariables.emplace( reqId, pCV );
 		Jde::Markets::WrapperSync::ReqHistoricalDataCallback callback = [&, reqId](auto t){OnReqHistoricalData(reqId,t);};
-		Wrapper()->AddRequestHistoricalData( reqId, callback, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
+		_wrapper->AddRequestHistoricalData( reqId, callback, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
 		mutex mutex;
 		unique_lock l{mutex};
 		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/ *keepUpToDate* /, TagValueListSPtr() );
@@ -188,14 +195,14 @@ namespace Jde::Markets
 	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->ContractDetailsPromise( reqId );
+		auto future = _wrapper.ContractDetailsPromise( reqId );
 		TwsClientCache::ReqContractDetails( reqId, contract );
 		// if( set && cacheReqId )
 		// {
 		// 	var pContracts = future.get();
 		// 	for( var& contract : *pContracts )
-		// 		Wrapper()->contractDetails( reqId, contract );
-		// 	Wrapper()->contractDetailsEnd( reqId );
+		// 		_wrapper.contractDetails( reqId, contract );
+		// 	_wrapper.contractDetailsEnd( reqId );
 		// }
 		// else if( !set )
 		// 	TwsClient::reqContractDetails( reqId, contract );
@@ -212,13 +219,13 @@ namespace Jde::Markets
 	TwsClientSync::Future<Proto::Results::OptionParams> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->SecDefOptParamsPromise( reqId );
+		auto future = _wrapper.SecDefOptParamsPromise( reqId );
 		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
 		return future;
 	}
 /*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
 	{
-		auto future = Wrapper()->SecDefOptParamsPromise( tickerId );
+		auto future = _wrapper.SecDefOptParamsPromise( tickerId );
 		//if( !set )
 			TwsClientCache::reqSecDefOptParams( tickerId, underlyingConId, underlyingSymbol, futFopExchange, underlyingSecType );
 		else
@@ -235,44 +242,44 @@ namespace Jde::Markets
 				std::set<double> strikes;
 				for( auto i=0; i<param.strikes_size(); ++i )
 					strikes.emplace( param.strikes(i) );
-				Wrapper()->securityDefinitionOptionalParameter( tickerId, param.exchange(), param.underlying_contract_id(), param.trading_class(), param.multiplier(), expirations, strikes );
+				_wrapper.securityDefinitionOptionalParameter( tickerId, param.exchange(), param.underlying_contract_id(), param.trading_class(), param.multiplier(), expirations, strikes );
 			}
-			Wrapper()->securityDefinitionOptionalParameterEnd( tickerId );
+			_wrapper.securityDefinitionOptionalParameterEnd( tickerId );
 		}
 	}
 */
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ibapi::Contract &contract, string_view reportType )noexcept
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->FundamentalDataPromise( reqId );
+		auto future = _wrapper.FundamentalDataPromise( reqId );
 		TwsClient::reqFundamentalData( reqId, contract, reportType );
 		return future;
 	}
 	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ibapi::Contract &contract )noexcept
 	{
 		var reqId = RequestId();
-		auto future = Wrapper()->RatioPromise( reqId );
+		auto future = _wrapper.RatioPromise( reqId );
 		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, TagValueListSPtr{} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		return future;
 	}
 
 	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders( ReqId sessionId )noexcept
 	{
-		auto future = Wrapper()->NewsProviderPromise( sessionId );
+		auto future = _wrapper.NewsProviderPromise( sessionId );
 		TwsClientCache::RequestNewsProviders();
 		return future;
 	}
 
 	std::future<VectorPtr<Proto::Results::Position>> TwsClientSync::RequestPositions()noexcept(false)//should throw if currently perpetual reqPositions.
 	{
-		auto future = Wrapper()->PositionPromise();
+		auto future = _wrapper.PositionPromise();
 		TwsClient::reqPositions();
 		return future;
 	}
 
 	void TwsClientSync::ReqIds()noexcept
 	{
-		var future = Wrapper()->ReqIdsPromise();
+		var future = _wrapper.ReqIdsPromise();
 		TwsClient::reqIds();
 		if( future.wait_for(10s)==std::future_status::timeout )
 			WARN0( "Timed out looking for reqIds."sv );
@@ -287,7 +294,7 @@ namespace Jde::Markets
 		std::condition_variable cv;
 		atomic<bool> done = false;
 		Jde::Markets::WrapperSync::EndCallback callback = [&](){ done=true; cv.notify_one(); };
-		Wrapper()->AddOpenOrderEnd( callback );
+		_wrapper.AddOpenOrderEnd( callback );
 		mutex mutex;
 		unique_lock l{mutex};
 		TwsClient::reqAllOpenOrders();

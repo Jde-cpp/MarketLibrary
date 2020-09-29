@@ -23,6 +23,7 @@ namespace Jde::Markets
 		static void CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ibapi::Contract &contract, const std::string& whatToShow )noexcept(false);
+		void CheckTimeouts()noexcept override;
 
 		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
