@@ -3,32 +3,31 @@
 #include "../Exports.h"
 #include "../../../Framework/source/collections/UnorderedSet.h"
 
-
 namespace Jde::Markets
 {
-	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper //TODO refactor upgrade to latest tws.
+	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper 
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
 		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib)noexcept override;
 		void tickSize( TickerId tickerId, TickType field, int size)noexcept override;
-		void tickOptionComputation( TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta,	double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
+		void tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
 		void tickGeneric(TickerId tickerId, TickType tickType, double value)noexcept override;
 		void tickString(TickerId tickerId, TickType tickType, const std::string& value)noexcept override;
 		void tickEFP(TickerId tickerId, TickType tickType, double basisPoints, const std::string& formattedBasisPoints, double totalDividends, int holdDays, const std::string& futureLastTradeDate, double dividendImpact, double dividendsToLastTradeDate)noexcept override;
 		void orderStatus( ::OrderId orderId, const std::string& status, double filled,	double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice)noexcept override;
-		void openOrder( ::OrderId orderId, const ibapi::Contract&, const ::Order&, const ::OrderState&)noexcept override;
+		void openOrder( ::OrderId orderId, const ::Contract&, const ::Order&, const ::OrderState&)noexcept override;
 		void openOrderEnd()noexcept override;
 		void winError( const std::string& str, int lastError)noexcept override;
 		void connectionClosed()noexcept override;
 		void updateAccountValue(const std::string& key, const std::string& val,	const std::string& currency, const std::string& accountName)noexcept override;
-		void updatePortfolio( const ibapi::Contract& contract, double position,	double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName)noexcept override;
+		void updatePortfolio( const ::Contract& contract, double position,	double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName)noexcept override;
 		void updateAccountTime(const std::string& timeStamp)noexcept override;
 		void accountDownloadEnd(const std::string& accountName)noexcept override;
 		void nextValidId( ::OrderId orderId )noexcept override;
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails)noexcept override;
 		void bondContractDetails( int reqId, const ::ContractDetails& contractDetails)noexcept  override;
 		void contractDetailsEnd( int reqId)noexcept override;
-		void execDetails( int reqId, const ibapi::Contract& contract, const Execution& execution)noexcept override;
+		void execDetails( int reqId, const ::Contract& contract, const Execution& execution)noexcept override;
 		void execDetailsEnd( int reqId)noexcept override;
 		void error(int id, int errorCode, const std::string& errorString)noexcept override;
 		void updateMktDepth(TickerId id, int position, int operation, int side, double price, int size)noexcept override;
@@ -48,7 +47,7 @@ namespace Jde::Markets
 		void tickSnapshotEnd( int reqId)noexcept override;
 		void marketDataType( TickerId reqId, int marketDataType)noexcept override;
 		void commissionReport( const CommissionReport& commissionReport)noexcept override;
-		void position( const std::string& account, const ibapi::Contract& contract, double position, double avgCost)noexcept override;
+		void position( const std::string& account, const ::Contract& contract, double position, double avgCost)noexcept override;
 		void positionEnd()noexcept override;
 		void accountSummary( int reqId, const std::string& account, const std::string& tag, const std::string& value, const std::string& curency)noexcept override;
 		void accountSummaryEnd( int reqId)noexcept override;
@@ -59,7 +58,7 @@ namespace Jde::Markets
 		void verifyAndAuthMessageAPI( const std::string& apiData, const std::string& xyzChallange)noexcept override;
 		void verifyAndAuthCompleted( bool isSuccessful, const std::string& errorText)noexcept override;
 		void connectAck()noexcept override;
-		void positionMulti( int reqId, const std::string& account,const std::string& modelCode, const ibapi::Contract& contract, double pos, double avgCost)noexcept override;
+		void positionMulti( int reqId, const std::string& account,const std::string& modelCode, const ::Contract& contract, double pos, double avgCost)noexcept override;
 		void positionMultiEnd( int reqId)noexcept override;
 		void accountUpdateMulti( int reqId, const std::string& account, const std::string& modelCode, const std::string& key, const std::string& value, const std::string& currency)noexcept override;
 		void accountUpdateMultiEnd( int reqId)noexcept override;
@@ -91,8 +90,9 @@ namespace Jde::Markets
 		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int bidSize, int askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
 		void tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept override;
 		void orderBound(long long orderId, int apiClientId, int apiOrderId)noexcept override;
-		void completedOrder(const ibapi::Contract& contract, const ::Order& order, const ::OrderState& orderState)noexcept override;
+		void completedOrder(const ::Contract& contract, const ::Order& order, const ::OrderState& orderState)noexcept override;
 		void completedOrdersEnd()noexcept override;
+		//void replaceFAEnd( int reqId, const std::string& text )noexcept override{};
 
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }

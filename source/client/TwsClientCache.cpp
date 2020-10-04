@@ -19,9 +19,9 @@ namespace Jde::Markets
 	{
 		return std::dynamic_pointer_cast<WrapperCache>(_pWrapper);
 	}
-	ibapi::Contract TwsClientCache::ToContract( string_view symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
+	::Contract TwsClientCache::ToContract( string_view symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
 	{
-		ibapi::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
+		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
 		if( dayIndex>0 )
 		{
 			const DateTime date{ FromDays(dayIndex) };
@@ -33,7 +33,7 @@ namespace Jde::Markets
 
 		return contract;
 	}
-	void TwsClientCache::ReqContractDetails( TickerId reqId, const ibapi::Contract& contract )noexcept
+	void TwsClientCache::ReqContractDetails( TickerId reqId, const ::Contract& contract )noexcept
 	{
 		var suffix = contract.conId ? std::to_string( contract.conId ) : contract.symbol;
 		var cacheId = format( "reqContractDetails.{}.{}.{}.{}.{}", contract.secType, contract.right, contract.lastTradeDateOrContractMonth, contract.strike, suffix );

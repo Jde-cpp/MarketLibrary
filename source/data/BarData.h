@@ -14,7 +14,7 @@ namespace Jde::Markets
 namespace BarData
 {
 	JDE_MARKETS_EXPORT fs::path Path( const Contract& contract )noexcept(false);
-	inline fs::path Path()noexcept(false){ return Settings::Global().Get<fs::path>("barPath"); }
+	fs::path Path()noexcept(false);
 	inline fs::path File( const Contract& contract, uint16 year, uint8 month, uint8 day, bool complete=true )noexcept{ return BarData::Path(contract)/( IO::FileUtilities::DateFileName(year,month,day)+format("{}.dat.xz", complete ? ""sv : "_partial"sv) ); }
 	inline fs::path File( const Contract& contract, DayIndex day )noexcept{ DateTime date{Chrono::FromDays(day)}; return File(contract, date.Year(), date.Month(), date.Day()); }
 	JDE_MARKETS_EXPORT flat_set<DayIndex> FindExisting( const Contract& contract, DayIndex start=0, DayIndex end=0, string_view prefix=string_view{}, map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false);

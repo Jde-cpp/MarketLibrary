@@ -137,7 +137,7 @@ namespace Jde::Markets
 		_positionsPtr = make_shared<vector<Proto::Results::Position>>();
 		return _positionPromisePtr->get_future();
 	}
-	void WrapperSync::position( const std::string& account, const ibapi::Contract& contract, double position, double avgCost )noexcept
+	void WrapperSync::position( const std::string& account, const ::Contract& contract, double position, double avgCost )noexcept
 	{
 		if( _positionsPtr )
 		{

@@ -7,7 +7,7 @@
 namespace Jde::Markets
 {
 	using std::ostream;
-	Contract::Contract( const ibapi::Contract& other )noexcept:
+	Contract::Contract( const ::Contract& other )noexcept:
 		Id{ other.conId },
 		Symbol{ other.symbol },
 		SecType{ ToSecurityType(other.secType) },
@@ -32,9 +32,9 @@ namespace Jde::Markets
 		}
 		return value;
 	}
-	sp<ibapi::Contract> Contract::ToTws()const noexcept
+	sp<::Contract> Contract::ToTws()const noexcept
 	{
-		auto pIB = ms<ibapi::Contract>();
+		auto pIB = ms<::Contract>();
 		auto& other = *pIB;
 		other.conId = Id;
 		other.symbol = Symbol;

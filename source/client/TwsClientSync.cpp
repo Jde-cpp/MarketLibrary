@@ -62,7 +62,7 @@ namespace Jde::Markets
 		if( pCv )
 			pCv->notify_one();
 	}
-	TimePoint TwsClientSync::HeadTimestamp( const ibapi::Contract &contract, const std::string& whatToShow )noexcept(false)
+	TimePoint TwsClientSync::HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false)
 	{
 /*
 		TimePoint time;
@@ -166,7 +166,7 @@ namespace Jde::Markets
 	//}
 	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol )noexcept
 	{
-		ibapi::Contract contract;
+		::Contract contract;
 		contract.symbol = symbol;
 		contract.secType = "STK";
 		contract.currency="USD";
@@ -189,10 +189,10 @@ namespace Jde::Markets
 	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
 	{
 		ASSERT( id!=0 );
-		ibapi::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
+		::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
 		return ReqContractDetails( contract );
 	}
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ibapi::Contract& contract )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ::Contract& contract )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.ContractDetailsPromise( reqId );
@@ -248,14 +248,14 @@ namespace Jde::Markets
 		}
 	}
 */
-	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ibapi::Contract &contract, string_view reportType )noexcept
+	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.FundamentalDataPromise( reqId );
 		TwsClient::reqFundamentalData( reqId, contract, reportType );
 		return future;
 	}
-	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ibapi::Contract &contract )noexcept
+	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ::Contract &contract )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.RatioPromise( reqId );

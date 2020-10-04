@@ -62,7 +62,7 @@ namespace Jde::Markets
 		void nextValidId( ::OrderId orderId)noexcept override;
 		//void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
 		void openOrderEnd()noexcept override;
-		void position( const std::string& account, const ibapi::Contract& contract, double position, double avgCost )noexcept override;
+		void position( const std::string& account, const ::Contract& contract, double position, double avgCost )noexcept override;
 		void positionEnd()noexcept override;
 	public:
 		void securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;

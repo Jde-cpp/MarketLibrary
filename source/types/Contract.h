@@ -85,13 +85,13 @@ namespace Jde::Markets
 		Contract( IO::IncomingMessage& message, bool havePrimaryExchange=true )noexcept(false);
 		explicit Contract( ContractPK id, string_view symbol="" )noexcept;
 		Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint32 multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
-		Contract( const ibapi::Contract& contract )noexcept;
+		Contract( const ::Contract& contract )noexcept;
 		Contract( const ContractDetails& details )noexcept;
 		Contract( const Proto::Contract& contract )noexcept;
 		~Contract();
 		bool operator <(const Contract &b)const noexcept{return Id<b.Id;}
 
-		sp<ibapi::Contract> ToTws()const noexcept;
+		sp<::Contract> ToTws()const noexcept;
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};
 		string Symbol;

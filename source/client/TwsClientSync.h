@@ -22,7 +22,7 @@ namespace Jde::Markets
 		template<class T> using Future = std::future<Container<T>>;
 		static void CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		TimePoint CurrentTime()noexcept;
-		TimePoint HeadTimestamp( const ibapi::Contract &contract, const std::string& whatToShow )noexcept(false);
+		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
 		void CheckTimeouts()noexcept override;
 
 		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
@@ -30,14 +30,14 @@ namespace Jde::Markets
 
 		Future<::ContractDetails> ReqContractDetails( string_view symbol )noexcept;
 		Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept;
-		Future<::ContractDetails> ReqContractDetails( const ibapi::Contract& contract )noexcept;
+		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
 		Proto::Results::OptionParams ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
 		Future<Proto::Results::OptionParams> ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept;
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept override;
-		std::future<sp<string>> ReqFundamentalData( const ibapi::Contract &contract, string_view reportType )noexcept;
+		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept;
 		Future<NewsProvider> RequestNewsProviders( ReqId sessionId )noexcept;
 		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
-		std::future<sp<map<string,double>>> ReqRatios( const ibapi::Contract &contract )noexcept;
+		std::future<sp<map<string,double>>> ReqRatios( const ::Contract &contract )noexcept;
 
 
 		//vector<ActiveOrderPtr> ReqAllOpenOrders()noexcept(false);//timeout

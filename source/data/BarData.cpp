@@ -13,6 +13,11 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
+	fs::path BarData::Path()noexcept(false)
+	{
+		var path = Settings::Global().Get<fs::path>( "barPath" );
+		return path.empty() ? IApplication::Instance().ApplicationDataFolder()/"securities" : path;
+	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/StringUtilities::ToLower(string{ToString(contract.PrimaryExchange)})/StringUtilities::Replace(contract.Symbol, " ", "_"); }
 
 	sp<Proto::BarFile> BarData::Load( const fs::path& path )noexcept(false)
@@ -268,21 +273,28 @@ namespace Jde::Markets
 			string output;
 			proto.SerializeToString( &output );
 			string completeFileName = fileName+(complete ? "" : "_partial")+".dat.xz";
-			if( !fs::exists(barPath) )
+			try
 			{
-				fs::create_directory( barPath );
-				DBG( "Created directory '{}'"sv, barPath.string() );
+				if( !fs::exists(barPath) )
+				{
+					fs::create_directory( barPath );
+					DBG( "Created directory '{}'"sv, barPath.string() );
+				}
+				const fs::path tempPath{ barPath/("~"+completeFileName) };
+				IO::Zip::XZ::Write( tempPath, output );
+				const fs::path path{ barPath/completeFileName };
+				fs::rename( tempPath, path );
+				for( var& combinedFile : combinedFiles )
+				{
+					if( combinedFile==path.string() )
+						continue;
+					DBG( "Removing combined file '{}'"sv, combinedFile );
+					fs::remove( combinedFile );
+				}
 			}
-			const fs::path tempPath{ barPath/("~"+completeFileName) };
-			IO::Zip::XZ::Write( tempPath, output );
-			const fs::path path{ barPath/completeFileName };
-			fs::rename( tempPath, path );
-			for( var& combinedFile : combinedFiles )
+			catch( const fs::filesystem_error& e )
 			{
-				if( combinedFile==path.string() )
-					continue;
-				DBG( "Removing combined file '{}'"sv, combinedFile );
-				fs::remove( combinedFile );
+				throw IOException( move(e) );
 			}
 		}
 	}

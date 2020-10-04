@@ -69,7 +69,7 @@ namespace Jde::Markets
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 	}
-	void TwsClient::reqHistoricalData( TickerId reqId, const ibapi::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
+	void TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
 		//if( contract.symbol=="BGGSQ" )
 		//	Cache::Set<uint>( format("breakpoint.{}",contract.symbol), make_shared<uint>(reqId) );
@@ -88,7 +88,7 @@ namespace Jde::Markets
 		else
 			_pWrapper->error( reqId, 322, format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
 	}
-	void TwsClient::reqMktData( TickerId reqId, const ibapi::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
+	void TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{
 		LOG( _logLevel, "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )"sv, reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
@@ -99,17 +99,17 @@ namespace Jde::Markets
 		LOG( _logLevel, "({})reqSecDefOptParams( '{}', '{}', '{}', {} )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
-	void TwsClient::reqContractDetails( int reqId, const ibapi::Contract& contract )noexcept
+	void TwsClient::reqContractDetails( int reqId, const ::Contract& contract )noexcept
 	{
 		LOG( _logLevel, "({})reqContractDetails( '{}', '{}', '{}' )"sv, reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
-	void TwsClient::reqHeadTimestamp( int tickerId, const ibapi::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
+	void TwsClient::reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
 	{
 		LOG( _logLevel, "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )"sv, tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
 	}
-	void TwsClient::reqFundamentalData( TickerId tickerId, const ibapi::Contract &contract, string_view reportType )noexcept
+	void TwsClient::reqFundamentalData( TickerId tickerId, const ::Contract &contract, string_view reportType )noexcept
 	{
 		LOG( _logLevel, "({})reqFundamentalData( '{}', '{}' )"sv, tickerId, contract.conId, reportType );
 		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
@@ -163,7 +163,7 @@ namespace Jde::Markets
 		EClientSocket::reqAllOpenOrders();
 	}
 
-	void TwsClient::placeOrder( const ibapi::Contract& contract, const ::Order& order )noexcept
+	void TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
 		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )"sv, order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
