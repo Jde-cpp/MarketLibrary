@@ -6,7 +6,7 @@ namespace Jde
 {
 	string_view Markets::ToString( Proto::Currencies x )noexcept
 	{
-		var found = x>0 && x<CurrencyStrings.size();
+		var found = x>=0 && x<CurrencyStrings.size();
 		if( !found )
 			DBG( "could not find currency value='{}'"sv, (uint)x );
 		return found ? CurrencyStrings[x] : "";
