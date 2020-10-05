@@ -30,7 +30,7 @@ namespace Jde::Markets
 		for( var port : _settings.Ports )
 		{
 			DBG( "Attempt to connect to Tws:  {}"sv, port );
-			if( eConnect(_settings.Host.c_str(), port, (int)clientId) )
+			if( eConnect(_settings.Host.c_str(), port, (int)clientId, false) )
 			{
 				DBG( "connected to Tws:  {}."sv, port );
 				_port = port;

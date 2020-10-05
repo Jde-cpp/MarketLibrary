@@ -5,7 +5,8 @@
 //#include "../../../framework/io/Buffer.h"
 #include "../TypeDefs.h"
 struct ContractDetails;
-namespace ibapi{ struct Contract; }
+struct Contract;
+
 namespace Jde::Markets
 {
 	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; enum Currencies : int; }

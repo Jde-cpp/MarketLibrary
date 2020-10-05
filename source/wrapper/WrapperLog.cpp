@@ -117,9 +117,9 @@ namespace Jde::Markets
 	{
 		LOG( _tickLevel, "WrapperLog::tickGeneric( tickerId='{}', field='{}', value='{}' )"sv, tickerId, tickType, value );
 	}
-	void WrapperLog::tickOptionComputation( TickerId tickerId, TickType tickType, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept
+	void WrapperLog::tickOptionComputation( TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickOptionComputation( tickType='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )"sv, tickerId, tickType, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
+		LOG( _tickLevel, "WrapperLog::tickOptionComputation( tickerId='{}', tickType='{}', tickAttrib='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )"sv, tickerId, tickType, tickAttrib, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
 	}
 	void WrapperLog::tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attribs )noexcept
 	{
