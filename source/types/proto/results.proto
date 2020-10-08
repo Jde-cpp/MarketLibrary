@@ -607,7 +607,7 @@ enum EResults
 	AccountUpdateMulti_                        = 73;
 	ACCOUNT_UPDATE_MULTI_END                  = 74;
 	SECURITY_DEFINITION_OPTION_PARAMETER      = 75;
-	SECURITY_DEFINITION_OPTION_PARAMETER_END  = 76;
+	SecurityDefinitionOptionParameterEnd  = 76;
 	SOFT_DOLLAR_TIERS                         = 77;
 	FAMILY_CODES                              = 78;
 	SYMBOL_SAMPLES                            = 79;

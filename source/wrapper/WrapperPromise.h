@@ -70,8 +70,10 @@ namespace Jde::Markets
 	template<typename T>
 	typename std::future<sp<vector<T>>> WrapperData<T>::Promise( ReqId id, Duration timeout )noexcept
 	{
-		std::unique_lock l{_timeoutMutex};
-		_timeouts.emplace( id, Clock::now()+timeout );
+		{
+			std::unique_lock l{_timeoutMutex};
+			_timeouts.emplace( id, Clock::now()+timeout );
+		}
 		return Base::Promise( id );
 	}
 
@@ -93,7 +95,7 @@ namespace Jde::Markets
 		}
 		return Base::Error( reqId, e );
 	}
-	
+
 	template<typename T>
 	void WrapperData<T>::CheckTimeouts()noexcept
 	{
