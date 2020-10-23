@@ -53,21 +53,20 @@ namespace Jde::Markets
 	void TwsClientCache::ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept
 	{
 		auto cacheId = format( "OptParams.{}", underlyingConId );
-		var pData = Cache::Get<vector<Proto::Results::OptionParams>>( cacheId );
-		if( pData )
+		if( var pData = Cache::Get<Proto::Results::OptionExchanges>(cacheId); pData )
 		{
-			for( var& param : *pData )
+			for( var& exchange : pData->exchanges() )
 			{
 				std::set<std::string> expirations;
-				for( auto i=0; i<param.expirations_size(); ++i )
+				for( var& expiration : exchange.expirations() )
 				{
-					const DateTime date{ FromDays(param.expirations(i)) };
+					const DateTime date{ FromDays(expiration) };
 					expirations.emplace( format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
 				}
 				std::set<double> strikes;
-				for( auto i=0; i<param.strikes_size(); ++i )
-					strikes.emplace( param.strikes(i) );
-				Wrapper()->securityDefinitionOptionalParameter( reqId, param.exchange(), param.underlying_contract_id(), param.trading_class(), param.multiplier(), expirations, strikes );
+				for( var& strike : exchange.strikes() )
+					strikes.emplace( strike );
+				Wrapper()->securityDefinitionOptionalParameter( reqId, string{ToString(exchange.exchange())}, exchange.underlying_contract_id(), exchange.trading_class(), exchange.multiplier(), expirations, strikes );
 			}
 			Wrapper()->securityDefinitionOptionalParameterEnd( reqId );
 		}
@@ -155,7 +154,8 @@ namespace Jde::Markets
 					++endDayCount;
 					currentDay = p->first;
 				}
-				addBars( currentDay, endDayCount, *pData, lastTime );
+				if( endDayCount )
+					addBars( currentDay, endDayCount, *pData, lastTime );
 			}
 		}
 		else

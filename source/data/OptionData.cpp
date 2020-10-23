@@ -35,7 +35,7 @@ namespace Jde::Markets
 
 	bool Option::operator<( const Option& op2 )const noexcept
 	{
-		bool less = 
+		bool less =
 			  UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
 			: ExpirationDay!=op2.ExpirationDay ? ExpirationDay<op2.ExpirationDay
 			: Strike!=op2.Strike ? Strike<op2.Strike
@@ -118,7 +118,7 @@ namespace Jde::Markets
 		var from = PreviousTradingDay( to );
 		const DateTime toDate( Chrono::FromDays(to) );
 		const DateTime fromDate( Chrono::FromDays(from) );
-		DBG( "current={}, to={}, from={}"sv, DateTime(Chrono::FromDays(currentTradingDay)).DateDisplay(), toDate.DateDisplay(), fromDate.DateDisplay() );
+		//DBG( "current={}, to={}, from={}"sv, DateTime(Chrono::FromDays(currentTradingDay)).DateDisplay(), toDate.DateDisplay(), fromDate.DateDisplay() );
 		var pFromValues = Load( underlying, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
 		var fromSize = pFromValues ? pFromValues->contracts_size() : 0;
 		for( auto i=0; i<fromSize; ++i )
@@ -126,7 +126,7 @@ namespace Jde::Markets
 			var pMutableOptionDays = pFromValues->mutable_contracts( i );
 			var pOptionIdValues = options.find( pMutableOptionDays->id() );
 			if( pOptionIdValues!=options.end() )//maybe only have calls
-				pOptionIdValues->second = make_tuple( get<0>(pOptionIdValues->second),pMutableOptionDays );
+				pOptionIdValues->second = make_tuple( get<0>(pOptionIdValues->second), pMutableOptionDays );
 		}
 
 		var pToValues = Load( underlying, toDate.Year(), toDate.Month(), toDate.Day() );

@@ -1,6 +1,7 @@
 #include "WrapperCache.h"
 #include "../types/Contract.h"
 #include "../../../Framework/source/Cache.h"
+#include "../../../Framework/source/collections/Collections.h"
 
 #define var const auto
 
@@ -30,9 +31,12 @@ namespace Jde::Markets
 		}
 	}
 
-	Proto::Results::OptionParams WrapperCache::ToOptionParam( const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( string_view exchangeString, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
-		Proto::Results::OptionParams a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
+		auto exchange = ToExchange( exchangeString );
+		if( exchange==Exchanges::Smart && exchangeString!=CIString{"SMART"sv} )
+			exchange = Exchanges::UnknownExchange;
+		Proto::Results::ExchangeContracts a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
 		for( var strike : strikes )
 			a.add_strikes( strike );
 
@@ -47,9 +51,8 @@ namespace Jde::Markets
 		if( cacheId.size() )
 		{
 			WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-			var a = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-			unique_lock l{_optionParamsMutex};
-			_optionParams.try_emplace( reqId, sp<vector<Proto::Results::OptionParams>>{ new vector<Proto::Results::OptionParams>{} } ).first->second->push_back( a );
+			DBG( "Caching {}"sv, exchange );
+			*Collections::InsertUnique( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		}
 	}
 
@@ -59,10 +62,9 @@ namespace Jde::Markets
 		if( cacheId.size() )
 		{
 			WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
-			unique_lock l{_optionParamsMutex};
 			var pParams = _optionParams.find( reqId );
-			var pResults = pParams==_optionParams.end() ? sp<vector<Proto::Results::OptionParams>>{} : pParams->second;
-			Cache::Set( cacheId, pResults );
+			auto pResults = pParams==_optionParams.end() ? make_unique<Proto::Results::OptionExchanges>() : move( pParams->second );
+			Cache::Set( cacheId, sp<Proto::Results::OptionExchanges>(pResults.release()) );
 			_optionParams.erase( reqId );
 			_cacheIds.erase( reqId );
 		}
@@ -84,29 +86,10 @@ namespace Jde::Markets
 	void WrapperCache::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
 		WrapperLog::historicalData( reqId, bar );
-		/*var cacheId = _cacheIds.Find( reqId, string{} );
-		if( cacheId.size() )
-		{
-			WrapperLog::historicalData( reqId, bar );
-			Proto::Results::Bar proto;
-			ToBar( bar, proto );
-			unique_lock l{_historicalDataMutex};
-			_historicalData.try_emplace( reqId, sp<vector<Proto::Results::Bar>>{ new vector<Proto::Results::Bar>{} } ).first->second->push_back( proto );
-		}*/
 	}
 	void WrapperCache::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
 	{
-		//var cacheId = _cacheIds.Find( reqId, string{} );
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
-		/*if( cacheId.size() )
-		{
-			unique_lock l{_historicalDataMutex};
-			var pParams = _historicalData.find( reqId );
-			var pResults = pParams==_historicalData.end() ? sp<vector<Proto::Results::Bar>>{} : pParams->second;
-			Cache::Set( cacheId, pResults );
-			_optionParams.erase( reqId );
-			_cacheIds.erase( reqId );
-		}*/
 	}
 
 	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept

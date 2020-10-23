@@ -10,11 +10,12 @@ namespace Jde::Settings{ struct Container; }
 struct EReaderSignal;
 namespace Jde::Markets
 {
+	struct TwsClientSync;
 	//struct OptionsData{ const std::string Exchange; int UnderlyingConId; const std::string TradingClass; const std::string Multiplier; const std::set<std::string> Expirations; const std::set<double> Strikes; };
 	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperCache, std::enable_shared_from_this<WrapperSync>
 	{
 		WrapperSync()noexcept;
-		void CreateClient( uint twsClientId )noexcept;
+		virtual sp<TwsClientSync> CreateClient( uint twsClientId )noexcept;
 		typedef function<void(TickerId id, int errorCode, const std::string& errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;
@@ -30,9 +31,9 @@ namespace Jde::Markets
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
 		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId, 5s); }
 		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
-		WrapperData<Proto::Results::OptionParams>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
-		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId )noexcept;
-		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId )noexcept;
+		WrapperItem<Proto::Results::OptionExchanges>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
+		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId, Duration duration )noexcept;
+		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId, Duration duration )noexcept;
 		void CheckTimeouts()noexcept;
 	protected:
 		map<ReqId,HeadTimestampCallback> _headTimestamp; mutable mutex _headTimestampMutex;
@@ -74,6 +75,7 @@ namespace Jde::Markets
 
 	protected:
 		WrapperData<::ContractDetails> _detailsData;
+		sp<TwsClientSync> _pClient;
 
 	private:
 		shared_ptr<EReaderSignal> _pReaderSignal;
@@ -85,13 +87,13 @@ namespace Jde::Markets
 		//map<ReqId,sp<ReqHistoricalData>> _requestData; mutable mutex _requestDataMutex;
 		sp<std::promise<TickerId>> _requestIdsPromisePtr; sp<std::shared_future<TickerId>> _requestIdsFuturePtr; mutable shared_mutex _requestIdsPromiseMutex;
 		WrapperData<::Bar> _historicalData;
-		WrapperData<Proto::Results::OptionParams> _optionsData;
+		WrapperItem<Proto::Results::OptionExchanges> _optionFutures; map<int,sp<Proto::Results::OptionExchanges>> _optionData;
 
 		WrapperItem<string> _fundamentalData;
 		WrapperItem<map<string,double>> _ratioData; map<TickerId,map<string,double>> _ratioValues; mutable mutex _ratioMutex;
 
 		//QueueValue<ReqIdCallback> _requestIds;
-		QueueValue<EndCallback> _openOrderEnds;
+		//QueueValue<EndCallback> _openOrderEnds;
 		WrapperData<NewsProvider> _newsProviderData;
 		sp<std::promise<VectorPtr<Proto::Results::Position>>> _positionPromisePtr; mutable shared_mutex _positionPromiseMutex; VectorPtr<Proto::Results::Position> _positionsPtr;
 	};

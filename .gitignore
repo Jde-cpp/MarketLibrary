@@ -42,3 +42,4 @@ tests/.vscode/launch.json
 tests/.vscode/settings.json
 tests/.vscode/tasks.json
 *.i
+*.diff

@@ -1,6 +1,7 @@
 #include "Contract.h"
 #include "Currencies.h"
 #include "proto/results.pb.h"
+#include "../../../Framework/source/Cache.h"
 
 #define var const auto
 
@@ -130,10 +131,12 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
+	sp<vector<const Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept;
 	Contract::Contract( const ::ContractDetails& details )noexcept:
 		Contract{ details.contract }
 	{
-
+		TradingHoursPtr = ParseTradingHours( details.timeZoneId, details.tradingHours );
+		LiquidHoursPtr =  ParseTradingHours( details.timeZoneId, details.liquidHours );
 	}
 /*	Contract( const Contract& contract )
 	{
@@ -346,25 +349,14 @@ namespace Jde::Markets
 		return pContract;
 	}
 
-	Proto::Results::ContractDetails* ToProto( const ::ContractDetails& details )noexcept
+	sp<vector<const Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept
 	{
-		var pResult = new Proto::Results::ContractDetails();
-		pResult->set_allocated_contract( Contract(details.contract).ToProto(true).get() );
-		pResult->set_market_name( details.marketName );
-		pResult->set_min_tick( details.minTick );
-		pResult->set_order_types( details.orderTypes );
-		pResult->set_valid_exchanges( details.validExchanges );
-		pResult->set_price_magnifier( details.priceMagnifier );
-		pResult->set_under_con_id( details.underConId );
-		pResult->set_long_name( details.longName );
-		pResult->set_contract_month( details.contractMonth );
-		pResult->set_industry( details.industry );
-		pResult->set_category( details.category );
-		pResult->set_subcategory( details.subcategory );
-		pResult->set_time_zone_id( details.timeZoneId );
-		auto parseTimeframe = [&details]( const string& timeFrame )noexcept(false)
+		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
+		if( auto pValue = Cache::Get<vector<const Proto::Results::ContractHours>>(cacheId); pValue )
+			return pValue;
+		auto parseTimeframe = [timeZoneId]( const string& timeFrame )noexcept(false)
 		{
-			auto parseDateTime = [&details]( const string& value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
+			auto parseDateTime = [timeZoneId]( const string& value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
 			{
 				var dateTime = StringUtilities::Split( value, ':' );
 				var& date = dateTime[0];
@@ -380,7 +372,7 @@ namespace Jde::Markets
 					minute = stoi( time.substr(2,2) );
 				}
 				var localTime = DateTime( year, month, day, hour, minute ).GetTimePoint();
-				return Clock::to_time_t( localTime-Timezone::TryGetGmtOffset(details.timeZoneId, localTime) );
+				return Clock::to_time_t( localTime-Timezone::TryGetGmtOffset(timeZoneId, localTime) );
 			};
 			var startEnd = StringUtilities::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
 			var start = parseDateTime( startEnd[0] );
@@ -388,47 +380,68 @@ namespace Jde::Markets
 				THROW( Exception("Could not parse parseTimeframe '{}'.", timeFrame) );
 			var end = startEnd.size()==2 ? parseDateTime( startEnd[1] ) : 0;
 
-			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end((int)end );
+			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end( (int)end );
 			return hours;
 		};
-		var tradingHours = StringUtilities::Split( details.tradingHours, ';' );
+		var tradingHours = StringUtilities::Split( hours, ';' );
+		auto pHours = make_shared<vector<const Proto::Results::ContractHours>>();
 		for( auto day : tradingHours )
-			Try( [&](){ *pResult->add_trading_hours()=parseTimeframe(day); } );
-		var liquidHours = StringUtilities::Split( details.liquidHours, ';' );
-		for( auto day : liquidHours )
-			Try( [&](){ *pResult->add_liquid_hours() = parseTimeframe(day); } );
+			Try( [&](){ pHours->push_back(parseTimeframe(day)); } );
+		Cache::Set( cacheId, pHours );
+		return pHours;
+	}
 
-		pResult->set_ev_rule( details.evRule );
-		pResult->set_ev_multiplier( details.evMultiplier );
-		pResult->set_md_size_multiplier( details.mdSizeMultiplier );
-		pResult->set_agg_group( details.aggGroup );
-		pResult->set_under_symbol( details.underSymbol );
-		pResult->set_under_sec_type( details.underSecType );
-		pResult->set_market_rule_ids( details.marketRuleIds );
-		pResult->set_real_expiration_date( details.realExpirationDate );
-		pResult->set_last_trade_time( details.lastTradeTime );
+
+	void ToProto( const ::ContractDetails& details, Proto::Results::ContractDetail& proto )noexcept
+	{
+		proto.set_allocated_contract( Contract(details.contract).ToProto(true).get() );
+		proto.set_market_name( details.marketName );
+		proto.set_min_tick( details.minTick );
+		proto.set_order_types( details.orderTypes );
+		proto.set_valid_exchanges( details.validExchanges );
+		proto.set_price_magnifier( details.priceMagnifier );
+		proto.set_under_con_id( details.underConId );
+		proto.set_long_name( details.longName );
+		proto.set_contract_month( details.contractMonth );
+		proto.set_industry( details.industry );
+		proto.set_category( details.category );
+		proto.set_subcategory( details.subcategory );
+		proto.set_time_zone_id( details.timeZoneId );
+		for( var& hours : *ParseTradingHours(details.timeZoneId, details.tradingHours) )
+			*proto.add_trading_hours() = hours;
+		for( var& hours : *ParseTradingHours(details.timeZoneId, details.liquidHours) )
+			*proto.add_liquid_hours() = hours;
+
+		proto.set_ev_rule( details.evRule );
+		proto.set_ev_multiplier( details.evMultiplier );
+		proto.set_md_size_multiplier( details.mdSizeMultiplier );
+		proto.set_agg_group( details.aggGroup );
+		proto.set_under_symbol( details.underSymbol );
+		proto.set_under_sec_type( details.underSecType );
+		proto.set_market_rule_ids( details.marketRuleIds );
+		proto.set_real_expiration_date( details.realExpirationDate );
+		proto.set_last_trade_time( details.lastTradeTime );
 		if( details.secIdList )
 		{
 			for( var& pTagValue : *details.secIdList )
 			{
-				var pProto = pResult->add_sec_id_list(); pProto->set_tag( pTagValue->tag ); pProto->set_value( pTagValue->value );
+				var pProto = proto.add_sec_id_list(); pProto->set_tag( pTagValue->tag ); pProto->set_value( pTagValue->value );
 			}
 		}
-		pResult->set_cusip( details.cusip );
-		pResult->set_ratings( details.ratings );
-		pResult->set_desc_append( details.descAppend );
-		pResult->set_bond_type( details.bondType );
-		pResult->set_coupon_type( details.couponType );
-		pResult->set_callable( details.callable );
-		pResult->set_putable( details.putable );
-		pResult->set_coupon( details.coupon );
-		pResult->set_convertible( details.convertible );
-		pResult->set_maturity( details.maturity );
-		pResult->set_issuedate( details.issueDate );
-		pResult->set_next_option_date( details.nextOptionDate );
-		pResult->set_next_option_type( details.nextOptionType );
-		pResult->set_next_option_partial( details.nextOptionPartial );
-		pResult->set_notes( details.notes );
-		return pResult;
+		proto.set_cusip( details.cusip );
+		proto.set_ratings( details.ratings );
+		proto.set_desc_append( details.descAppend );
+		proto.set_bond_type( details.bondType );
+		proto.set_coupon_type( details.couponType );
+		proto.set_callable( details.callable );
+		proto.set_putable( details.putable );
+		proto.set_coupon( details.coupon );
+		proto.set_convertible( details.convertible );
+		proto.set_maturity( details.maturity );
+		proto.set_issuedate( details.issueDate );
+		proto.set_next_option_date( details.nextOptionDate );
+		proto.set_next_option_type( details.nextOptionType );
+		proto.set_next_option_partial( details.nextOptionPartial );
+		proto.set_notes( details.notes );
 	}
 }

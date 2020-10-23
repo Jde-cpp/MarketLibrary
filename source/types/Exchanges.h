@@ -2,6 +2,7 @@
 #include "../Exports.h"
 #include "../TypeDefs.h"
 #include "proto/ib.pb.h"
+#include "proto/results.pb.h"
 
 namespace Jde::Markets
 {
@@ -10,18 +11,21 @@ namespace Jde::Markets
 	using Exchanges = Proto::Exchanges;
 	using namespace Chrono;
 
-	constexpr std::array<std::string_view,9> ExchangeStrings={ "Smart", "Nyse", "Nasdaq", "Amex", "Arca", "Bats", "PINK", "Value", "IBIS" };
+	constexpr std::array<std::string_view,23> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2" };
 	JDE_MARKETS_EXPORT string_view ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( string_view pszName )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;
 	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
 	inline TimePoint PreviousTradingDay( const TimePoint& time )noexcept{ return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) ); }
+	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept;
 	inline TimePoint NextTradingDay( const TimePoint& time )noexcept{ return FromDays( NextTradingDay(DaysSinceEpoch(time)) ); }
 
 	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
 	inline DayIndex CurrentTradingDay( const Contract& /*details*/ )noexcept{ return CurrentTradingDay(); }
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
+	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept;
+	inline uint16 DayLengthMinutes( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return 390; }
 	bool IsOpen()noexcept;
 	JDE_MARKETS_EXPORT bool IsOpen( SecurityType type )noexcept;
 	JDE_MARKETS_EXPORT bool IsOpen( const Contract& contract )noexcept;
@@ -38,4 +42,22 @@ namespace Jde::Markets
 	{
 		JDE_MARKETS_EXPORT MinuteIndex MinuteCount( DayIndex day )noexcept;
 	}
+	struct TradingDay
+	{
+		TradingDay( DayIndex initial, Exchanges exchange ):_value{initial},_exchange{exchange}{ }
+		TradingDay& operator++(){ do{ ++_value;}while(IsHoliday(_value,_exchange)); return *this; }
+		TradingDay& operator--(){ do{ --_value;}while(IsHoliday(_value,_exchange)); return *this; }
+		TradingDay& operator-=( DayIndex day )
+		{
+			for( DayIndex i = 0; i<day; ++i, --*this );
+			return *this;
+		}
+		friend TradingDay operator-( TradingDay copy, DayIndex x ){ ASSERT_DESC(x<10000, "should subtract market open days."); copy-=x; return copy; }
+		operator DayIndex()const noexcept{ return _value; }
+	private:
+		DayIndex _value;
+		Exchanges _exchange;
+	};
+	inline DayIndex DayCount( TradingDay start, DayIndex end )noexcept{ ASSERT(start<=end); auto count=0; for( ; start<=end; ++start, ++count); return count; }
+
 }

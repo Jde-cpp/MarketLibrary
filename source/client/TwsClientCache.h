@@ -20,7 +20,7 @@ namespace Jde::Markets
 		TwsClientCache( const TwsConnectionSettings& settings, shared_ptr<WrapperCache> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		shared_ptr<WrapperCache> Wrapper()noexcept;
 		static ::Contract ToContract( string_view symbol, DayIndex dayIndex, Proto::SecurityRight isCall, double strike=0 )noexcept;
-		void ReqContractDetails( TickerId cacheReqId, const ::Contract& contract )noexcept;
+		void ReqContractDetails( TickerId reqId, const ::Contract& contract )noexcept;
 		void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex current, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false);
 		void RequestNewsProviders()noexcept;

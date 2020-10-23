@@ -10,7 +10,7 @@ struct Contract;
 namespace Jde::Markets
 {
 	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; enum Currencies : int; }
-	namespace Proto::Results{  class ContractDetails; }
+	namespace Proto::Results{ class ContractDetail; class ContractHours; }
 #pragma region DeltaNeutralContract
 	struct DeltaNeutralContract
 	{
@@ -124,6 +124,8 @@ namespace Jde::Markets
 		//sp<DateTime> ExpirationTime()const noexcept;
 		Amount RoundDownToMinTick( Amount price )const noexcept;
 		static DayIndex ToDay( const string& str )noexcept;
+		sp<std::vector<const Proto::Results::ContractHours>> TradingHoursPtr;
+		sp<std::vector<const Proto::Results::ContractHours>> LiquidHoursPtr;
 
 		std::ostream& to_stream( std::ostream& os, bool includePrimaryExchange=true )const noexcept;
 	};
@@ -132,8 +134,7 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT ContractPtr_ Find( const map<ContractPK, ContractPtr_>&, string_view symbol )noexcept;
 
 	//JDE_MARKETS_EXPORT sp<Proto::ContractDetails> ToProto( const ::ContractDetails& details )noexcept;
-	JDE_MARKETS_EXPORT Proto::Results::ContractDetails* ToProto( const ContractDetails& details )noexcept;
-
+	JDE_MARKETS_EXPORT void ToProto( const ContractDetails& details, Proto::Results::ContractDetail& proto )noexcept;
 	namespace Contracts
 	{
 		JDE_MARKETS_EXPORT extern const Contract Spy;

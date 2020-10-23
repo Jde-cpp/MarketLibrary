@@ -7,12 +7,18 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
+		void tickOptionComputation( TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta,	double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
 		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib)noexcept override;
 		void tickSize( TickerId tickerId, TickType field, int size)noexcept override;
-		void tickOptionComputation( TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta,	double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
 		void tickGeneric(TickerId tickerId, TickType tickType, double value)noexcept override;
 		void tickString(TickerId tickerId, TickType tickType, const std::string& value)noexcept override;
 		void tickEFP(TickerId tickerId, TickType tickType, double basisPoints, const std::string& formattedBasisPoints, double totalDividends, int holdDays, const std::string& futureLastTradeDate, double dividendImpact, double dividendsToLastTradeDate)noexcept override;
+		void tickNews(int tickerId, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData)noexcept override;
+		void tickSnapshotEnd( int reqId)noexcept override;
+		void tickReqParams(int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions)noexcept override;
+		void tickByTickAllLast(int reqId, int tickType, time_t time, double price, int size, const TickAttribLast& tickAttribLast, const std::string& exchange, const std::string& specialConditions)noexcept override;
+		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int bidSize, int askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
+		void tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept override;
 		void orderStatus( ::OrderId orderId, const std::string& status, double filled,	double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice)noexcept override;
 		void openOrder( ::OrderId orderId, const ::Contract&, const ::Order&, const ::OrderState&)noexcept override;
 		void openOrderEnd()noexcept override;
@@ -43,7 +49,6 @@ namespace Jde::Markets
 		void currentTime(long time)noexcept override;
 		void fundamentalData(TickerId reqId, const std::string& data)noexcept override;
 		void deltaNeutralValidation(int reqId, const ::DeltaNeutralContract& deltaNeutralContract)noexcept override;
-		void tickSnapshotEnd( int reqId)noexcept override;
 		void marketDataType( TickerId reqId, int marketDataType)noexcept override;
 		void commissionReport( const CommissionReport& commissionReport)noexcept override;
 		void position( const std::string& account, const ::Contract& contract, double position, double avgCost)noexcept override;
@@ -67,9 +72,7 @@ namespace Jde::Markets
 		void familyCodes(const std::vector<FamilyCode> &familyCodes)noexcept override;
 		void symbolSamples(int reqId, const std::vector<::ContractDescription> &contractDescriptions)noexcept override;
 		void mktDepthExchanges(const std::vector<DepthMktDataDescription> &depthMktDataDescriptions)noexcept override;
-		void tickNews(int tickerId, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData)noexcept override;
 		void smartComponents(int reqId, const SmartComponentsMap& theMap)noexcept override;
-		void tickReqParams(int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions)noexcept override;
 		void newsProviders(const std::vector<NewsProvider> &newsProviders)noexcept override;
 		void newsArticle(int requestId, int articleType, const std::string& articleText)noexcept override;
 		void historicalNews(int requestId, const std::string& time, const std::string& providerCode, const std::string& articleId, const std::string& headline)noexcept override;
@@ -85,9 +88,6 @@ namespace Jde::Markets
 		void historicalTicks(int reqId, const std::vector<HistoricalTick> &ticks, bool done)noexcept override;
 		void historicalTicksBidAsk(int reqId, const std::vector<HistoricalTickBidAsk> &ticks, bool done)noexcept override;
 		void historicalTicksLast(int reqId, const std::vector<HistoricalTickLast> &ticks, bool done)noexcept override;
-		void tickByTickAllLast(int reqId, int tickType, time_t time, double price, int size, const TickAttribLast& tickAttribLast, const std::string& exchange, const std::string& specialConditions)noexcept override;
-		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int bidSize, int askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
-		void tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept override;
 		void orderBound(long long orderId, int apiClientId, int apiOrderId)noexcept override;
 		void completedOrder(const ::Contract& contract, const ::Order& order, const ::OrderState& orderState)noexcept override;
 		void completedOrdersEnd()noexcept override;

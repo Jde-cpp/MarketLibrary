@@ -9,7 +9,7 @@ namespace Jde::Markets
 	{
 		var found = x>=0 && x<ExchangeStrings.size();
 		if( !found )
-			DBG( "could not find exchange value='{}'"sv, (uint)x );
+			DBG( "could not find exchange value='{}'"sv, x );
 		return found ? ExchangeStrings[x] : "";
 	}
 	Exchanges ToExchange( string_view pszName )noexcept
@@ -403,10 +403,28 @@ namespace Jde::Markets
 		for( ;IsHoliday(previous); --previous );
 		return previous;
 	}
+	DayIndex PreviousTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept
+	{
+		var now = Clock::now();
+		auto previous = Chrono::DaysSinceEpoch( now );
+		if( Clock::to_time_t(now)<tradingHours.front().start() )
+			--previous;
+		while( IsHoliday(previous) )
+			--previous;
+		do
+			--previous;
+		while( IsHoliday(previous) );
+		return previous;
+	}
+	DayIndex CurrentTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept
+	{
+		return NextTradingDay( PreviousTradingDay(tradingHours) );
+	}
+
 	DayIndex NextTradingDay( DayIndex day )noexcept
 	{
 		auto next = day+1;
-		for( ;IsHoliday(next); ++next );
+		for( ; IsHoliday(next); ++next );
 		return next;
 	}
 	mutex _lock;
@@ -473,7 +491,7 @@ namespace Jde::Markets
 		DateTime etNow{ Timezone::EasternTimeNow() };
 		return !IsHoliday( DaysSinceEpoch(etNow) ) && etNow.Hour()>3 && etNow.Hour()<20;
 	}
-	bool IsOpen( const Contract& contract )noexcept
+	bool IsOpen( const Contract& contract )noexcept//TODO use details.
 	{
 		return IsOpen( contract.SecType );
 	}

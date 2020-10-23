@@ -60,6 +60,21 @@ enum Exchanges
 	PinkSheets =6;
 	Value = 7;
 	Ibis = 8;
+	Cboe = 9;
+	Ise = 10;
+	Pse = 11;
+	Pearl = 12;
+	Miax = 13;
+	Mercury = 14;
+	Edgx = 15;
+	Gemini = 16;
+	Box = 17;
+	Emerald = 18;
+	NasdaqOM = 19;
+	NasdaqBX = 20;
+	Phlx = 21;
+	Cboe2 = 22;
+	UnknownExchange = -1;
 };
 
 enum Currencies

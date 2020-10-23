@@ -20,7 +20,7 @@ namespace Jde::Markets
 	{
 		template<class T> using Container = VectorPtr<T>;
 		template<class T> using Future = std::future<Container<T>>;
-		static void CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		static sp<TwsClientSync> CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
 		void CheckTimeouts()noexcept override;
@@ -31,8 +31,8 @@ namespace Jde::Markets
 		Future<::ContractDetails> ReqContractDetails( string_view symbol )noexcept;
 		Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept;
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
-		Proto::Results::OptionParams ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
-		Future<Proto::Results::OptionParams> ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept;
+		const Proto::Results::ExchangeContracts& ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
+		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept;
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept;
 		Future<NewsProvider> RequestNewsProviders( ReqId sessionId )noexcept;

@@ -12,7 +12,7 @@ namespace Jde::Markets
 	sp<TwsClientSync> pInstance;
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
 	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
-	void TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
+	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		DBG0( "TwsClientSync::CreateInstance"sv );
 		pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
@@ -20,6 +20,7 @@ namespace Jde::Markets
 		while( !pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, pInstance->_port, clientId );
+		return pInstance;
 	//	pInstance->ReqIds();
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
@@ -208,15 +209,17 @@ namespace Jde::Markets
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
 	}
-	Proto::Results::OptionParams TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
+	const Proto::Results::ExchangeContracts& TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
 	{
 		auto params = ReqSecDefOptParams( underlyingConId, symbol ).get();
-		auto pSmart = std::find_if( params->begin(), params->end(), [](auto& param){return param.exchange()=="SMART";} );
-		if( pSmart==params->end() )
-			THROW( Exception("Could not find Smart options for '{}'", symbol) );
-		return *pSmart;
+		for( auto i = 0; i<params->exchanges_size(); ++i )
+		{
+			if( params->exchanges(i).exchange()==Exchanges::Smart )
+				return params->exchanges(i);
+		}
+		THROW( Exception("Could not find Smart options for '{}'", symbol) );
 	}
-	TwsClientSync::Future<Proto::Results::OptionParams> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept
+	std::future<sp<Proto::Results::OptionExchanges>> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.SecDefOptParamsPromise( reqId );
@@ -251,15 +254,15 @@ namespace Jde::Markets
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept
 	{
 		var reqId = RequestId();
-		auto future = _wrapper.FundamentalDataPromise( reqId );
+		auto future = _wrapper.FundamentalDataPromise( reqId, 5s );
 		TwsClient::reqFundamentalData( reqId, contract, reportType );
 		return future;
 	}
 	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ::Contract &contract )noexcept
 	{
 		var reqId = RequestId();
-		auto future = _wrapper.RatioPromise( reqId );
-		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, TagValueListSPtr{} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
+		auto future = _wrapper.RatioPromise( reqId, 5s );//~~~
+		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		return future;
 	}
 

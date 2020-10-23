@@ -7,6 +7,7 @@
 namespace Jde::Markets
 {
 	using boost::container::flat_map;
+	using boost::container::flat_set;
 	using fmt::format;
 	typedef int32 AccountPK;
 	typedef long ContractPK;

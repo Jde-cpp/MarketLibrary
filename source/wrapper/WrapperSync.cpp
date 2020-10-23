@@ -2,6 +2,7 @@
 #include <EReaderOSSignal.h>
 #include "../client/TwsClientSync.h"
 #include "../../../Framework/source/Settings.h"
+#include "../../../Framework/source/collections/Collections.h"
 #include "../types/Contract.h"
 #include "../types/IBException.h"
 
@@ -12,11 +13,11 @@ namespace Jde::Markets
 		_pReaderSignal{ make_shared<EReaderOSSignal>(1000) }
 	{
 	}
-	void WrapperSync::CreateClient( uint twsClientId )noexcept
+	sp<TwsClientSync> WrapperSync::CreateClient( uint twsClientId )noexcept
 	{
 		TwsConnectionSettings twsSettings;
 		from_json( Jde::Settings::Global().SubContainer("tws")->Json(), twsSettings );
-		TwsClientSync::CreateInstance( twsSettings, shared_from_this(), _pReaderSignal, twsClientId );
+		return _pClient = TwsClientSync::CreateInstance( twsSettings, shared_from_this(), _pReaderSignal, twsClientId );
 	}
 
 	void WrapperSync::SendCurrentTime( const TimePoint& time )noexcept
@@ -183,18 +184,9 @@ namespace Jde::Markets
 	bool WrapperSync::securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		WrapperCache::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-		var captured = _optionsData.Contains(reqId);
+		var captured = _optionFutures.Contains( reqId );
 		if( captured )
-		{
-			var params = WrapperCache::ToOptionParam( exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-			Proto::Results::OptionParams a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
-			for( var strike : strikes )
-				a.add_strikes( strike );
-
-			for( var& expiration : expirations )
-				a.add_expirations( Contract::ToDay(expiration) );
-			_optionsData.Push( reqId, a );
-		}
+			*Collections::InsertShared( _optionData, reqId ).add_exchanges() = WrapperCache::ToOptionParam( exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		return captured;
 	}
 
@@ -206,33 +198,36 @@ namespace Jde::Markets
 	bool WrapperSync::securityDefinitionOptionalParameterEndSync( int reqId )noexcept
 	{
 		WrapperCache::securityDefinitionOptionalParameterEnd( reqId );
-		var captured = _optionsData.Contains(reqId);
+		var captured = _optionFutures.Contains(reqId);
 		if( captured )
-			_optionsData.End( reqId );
+		{
+			auto pData = _optionData.find( reqId );
+			_optionFutures.Push( reqId, pData==_optionData.end() ? make_shared<Proto::Results::OptionExchanges>() : pData->second );
+			if( pData!=_optionData.end() )
+				_optionData.erase( pData );
+		}
 		return captured;
 	}
 
-	WrapperData<Proto::Results::OptionParams>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
+	WrapperItem<Proto::Results::OptionExchanges>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
-		return _optionsData.Promise( reqId, 15s );
+		return _optionFutures.Promise( reqId, 15s );
 	}
-	WrapperItem<string>::Future WrapperSync::FundamentalDataPromise( ReqId reqId )noexcept
+	WrapperItem<string>::Future WrapperSync::FundamentalDataPromise( ReqId reqId, Duration duration )noexcept
 	{
-		return _fundamentalData.Promise( reqId );
+		return _fundamentalData.Promise( reqId, duration );
 	}
 
-	WrapperItem<map<string,double>>::Future WrapperSync::RatioPromise( ReqId reqId )noexcept
+	WrapperItem<map<string,double>>::Future WrapperSync::RatioPromise( ReqId reqId, Duration duration )noexcept
 	{
 		lock_guard l{_ratioMutex};
 		_ratioValues.emplace( reqId, map<string,double>{} );
-		return _ratioData.Promise( reqId );
+		return _ratioData.Promise( reqId, duration );
 	}
 
-	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept
+	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId, Duration timeout )noexcept
 	{
-		return duration==Duration::zero()
-			? _historicalData.PromiseNoTimeout( reqId )
-			: _historicalData.Promise( reqId, duration );
+		return _historicalData.Promise( reqId, timeout );
 	}
 	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
@@ -273,8 +268,8 @@ namespace Jde::Markets
 	void WrapperSync::openOrderEnd()noexcept
 	{
 		WrapperLog::openOrderEnd();
-		std::function<void(EndCallback&)> fnctn = []( function<void()>& f2 ){ f2(); };
-		_openOrderEnds.ForEach( fnctn );
+		//std::function<void(EndCallback&)> fnctn = []( function<void()>& f2 ){ f2(); };
+		//_openOrderEnds.ForEach( fnctn );
 	}
 
 	void WrapperSync::headTimestamp( int reqId, const std::string& headTimestamp )noexcept
@@ -392,7 +387,7 @@ namespace Jde::Markets
 			{
 				std::thread( [tickerId, this]()
 				{
-					std::this_thread::sleep_for( 4s );//TODO Remove this.
+					std::this_thread::sleep_for( 1s );//TODO Remove this.
 					TwsClientSync::Instance().cancelMktData( tickerId );
 					lock_guard l{_ratioMutex};
 					auto& values = _ratioValues[tickerId];

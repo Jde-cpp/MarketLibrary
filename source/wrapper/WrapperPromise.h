@@ -14,14 +14,15 @@ namespace Jde::Markets
 		bool Contains( ReqId id )const noexcept{ shared_lock l{_promiseMutex}; return _promises.find(id)!=_promises.end(); }
 		template<typename E>
 		bool Error( ReqId id, const E& e )noexcept;
-		Future Promise( ReqId id )noexcept;
+		Future Promise( ReqId id, Duration timeout )noexcept;
 		virtual void End( ReqId reqId )noexcept;
+		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 	protected:
 		flat_map<ReqId,PromiseType> _promises; mutable shared_mutex _promiseMutex;
 	};
 
 	template<typename T>
-	struct WrapperItem : WrapperPromise<T>
+	struct WrapperItem final : WrapperPromise<T>
 	{
 		typedef WrapperPromise<T> Base;
 		void Push( ReqId id, sp<T> pValue )noexcept;
@@ -33,48 +34,29 @@ namespace Jde::Markets
 	{
 		typedef vector<T> Collection;
 		typedef WrapperPromise<Collection> Base;
-		std::future<sp<vector<T>>> PromiseNoTimeout( ReqId id )noexcept{ return Base::Promise(id); }
-		std::future<sp<vector<T>>> Promise( ReqId id, Duration timeout )noexcept;
 		bool Error( ReqId id, const IBException& e )noexcept;
 
 		void Push( ReqId id, const T& value )noexcept;
 		void End( ReqId id )noexcept;
 		bool End( const VectorPtr<T>& value );
 		void CheckTimeouts()noexcept;
+		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 	protected:
 		flat_map<ReqId,sp<Collection>> _data; mutable mutex _dataMutex;
-		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 	};
 
-/*	template<typename T>
-	struct WrapperCache final : public WrapperData<T>
-	{
-		typedef WrapperData<T> Data;
-		typedef typename Data::Base Base;
-		typedef std::future<sp<vector<T>>> Future;
-		std::tuple<Future,bool> Promise( ReqId id, const string& cacheId )noexcept;
-		sp<vector<T>> End2( ReqId reqId )noexcept;
-		bool Has( ReqId id )const noexcept{ return _cacheIds.find(id)!=_cacheIds.end(); }
-	private:
-		map<ReqId,string> _cacheIds;
-	};
-*/
 #define var const auto
 
 	template<typename T>
-	typename WrapperPromise<T>::Future WrapperPromise<T>::Promise( ReqId id )noexcept
+	typename WrapperPromise<T>::Future WrapperPromise<T>::Promise( ReqId id, Duration timeout )noexcept
 	{
-		unique_lock l{_promiseMutex};
-		return _promises.emplace_hint( _promises.end(), id, PromiseType{} )->second.get_future();
-	}
-	template<typename T>
-	typename std::future<sp<vector<T>>> WrapperData<T>::Promise( ReqId id, Duration timeout )noexcept
-	{
+		if( timeout!=Duration::zero() )
 		{
 			std::unique_lock l{_timeoutMutex};
 			_timeouts.emplace( id, Clock::now()+timeout );
 		}
-		return Base::Promise( id );
+		unique_lock l{_promiseMutex};
+		return _promises.emplace_hint( _promises.end(), id, PromiseType{} )->second.get_future();
 	}
 
 	template<typename T>
@@ -116,41 +98,6 @@ namespace Jde::Markets
 		}
 	}
 
-/*	template<typename T>
-	tuple<std::future<sp<vector<T>>>,bool> WrapperCache<T>::Promise( ReqId id, const string& cacheId )noexcept
-	{
-		unique_lock l{Base::_promiseMutex};
-		auto& promise = Base::_promises.emplace_hint( Base::_promises.end(), id, std::promise<sp<vector<T>>>{} )->second;
-		bool set = false;
-		if( cacheId.size() )
-		{
-			set = Cache::Has( cacheId );
-			if( set )
-				promise.set_value( Cache::Get<vector<T>>(cacheId) );
-			else
-				_cacheIds.emplace( id, cacheId );
-		}
-		return make_tuple( promise.get_future(), set );
-	}
-
-	template<typename T>
-	sp<vector<T>> WrapperCache<T>::End2( ReqId reqId )noexcept
-	{
-		var pIdData = Data::_data.find( reqId );
-		var pCacheId = _cacheIds.find( reqId );
-		sp<vector<T>> pResult;
-		if( pCacheId!=_cacheIds.end() )
-		{
-			if( pIdData!=Data::_data.end() )
-				Cache::Set( pCacheId->second, pResult = pIdData->second );
-			else
-				pResult = Cache::Get<vector<T>>( pCacheId->second );
-			_cacheIds.erase( pCacheId );
-		}
-		WrapperData<T>::End( reqId );
-		return pResult;
-	}
-*/
 	template<typename T>
 	template<typename E>
 	bool WrapperPromise<T>::Error( ReqId reqId, const E& e )noexcept
@@ -217,10 +164,7 @@ namespace Jde::Markets
 	template<typename T>
 	void WrapperData<T>::Push( ReqId reqId, const T& value )noexcept
 	{
-		//shared_lock l{ _promiseMutex };
-		//if( _callbacks.find( reqId )!=_callbacks.end() )//make sure it is sync?
 		{
-		//	l.unlock();
 			unique_lock<std::mutex> lck{ _dataMutex };
 			auto pContracts = _data.try_emplace( _data.end(), reqId, sp<vector<T>>{new vector<T>{}} )->second;
 			pContracts->push_back( value );

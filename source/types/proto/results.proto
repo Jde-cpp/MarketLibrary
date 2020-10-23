@@ -66,9 +66,8 @@ message ContractHours
 	int32 end=2;
 }
 
-message ContractDetails
+message ContractDetail
 {
-	uint32		request_id=1;
 	Contract	contract=2;
 	string	market_name=3;
 	double	min_tick=4;
@@ -113,6 +112,11 @@ message ContractDetails
 	string	notes=41;
 };
 
+message ContractDetailsResult
+{
+	uint32	request_id=1;
+	repeated ContractDetail details=2;
+}
 
 message Position
 {
@@ -300,6 +304,21 @@ message Option
 	float	 previous_price=9;
 }
 
+message OptionCalculation
+{
+	uint32 request_id=1;
+	ETickType tick_type=2;
+	bool price_based=3;
+	double implied_volatility=4;
+	double delta=5;
+	double option_price=6;
+	double pv_dividend=7;
+	double gamma=8;
+	double vega=9;
+	double theta=10;
+	double underlying_price=11;
+}
+
 message OptionDay
 {
 	bool is_call=1;
@@ -342,6 +361,16 @@ message WatchList
 	Watch.File file=2;
 }
 
+message Statistics
+{
+	uint32 request_id=1;
+	uint32 count=2;
+	double average=3;
+	double variance=4;
+	double min=5;
+	double max=6;
+}
+
 message MessageUnion
 {
 	oneof Value
@@ -353,7 +382,7 @@ message MessageUnion
 		AccountUpdate account_update=5;
 		AccountUpdateMulti account_update_multi=6;
 		CommissionReport commission_report=7;
-		ContractDetails contract_details=8;
+		ContractDetailsResult contract_details=8;
 		Execution execution=9;
 		PortfolioUpdate portfolio_update=10;
 		TickGeneric tick_generic = 11;
@@ -367,7 +396,7 @@ message MessageUnion
 		Flex flex=19;
 		OrderStatus order_status=20;
 		OpenOrder open_order=21;
-		OptionParams option_parameters=22;
+		OptionExchanges option_exchanges=22;
 		EResults type=23;
 		DaySummary day_summary=24;
 		Fundamentals fundamentals=25;
@@ -377,6 +406,8 @@ message MessageUnion
 		NewsArticle news_article=29;
 		TickNews tick_news=30;
 		HistoricalNewsCollection historical_news=31;
+		Statistics statistics=32;
+		OptionCalculation option_calculation=33;
 	}
 }
 message Transmission
@@ -448,14 +479,20 @@ message OpenOrder
 	OrderState state=4;
 }
 
-message OptionParams
+message ExchangeContracts
 {
-	string exchange=1;
+	Exchanges exchange=1;
 	uint32 underlying_contract_id=2;
 	string trading_class=3;
 	string multiplier=4;
 	repeated uint32 expirations=5;
 	repeated double strikes=6;
+}
+
+message OptionExchanges
+{
+	uint32 request_id=1;
+	repeated ExchangeContracts exchanges=2;
 }
 
 enum ETickType
@@ -497,7 +534,7 @@ enum ETickType
 	AUCTION_VOLUME=34;
 	AUCTION_PRICE=35;
 	AUCTION_IMBALANCE=36;
-	MARK_PRICE=37;
+	MarkPrice=37;
 	BID_EFP_COMPUTATION=38;
 	ASK_EFP_COMPUTATION=39;
 	LAST_EFP_COMPUTATION=40;
