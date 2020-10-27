@@ -31,7 +31,7 @@ namespace Jde::Markets
 		Future<::ContractDetails> ReqContractDetails( string_view symbol )noexcept;
 		Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept;
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
-		const Proto::Results::ExchangeContracts& ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
+		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
 		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept;
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept;

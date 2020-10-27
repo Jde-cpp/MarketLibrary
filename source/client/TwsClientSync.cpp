@@ -209,13 +209,13 @@ namespace Jde::Markets
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
 	}
-	const Proto::Results::ExchangeContracts& TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
+	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
 	{
-		auto params = ReqSecDefOptParams( underlyingConId, symbol ).get();
-		for( auto i = 0; i<params->exchanges_size(); ++i )
+		auto pParams = ReqSecDefOptParams( underlyingConId, symbol ).get();
+		for( auto i = 0; i<pParams->exchanges_size(); ++i )
 		{
-			if( params->exchanges(i).exchange()==Exchanges::Smart )
-				return params->exchanges(i);
+			if( pParams->exchanges(i).exchange()==Exchanges::Smart )
+				return make_shared<Proto::Results::ExchangeContracts>( pParams->exchanges(i) );
 		}
 		THROW( Exception("Could not find Smart options for '{}'", symbol) );
 	}
