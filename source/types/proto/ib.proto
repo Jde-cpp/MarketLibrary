@@ -74,6 +74,9 @@ enum Exchanges
 	NasdaqBX = 20;
 	Phlx = 21;
 	Cboe2 = 22;
+	Ebs = 23;
+	Iex = 24;
+	Venture = 25;
 	UnknownExchange = -1;
 };
 

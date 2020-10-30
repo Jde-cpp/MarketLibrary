@@ -167,13 +167,6 @@ namespace Jde::Markets
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
 		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )"sv, order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
-		::Order order2;
-		order2.orderId = order.orderId;
-		order2.orderType = order.orderType;
-		order2.lmtPrice = order.lmtPrice;
-		order2.totalQuantity = order.totalQuantity;
-		order2.action = order.action;
-		order2.tif = order.tif;
 
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}

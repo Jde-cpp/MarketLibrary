@@ -11,7 +11,7 @@ namespace Jde::Markets
 	using Exchanges = Proto::Exchanges;
 	using namespace Chrono;
 
-	constexpr std::array<std::string_view,23> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2" };
+	constexpr std::array<std::string_view,25> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE" };
 	JDE_MARKETS_EXPORT string_view ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( string_view pszName )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;

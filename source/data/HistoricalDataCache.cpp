@@ -224,7 +224,7 @@ namespace Jde::Markets
 			shared_lock l1{ _rthMutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
 			var start = *days.begin();
 			var end = *days.rbegin();
-			DBG( "_rth.size={}, key={}"sv, _rth.size(), _rth.size() ? _rth.begin()->first : 0 );
+			//DBG( "_rth.size={}, key={}"sv, _rth.size(), _rth.size() ? _rth.begin()->first : 0 );
 			auto pBegin = _rth.lower_bound( start ), pEnd = _rth.lower_bound( end );
 			contains = pBegin!=_rth.end() || pEnd!=_rth.end();
 			if( contains && !useRth )
