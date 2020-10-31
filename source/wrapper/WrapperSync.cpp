@@ -253,6 +253,15 @@ namespace Jde::Markets
 			_historicalData.End( reqId );
 		return captured;
 	}
+	void WrapperSync::newsProviders( const vector<NewsProvider>& newsProviders )noexcept
+	{
+		WrapperCache::newsProviders( newsProviders );
+		_newsProviderData.End( make_shared<vector<NewsProvider>>(newsProviders) );
+	}
+/*	void WrapperSync::newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept
+	{
+	}*/
+
 	void WrapperSync::nextValidId( ibapi::OrderId orderId )noexcept
 	{
 		WrapperLog::nextValidId( orderId );

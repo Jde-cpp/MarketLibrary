@@ -266,9 +266,9 @@ namespace Jde::Markets
 		return future;
 	}
 
-	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders( ReqId sessionId )noexcept
+	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders()noexcept
 	{
-		auto future = _wrapper.NewsProviderPromise( sessionId );
+		auto future = _wrapper.NewsProviderPromise();
 		TwsClientCache::RequestNewsProviders();
 		return future;
 	}

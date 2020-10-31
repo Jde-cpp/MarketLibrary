@@ -16,8 +16,9 @@ namespace Jde::Markets
 		bool Error( ReqId id, const E& e )noexcept;
 		Future Promise( ReqId id, Duration timeout )noexcept;
 		virtual void End( ReqId reqId )noexcept;
-		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
+//		uint Size()const noexcept{ shared_lock l{_promiseMutex}; return _promises.size(); }
 	protected:
+		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 		flat_map<ReqId,PromiseType> _promises; mutable shared_mutex _promiseMutex;
 	};
 

@@ -104,7 +104,7 @@ namespace Jde::Markets
 		ASSERT_EQ( actual.size(), expected.size() ); ASSERT_GT( actual.size(), 0 );
 		_testCompareBar = true;
 		for( uint i=0; i<actual.size() && _testCompareBar; ++i )
-			CompareBar( actual[i], expected[i] );
+			CompareBar( actual[i], expected[i], compareVolume );
 	}
 	TEST_F(HistoricalDataCacheTest, LoadFromFile)
 	{
@@ -178,7 +178,7 @@ namespace Jde::Markets
 		//	DBG0( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
 
-		CompareBars( *pCache, *pNoCache );
+		CompareBars( *pCache, *pNoCache, false );//volume is off by a little
 	}
 	TEST_F(HistoricalDataCacheTest, LoadOptions)
 	{

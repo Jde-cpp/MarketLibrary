@@ -27,10 +27,10 @@ namespace Jde::Markets
 	TEST_F(NewsTest, Providers)
 	{
 		ClearMemoryLog();
-		auto pProviders = _client.RequestNewsProviders( 0 ).get();
+		auto pProviders = _client.RequestNewsProviders().get();
 		ASSERT_GT( pProviders->size(), 0 );
 		ClearMemoryLog();
-		pProviders = _client.RequestNewsProviders( 0 ).get();
+		pProviders = _client.RequestNewsProviders().get();
 		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
 		ASSERT_EQ( logs.size(), 0 );
 

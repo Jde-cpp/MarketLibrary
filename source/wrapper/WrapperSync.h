@@ -1,5 +1,6 @@
 #pragma once
 #include "../../../Framework/source/collections/Queue.h"
+#include "../../../Framework/source/threading/Thread.h"
 #include "../Exports.h"
 #include "WrapperCache.h"
 #include <Contract.h>
@@ -29,7 +30,7 @@ namespace Jde::Markets
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept;
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
-		WrapperData<NewsProvider>::Future NewsProviderPromise( ReqId/*SessionId*/ sessionId )noexcept{ return _newsProviderData.Promise(sessionId, 5s); }
+		WrapperData<NewsProvider>::Future NewsProviderPromise()noexcept{ return _newsProviderData.Promise(Threading::ThreadId, 5s); }
 		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
 		WrapperItem<Proto::Results::OptionExchanges>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId, Duration duration )noexcept;
@@ -61,7 +62,9 @@ namespace Jde::Markets
 
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ::OrderId orderId)noexcept override;
-		//void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
+		void newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept override;
+//		void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
+
 		void openOrderEnd()noexcept override;
 		void position( const std::string& account, const ::Contract& contract, double position, double avgCost )noexcept override;
 		void positionEnd()noexcept override;
