@@ -85,9 +85,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="types\proto\ib.pb.cc">
       <Filter>Source Files\types\proto</Filter>
     </ClCompile>
@@ -159,6 +156,9 @@
     </ClCompile>
     <ClCompile Include="types\proto\OptionOI.pb.cc">
       <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Windows\source\dllmain.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

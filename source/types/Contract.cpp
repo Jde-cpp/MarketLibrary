@@ -131,7 +131,7 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
-	sp<vector<const Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept;
+	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept;
 	Contract::Contract( const ::ContractDetails& details )noexcept:
 		Contract{ details.contract }
 	{
@@ -349,10 +349,11 @@ namespace Jde::Markets
 		return pContract;
 	}
 
-	sp<vector<const Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept
+	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept
 	{
+//		return make_shared<vector<Proto::Results::ContractHours>>();
 		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
-		if( auto pValue = Cache::Get<vector<const Proto::Results::ContractHours>>(cacheId); pValue )
+		if( auto pValue = Cache::Get<vector<Proto::Results::ContractHours>>(cacheId); pValue )
 			return pValue;
 		auto parseTimeframe = [timeZoneId]( const string& timeFrame )noexcept(false)
 		{
@@ -384,7 +385,7 @@ namespace Jde::Markets
 			return hours;
 		};
 		var tradingHours = StringUtilities::Split( hours, ';' );
-		auto pHours = make_shared<vector<const Proto::Results::ContractHours>>();
+		auto pHours = make_shared<vector<Proto::Results::ContractHours>>();
 		for( auto day : tradingHours )
 			Try( [&](){ pHours->push_back(parseTimeframe(day)); } );
 		Cache::Set( cacheId, pHours );

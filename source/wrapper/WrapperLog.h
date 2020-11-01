@@ -7,7 +7,6 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
-		void tickOptionComputation( TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta,	double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
 		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib)noexcept override;
 		void tickSize( TickerId tickerId, TickType field, int size)noexcept override;
 		void tickGeneric(TickerId tickerId, TickType tickType, double value)noexcept override;
@@ -91,7 +90,9 @@ namespace Jde::Markets
 		void orderBound(long long orderId, int apiClientId, int apiOrderId)noexcept override;
 		void completedOrder(const ::Contract& contract, const ::Order& order, const ::OrderState& orderState)noexcept override;
 		void completedOrdersEnd()noexcept override;
-		void replaceFAEnd( int reqId, const std::string& text )noexcept override{};
+		//TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice
+		void tickOptionComputation(::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
+		void replaceFAEnd( int /*reqId*/, const std::string& /*text*/ )noexcept override{};
 
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }

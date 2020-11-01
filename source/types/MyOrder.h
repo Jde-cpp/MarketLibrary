@@ -1,10 +1,10 @@
+#pragma once
 #include "proto/ib.pb.h"
 
 namespace Jde::Markets
 {
 	namespace Proto
 	{
-		//namespace Requests{  }
 		namespace Results{ class OrderState; }
 		namespace IB{ enum ETimeInForce:int; class Order; }
 	}

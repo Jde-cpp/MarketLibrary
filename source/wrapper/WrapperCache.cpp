@@ -34,7 +34,7 @@ namespace Jde::Markets
 	Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( string_view exchangeString, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		auto exchange = ToExchange( exchangeString );
-		if( exchange==Exchanges::Smart && exchangeString!=CIString{"SMART"sv} )
+		if( exchange==Exchanges::Smart && CIString{ "SMART"sv }!=exchangeString )
 			exchange = Exchanges::UnknownExchange;
 		Proto::Results::ExchangeContracts a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
 		for( var strike : strikes )

@@ -124,8 +124,8 @@ namespace Jde::Markets
 		//sp<DateTime> ExpirationTime()const noexcept;
 		Amount RoundDownToMinTick( Amount price )const noexcept;
 		static DayIndex ToDay( const string& str )noexcept;
-		sp<std::vector<const Proto::Results::ContractHours>> TradingHoursPtr;
-		sp<std::vector<const Proto::Results::ContractHours>> LiquidHoursPtr;
+		sp<vector<Proto::Results::ContractHours>> TradingHoursPtr;//TODO a const vector.
+		sp<vector<Proto::Results::ContractHours>> LiquidHoursPtr;
 
 		std::ostream& to_stream( std::ostream& os, bool includePrimaryExchange=true )const noexcept;
 	};

@@ -30,7 +30,7 @@ namespace Jde::Markets
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept;
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
-		WrapperData<NewsProvider>::Future NewsProviderPromise()noexcept{ return _newsProviderData.Promise(Threading::ThreadId, 5s); }
+		WrapperData<NewsProvider>::Future NewsProviderPromise()noexcept{ return _newsProviderData.Promise(static_cast<ReqId>(Threading::GetThreadId()), 5s); }
 		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
 		WrapperItem<Proto::Results::OptionExchanges>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
 		WrapperItem<string>::Future FundamentalDataPromise( ReqId reqId, Duration duration )noexcept;

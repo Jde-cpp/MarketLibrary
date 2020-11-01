@@ -77,7 +77,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;fmt.lib;libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -103,11 +103,12 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;fmt.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Windows\source\dllmain.cpp" />
     <ClCompile Include="client\TwsClient.cpp" />
     <ClCompile Include="client\TwsClientCache.cpp" />
     <ClCompile Include="client\TwsClientSync.cpp" />
@@ -162,9 +163,6 @@
     <ClCompile Include="wrapper\WrapperCache.cpp" />
     <ClCompile Include="wrapper\WrapperLog.cpp" />
     <ClCompile Include="wrapper\WrapperSync.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exports.h" />

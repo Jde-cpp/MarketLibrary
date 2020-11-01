@@ -17,14 +17,14 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;
 	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
 	inline TimePoint PreviousTradingDay( const TimePoint& time )noexcept{ return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) ); }
-	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept;
+	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
 	inline TimePoint NextTradingDay( const TimePoint& time )noexcept{ return FromDays( NextTradingDay(DaysSinceEpoch(time)) ); }
 
 	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
-	inline DayIndex CurrentTradingDay( const Contract& /*details*/ )noexcept{ return CurrentTradingDay(); }
+	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const Markets::Contract& x )noexcept;
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
-	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const std::vector<const Proto::Results::ContractHours>& tradingHours )noexcept;
+	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
 	inline uint16 DayLengthMinutes( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return 390; }
 	bool IsOpen()noexcept;
 	JDE_MARKETS_EXPORT bool IsOpen( SecurityType type )noexcept;

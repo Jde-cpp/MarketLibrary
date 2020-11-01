@@ -88,9 +88,9 @@ enum ETickList
 	TickListNone=0;
 	OptionVolume=100;
 	OptionOpenInterest=101;
-   HistoricalVolatility = 104;
+	HistoricalVolatility_ = 104;
 	AverageOptVolume=105;
-   ImpliedVolatility = 106;
+	ImpliedVolatility_ = 106;
 	Climpvlt=107;
 	Bondanalyticdata=125;
 	MiscStats=165;
