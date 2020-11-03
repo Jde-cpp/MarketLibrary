@@ -27,13 +27,15 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 
 link_directories( ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
-add_executable(Tests.MarketLibrary main.cpp HistoricalDataCacheTest.cpp NewsTest.cpp)
+add_executable(Tests.MarketLibrary main.cpp HistoricalDataCacheTest.cpp NewsTest.cpp TwsTests.cpp)
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 #target_link_libraries(Tests.MarketLibrary c++abi)
 target_link_libraries(Tests.MarketLibrary Jde.Markets)
 target_link_libraries(Tests.MarketLibrary Jde)
 target_link_libraries(Tests.MarketLibrary Jde.XZ)
+target_link_libraries(Tests.MarketLibrary Jde.Tws)
+target_link_libraries(Tests.MarketLibrary Jde.Dts)
 target_link_libraries(Tests.MarketLibrary lzma)
 target_link_libraries(Tests.MarketLibrary Ib)
 target_link_libraries(Tests.MarketLibrary protobuf)
