@@ -25,6 +25,7 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const Markets::Contract& x )noexcept;
 	inline TimePoint CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
 	JDE_MARKETS_EXPORT DayIndex CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
+	JDE_MARKETS_EXPORT TimePoint ClosingTime( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept(false);
 	inline uint16 DayLengthMinutes( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return 390; }
 	bool IsOpen()noexcept;
 	JDE_MARKETS_EXPORT bool IsOpen( SecurityType type )noexcept;

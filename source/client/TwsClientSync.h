@@ -37,7 +37,7 @@ namespace Jde::Markets
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept;
 		Future<NewsProvider> RequestNewsProviders()noexcept;
 		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
-		std::future<sp<map<string,double>>> ReqRatios( const ::Contract &contract )noexcept;
+		//std::future<sp<map<string,double>>> ReqRatios( const ::Contract &contract )noexcept;
 
 
 		//vector<ActiveOrderPtr> ReqAllOpenOrders()noexcept(false);//timeout

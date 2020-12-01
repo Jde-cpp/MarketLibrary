@@ -26,7 +26,7 @@ namespace Jde::Markets
 		typedef function<void()> EndCallback;
 
 		void AddOpenOrderEnd( EndCallback& )noexcept;
-		void AddRatioTick( TickerId tickerId, string_view key, double value )noexcept;
+		//void AddRatioTick( TickerId tickerId, string_view key, double value )noexcept;
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept;
 		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
@@ -44,15 +44,15 @@ namespace Jde::Markets
 		bool historicalDataSync( TickerId reqId, const ::Bar& bar )noexcept;
 		bool historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept;
 
-		bool TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept;
-		bool TickSize( TickerId tickerId, TickType field, int size )noexcept;
-		bool TickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept;
-		bool TickGeneric( TickerId ibReqId, TickType field, double value )noexcept;
+		// bool TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept;
+		// bool TickSize( TickerId tickerId, TickType field, int size )noexcept;
+		// bool TickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept;
+		// bool TickGeneric( TickerId ibReqId, TickType field, double value )noexcept;
 	private:
-		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept override{TickPrice(tickerId,field, price, attrib);}
-		void tickSize( TickerId tickerId, TickType field, int size )noexcept override{ TickSize( tickerId, field, size ); }
-		void tickString( TickerId tickerId, TickType field, const std::string& value )noexcept override{TickString(tickerId, field, value);}
-		void tickGeneric( TickerId tickerId, TickType field, double value )noexcept override{TickGeneric(tickerId, field, value);}
+		// void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept override{TickPrice(tickerId,field, price, attrib);}
+		// void tickSize( TickerId tickerId, TickType field, int size )noexcept override{ TickSize( tickerId, field, size ); }
+		// void tickString( TickerId tickerId, TickType field, const std::string& value )noexcept override{TickString(tickerId, field, value);}
+		// void tickGeneric( TickerId tickerId, TickType field, double value )noexcept override{TickGeneric(tickerId, field, value);}
 
 		void currentTime( long time )noexcept override;
 		void fundamentalData(TickerId reqId, const std::string& data)noexcept override;

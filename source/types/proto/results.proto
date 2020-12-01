@@ -371,6 +371,12 @@ message Statistics
 	double max=6;
 }
 
+message Custom
+{
+	uint32 request_id=1;
+	bytes message=2;
+}
+
 message MessageUnion
 {
 	oneof Value
@@ -408,6 +414,7 @@ message MessageUnion
 		HistoricalNewsCollection historical_news=31;
 		Statistics statistics=32;
 		OptionCalculation option_calculation=33;
+		Custom custom=34;
 	}
 }
 message Transmission
@@ -559,7 +566,7 @@ enum ETickType
 	IB_DIVIDENDS=59;
 	BOND_FACTOR_MULTIPLIER=60;
 	REGULATORY_IMBALANCE=61;
-	NEWS_TICK=62;
+	NewsTick=62;
 	SHORT_TERM_VOLUME_3_MIN=63;
 	SHORT_TERM_VOLUME_5_MIN=64;
 	SHORT_TERM_VOLUME_10_MIN=65;

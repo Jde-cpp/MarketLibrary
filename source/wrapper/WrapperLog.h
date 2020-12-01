@@ -2,6 +2,8 @@
 #include <EWrapper.h>
 #include "../Exports.h"
 #include "../../../Framework/source/collections/UnorderedSet.h"
+#include "../TickManager.h"
+
 namespace Jde::Markets
 {
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
@@ -101,5 +103,7 @@ namespace Jde::Markets
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
+		sp<TickManager::TickWorker> _pTickWorker;
+		friend TickManager::TickWorker;
 	};
 }

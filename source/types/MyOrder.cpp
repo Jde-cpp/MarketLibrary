@@ -6,7 +6,7 @@
 #define var const auto
 namespace Jde::Markets
 {
-	MyOrder::MyOrder( ::OrderId id, const Proto::Order& proto )
+	MyOrder::MyOrder( ::OrderId id, const Proto::Order& proto )noexcept
 	{
 		orderId = id;
 		clientId = proto.client_id();
@@ -88,9 +88,9 @@ namespace Jde::Markets
 	*/
 		//TODO rest of variables
 	}
-	sp<Proto::Order> MyOrder::ToProto( bool stupidPointer )const noexcept
+	up<Proto::Order> MyOrder::ToProto()const noexcept
 	{
-		auto p = stupidPointer ? sp<Proto::Order>( new Proto::Order(), [](Proto::Order*){} ) : make_shared<Proto::Order>();
+		auto p = make_unique<Proto::Order>();
 		auto& proto = *p;
 		proto.set_id( orderId );
 		proto.set_client_id(clientId);
@@ -234,4 +234,38 @@ namespace Jde::Markets
 
 		return p;
 	}
+
+	MyOrder::Fields MyOrder::Changes( const MyOrder& rhs, Fields fields )const noexcept
+	{
+		auto changes = Fields::None;
+		if( LastUpdate!=rhs.LastUpdate ) changes|=Fields::LastUpdate;
+		if( lmtPrice!=rhs.lmtPrice ) changes|=Fields::Limit;
+		if( totalQuantity!=rhs.totalQuantity ) changes|=Fields::Quantity;
+		if( action!=rhs.action ) changes|=Fields::Action;
+		if( orderType!=rhs.orderType ) changes|=Fields::Type;
+		if( auxPrice!=rhs.auxPrice ) changes|=Fields::Aux;
+		if( transmit!=rhs.transmit ) changes|=Fields::Transmit;
+		if( account!=rhs.account ) changes|=Fields::Account;
+		return changes;
+	}
+
+	OrderStatus::Fields OrderStatus::Changes( const OrderStatus& status, Fields fields )const noexcept
+	{
+		auto changes = Fields::None;
+		if( Status!=status.Status ) changes|=Fields::Status;
+		if( Filled!=status.Filled ) changes|=Fields::Filled;
+		if( Remaining!=status.Remaining ) changes|=Fields::Remaining;
+		return changes;
+	}
+
+	OrderState::Fields OrderState::Changes( const OrderState& state, Fields fields )const noexcept
+	{
+		auto changes = Fields::None;
+		if( status!=state.status ) changes|=Fields::Status;
+		if( completedTime!=state.completedTime ) changes|=Fields::CompletedTime;
+		if( completedStatus!=state.completedStatus ) changes|=Fields::CompletedStatus;
+		return changes;
+	}
+
+
 }

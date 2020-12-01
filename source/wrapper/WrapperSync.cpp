@@ -17,7 +17,9 @@ namespace Jde::Markets
 	{
 		TwsConnectionSettings twsSettings;
 		from_json( Jde::Settings::Global().SubContainer("tws")->Json(), twsSettings );
-		return _pClient = TwsClientSync::CreateInstance( twsSettings, shared_from_this(), _pReaderSignal, twsClientId );
+		_pClient = TwsClientSync::CreateInstance( twsSettings, shared_from_this(), _pReaderSignal, twsClientId );
+		_pTickWorker = TickManager::TickWorker::CreateInstance( _pClient );
+		return _pClient;
 	}
 
 	void WrapperSync::SendCurrentTime( const TimePoint& time )noexcept
@@ -297,7 +299,7 @@ namespace Jde::Markets
 			DBG( "Could not find headTimestamp request '{}'"sv, reqId );
 	}
 
-	bool WrapperSync::TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept
+/*	bool WrapperSync::TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept
 	{
 		WrapperLog::tickPrice( tickerId, field, price, attrib );
 		var handled = _ratioData.Contains( tickerId );
@@ -388,8 +390,8 @@ namespace Jde::Markets
 			&& values.find("1")!=values.end()
 			&& values.find("9")!=values.end()
 			&& values.find("MKTCAP")!=values.end()
-			&& values.find("NPRICE")!=values.end()/*
-			&& values.find("AvgVolume")!=values.end()*/ )
+			&& values.find("NPRICE")!=values.end()/ *
+			&& values.find("AvgVolume")!=values.end()* / )
 		{
 			static set<TickerId> setTickers;
 			if( setTickers.emplace(tickerId).second )//.contains(tickerId)
@@ -405,5 +407,5 @@ namespace Jde::Markets
 				}).detach();
 			}
 		}
-	}
+	}*/
 }

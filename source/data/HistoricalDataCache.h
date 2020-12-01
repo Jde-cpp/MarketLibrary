@@ -3,6 +3,7 @@
 #include "../Exports.h"
 #include "../types/Exchanges.h"
 #include "../types/proto/requests.pb.h"
+#include "../../../Framework/source/math/MathUtilities.h"
 
 namespace Jde::Markets
 {

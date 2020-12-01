@@ -13,12 +13,14 @@ namespace Jde::Markets
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
 	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
 	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
-	{
+	{//TODO call to TwsClient::CreateInstance
 		DBG0( "TwsClientSync::CreateInstance"sv );
-		pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
+		_pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
+		pInstance = static_pointer_cast<TwsClientSync>( _pInstance );
 		TwsProcessor::CreateInstance( pInstance, pReaderSignal );
-		while( !pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
+		while( !_pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
+
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, pInstance->_port, clientId );
 		return pInstance;
 	//	pInstance->ReqIds();
@@ -187,7 +189,7 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}*/
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept//TODO find out why return multiple?
 	{
 		ASSERT( id!=0 );
 		::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
@@ -258,6 +260,7 @@ namespace Jde::Markets
 		TwsClient::reqFundamentalData( reqId, contract, reportType );
 		return future;
 	}
+	/*
 	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ::Contract &contract )noexcept
 	{
 		var reqId = RequestId();
@@ -265,7 +268,7 @@ namespace Jde::Markets
 		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		return future;
 	}
-
+*/
 	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders()noexcept
 	{
 		auto future = _wrapper.NewsProviderPromise();

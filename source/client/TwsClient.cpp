@@ -3,6 +3,7 @@
 #include "../wrapper/WrapperLog.h"
 #include "../types/Bar.h"
 #include "../types/Contract.h"
+#include "../OrderManager.h"
 #include "../../../Framework/source/Cache.h"
 
 #define var const auto
@@ -162,12 +163,27 @@ namespace Jde::Markets
 		LOG0( _logLevel, "reqAllOpenOrders"sv );
 		EClientSocket::reqAllOpenOrders();
 	}
-
+	void TwsClient::reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept
+	{
+		LOG( _logLevel, "({})reqRealTimeBars( {}, {}, {} )"sv, id, contract.conId, barSize, whatToShow, useRTH );
+		EClientSocket::reqRealTimeBars( id, contract, barSize, whatToShow, useRTH, realTimeBarsOptions );
+	}
+/*	void TwsClient::reqMktData( TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions ) noexcept
+	{
+		LOG( _logLevel, "({})reqMktData( {}, {}, {} )"sv, id, contract.conId, genericTicks, snapshot );
+		EClientSocket::reqMktData( id, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
+	}*/
 	void TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
 		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )"sv, order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
-
+		OrderManager::Push( order, contract );
 		EClientSocket::placeOrder( order.orderId, contract, order );
+	}
+
+	void TwsClient::reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept
+	{
+		LOG( _logLevel, "({})reqPositionsMulti( '{}', '{}' )"sv, reqId, account, modelCode );
+		EClientSocket::reqPositionsMulti( reqId, account, modelCode );
 	}
 }

@@ -1,7 +1,6 @@
 #pragma once
 
-//#include "../../ai/dts/LightGbm/TypeDefs.h"
-#include "../../Framework/source/math/Decimal.h"
+//#include "../../Framework/source/math/Decimal.h"
 #include <boost/container/flat_map.hpp>
 
 namespace Jde::Markets
@@ -18,7 +17,7 @@ namespace Jde::Markets
 	typedef unsigned long long OrderId;
 	typedef uint16 MinuteIndex;//TODO change to int
 
-	typedef Decimal2 Amount;
+	typedef double Amount; //Decimal2
 	typedef double PositionAmount;
 	inline PositionAmount ToPosition( double value ){ return value; }
 }

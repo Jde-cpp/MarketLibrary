@@ -1,6 +1,4 @@
 //protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. requests.proto
-//npx pbjs -r request_root -t static-module -w es6 -o src/app/proto/requests.js requests.proto & npx pbts -o src/app/proto/requests.d.ts src/app/proto/requests.js
-//npx pbjs -r request_root -t static-module -w es6 -o requests.js /home/duffyj/code/jde/MarketLibrary/source/types/proto/requests.proto & npx pbts -o requests.d.ts requests.js
 
 syntax = "proto3";
 package Jde.Markets.Proto.Requests;
@@ -119,6 +117,7 @@ enum ETickList
 	FuturesMargins=407;
 	rthistvol=411;
 	MonitorTickTag=439;
+	Dividends=456;
 	RTCLOSE=459;
 	BondFactorMultiplier=460;
 	FeeandRebateRate=499;
@@ -213,6 +212,12 @@ message RequestExecutions
 	string side=8;
 }
 
+message Custom
+{
+	uint32 id=1;
+	bytes message=2;
+}
+
 message RequestUnion
 {
 	oneof Value
@@ -235,7 +240,7 @@ message RequestUnion
 		StdDevRequest std_dev = 17;
 		ImpliedVolatilityRequest implied_volatility=18;
 		ImpliedPriceRequest implied_price=19;
-		//Request Historical data like normal...
+		Custom blockly=20;
 	}
 }
 
@@ -258,7 +263,7 @@ message HistoricalNewsRequest
 
 message RequestTransmission
 {
-	repeated RequestUnion messages=10;
+	repeated RequestUnion messages=1;
 }
 
 enum Display

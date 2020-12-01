@@ -1,0 +1,171 @@
+#pragma once
+#include <variant>
+#include <map>
+#include <bitset>
+#include <CommonDefs.h>
+/*
+#include "../../../Framework/source/collections/Vector.h"
+#include "../Exports.h"
+#include "../TypeDefs.h"
+
+#include "proto/requests.pb.h"
+#include "proto/results.pb.h"
+*/
+namespace Jde{ template<typename> class Vector; }
+namespace Jde::Markets
+{
+	typedef long ContractPK;
+	typedef std::string str;
+	template<class T> using sp = std::shared_ptr<T>;
+	template<class T> using up = std::unique_ptr<T>;
+
+	namespace Proto
+	{
+		namespace Requests{ enum ETickList:int; }
+		namespace Results{ class OptionCalculation; class TickNews; enum ETickType:int; class MessageUnion; }
+	}
+	using Proto::Requests::ETickList; using Proto::Results::ETickType;
+	struct OptionComputation
+	{
+		std::unique_ptr<Proto::Results::OptionCalculation> ToProto( ContractPK contractId, ETickType tickType )const noexcept;
+		const bool ReturnBased;//vs price based TickAttrib;
+		const double ImpliedVol;
+		const double Delta;
+		const double OptPrice;
+		const double PVDividend;
+		const double Gamma;
+		const double Vega;
+		const double Theta;
+		const double UndPrice;
+	};
+
+	struct News
+	{
+		std::unique_ptr<Proto::Results::TickNews> ToProto( ContractPK contractId )const noexcept;
+		const time_t TimeStamp;
+		const str ProviderCode;
+		const str ArticleId;
+		const str Headline;
+		const str ExtraData;
+	};
+
+	struct Tick
+	{
+		typedef std::bitset<91> Fields;//ETickType::NOT_SET+1
+		typedef std::variant<nullptr_t,uint,int,double,time_t,str,sp<OptionComputation>> TVariant;
+		Tick()=default;//TODO try to remove
+		Tick( ContractPK id ):ContractId{id}{}
+		Tick( ContractPK id, TickerId tickId ):ContractId{id},TwsRequestId{tickId}{};
+
+		bool SetString( ETickType type, const str& value )noexcept;
+		bool SetInt( ETickType type, int value )noexcept;
+		bool SetPrice( ETickType type, double value/*, const ::TickAttrib& attribs*/ )noexcept;
+		bool SetDouble( ETickType type, double value )noexcept;
+		bool SetOptionComputation( ETickType type, sp<OptionComputation> v )noexcept;
+		bool FieldEqual( const Tick& other, ETickType tick )const noexcept;
+		bool IsSet( ETickType type )const noexcept{ return SetFields[type]; }
+		bool HasRatios()const noexcept;
+		void AddNews( News&& news )noexcept;
+		std::map<str,double> Ratios()const noexcept;
+		Proto::Results::MessageUnion ToProto( ETickType type )const noexcept;
+		void AddProto( ETickType type, std::vector<const Proto::Results::MessageUnion> messages )const noexcept;
+
+		static Fields PriceFields()noexcept;
+		ContractPK ContractId{0};
+		TickerId TwsRequestId{0};
+		double BidSize;
+		double Bid;
+		double Ask;
+		double AskSize;
+		double LastPrice;
+		double LastSize;
+		double High;
+		double Low;
+		uint Volume;
+		double ClosePrice;
+		sp<OptionComputation> BID_OPTION_COMPUTATION;
+		sp<OptionComputation> ASK_OPTION_COMPUTATION;
+		sp<OptionComputation> LAST_OPTION_COMPUTATION;
+		sp<OptionComputation> MODEL_OPTION;
+		double OpenTick;
+		double Low13Week;
+		double High13Week;
+		double Low26Week;
+		double High26Week;
+		double Low52Week;
+		double High52Week;
+		uint AverageVolume;
+		uint OPEN_INTEREST;
+		double OptionHistoricalVol;
+		double OptionImpliedVol;
+		double OPTION_BID_EXCH;
+		double OPTION_ASK_EXCH;
+		uint OPTION_CALL_OPEN_INTEREST;
+		uint OPTION_PUT_OPEN_INTEREST;
+		uint OPTION_CALL_VOLUME;
+		uint OPTION_PUT_VOLUME;
+		double INDEX_FUTURE_PREMIUM;
+		str BidExchange;
+		str AskExchange;
+		uint AUCTION_VOLUME;
+		double AUCTION_PRICE;
+		double AUCTION_IMBALANCE;
+		double MarkPrice;
+		double BID_EFP_COMPUTATION;
+		double ASK_EFP_COMPUTATION;
+		double LAST_EFP_COMPUTATION;
+		double OPEN_EFP_COMPUTATION;
+		double HIGH_EFP_COMPUTATION;
+		double LOW_EFP_COMPUTATION;
+		double CLOSE_EFP_COMPUTATION;
+		time_t LastTimestamp;
+		int SHORTABLE;
+		str RatioString;
+		uint RT_VOLUME;
+		int Halted;
+		double BID_YIELD;
+		double ASK_YIELD;
+		double LAST_YIELD;
+		double CUST_OPTION_COMPUTATION;
+		uint TRADE_COUNT;
+		double TRADE_RATE;
+		uint VOLUME_RATE;
+		double LAST_RTH_TRADE;
+		double RT_HISTORICAL_VOL;
+		str DividendString;
+		double BOND_FACTOR_MULTIPLIER;
+		double REGULATORY_IMBALANCE;
+		sp<Vector<News>> NewsPtr;
+		uint SHORT_TERM_VOLUME_3_MIN;
+		uint SHORT_TERM_VOLUME_5_MIN;
+		uint SHORT_TERM_VOLUME_10_MIN;
+		double DELAYED_BID;
+		double DELAYED_ASK;
+		double DELAYED_LAST;
+		uint DELAYED_BID_SIZE;
+		uint DELAYED_ASK_SIZE;
+		uint DELAYED_LAST_SIZE;
+		double DELAYED_HIGH;
+		double DELAYED_LOW;
+		uint DELAYED_VOLUME;
+		double DELAYED_CLOSE;
+		double DELAYED_OPEN;
+		uint RT_TRD_VOLUME;
+		double CREDITMAN_MARK_PRICE;
+		double CREDITMAN_SLOW_MARK_PRICE;
+		double DELAYED_BID_OPTION_COMPUTATION;
+		double DELAYED_ASK_OPTION_COMPUTATION;
+		double DELAYED_LAST_OPTION_COMPUTATION;
+		double DELAYED_MODEL_OPTION_COMPUTATION;
+		str LastExchange;
+		time_t LAST_REG_TIME;
+		uint FUTURES_OPEN_INTEREST;
+		uint AVG_OPT_VOLUME;
+		time_t DELAYED_LAST_TIMESTAMP;
+		uint SHORTABLE_SHARES;
+		int NOT_SET;
+	private:
+		Fields SetFields;
+		TVariant Variant( ETickType type )const noexcept;
+	};
+}

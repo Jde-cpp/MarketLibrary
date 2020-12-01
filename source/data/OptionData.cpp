@@ -2,6 +2,7 @@
 #include "BarData.h"
 #include "../types/Contract.h"
 #include "../types/proto/results.pb.h"
+#include "../types/Exchanges.h"
 #include "../../../Framework/source/io/File.h"
 #include "../../../Framework/source/db/Database.h"
 #include "../../../Framework/source/Cache.h"

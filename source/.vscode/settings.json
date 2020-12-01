@@ -82,7 +82,10 @@
 		"bitset": "cpp",
 		"ios": "cpp",
 		"locale": "cpp",
-		"stack": "cpp"
+		"stack": "cpp",
+		"coroutine": "cpp",
+		"*.inc": "cpp",
+		"*.def": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "Enabled",
 	"window.title": "Markets"

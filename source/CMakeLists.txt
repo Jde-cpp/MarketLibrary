@@ -6,11 +6,11 @@ include(SetUpConfigurations)
 #Custom######################################################
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
 #############################################################
-add_library( Jde.Markets SHARED TwsProcessor.cpp
+add_library( Jde.Markets SHARED TwsProcessor.cpp OrderManager.cpp TickManager.cpp
 	client/TwsClient.cpp client/TwsClientSync.cpp client/TwsClientCache.cpp
 	wrapper/WrapperLog.cpp wrapper/WrapperSync.cpp wrapper/WrapperCache.cpp
 	data/OptionData.cpp data/HistoricalDataCache.cpp data/BarData.cpp
-	types/Bar.cpp types/Contract.cpp types/Currencies.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/TwsConnectionSettings.cpp
+	types/Bar.cpp types/Contract.cpp types/Currencies.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/Tick.cpp types/TwsConnectionSettings.cpp
 	types/proto/ib.pb.cc types/proto/bar.pb.cc types/proto/OptionOI.pb.cc types/proto/requests.pb.cc types/proto/results.pb.cc types/proto/watch.pb.cc )
 #############################################################
 target_precompile_headers(Jde.Markets

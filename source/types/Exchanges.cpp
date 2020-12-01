@@ -1,5 +1,6 @@
 #include "Exchanges.h"
 #include "Contract.h"
+#include "proto/results.pb.h"
 #define var const auto
 
 namespace Jde
@@ -417,14 +418,22 @@ namespace Jde
 		while( IsHoliday(previous) );
 		return previous;
 	}
+	TimePoint Markets::ClosingTime( const std::vector<Markets::Proto::Results::ContractHours>& tradingHours )noexcept(false)
+	{
+		var now = Clock::to_time_t( Clock::now() );
+		auto pHours = std::find_if( tradingHours.begin(), tradingHours.end(), [now](var& x){return x.end()>now;} );
+		if( pHours==tradingHours.end() )
+			throw new Exception( "Could not find Closing time, tradingHours.size()={}."sv, tradingHours.size() );
+		return Clock::from_time_t( pHours->end() );
+	}
 	DayIndex Markets::CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept
 	{
 		return NextTradingDay( PreviousTradingDay(tradingHours) );
 	}
-	
+
 	DayIndex Markets::CurrentTradingDay( const Markets::Contract& x )noexcept
-	{ 
-		return x.TradingHoursPtr && x.TradingHoursPtr->size() ? CurrentTradingDay(*x.TradingHoursPtr) : CurrentTradingDay(x.PrimaryExchange); 
+	{
+		return x.TradingHoursPtr && x.TradingHoursPtr->size() ? CurrentTradingDay(*x.TradingHoursPtr) : CurrentTradingDay(x.PrimaryExchange);
 	}
 
 	DayIndex Markets::NextTradingDay( DayIndex day )noexcept

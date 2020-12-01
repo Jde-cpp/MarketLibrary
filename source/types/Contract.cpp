@@ -1,6 +1,7 @@
 #include "Contract.h"
 #include "Currencies.h"
 #include "proto/results.pb.h"
+#include "../types/Exchanges.h"
 #include "../../../Framework/source/Cache.h"
 
 #define var const auto
