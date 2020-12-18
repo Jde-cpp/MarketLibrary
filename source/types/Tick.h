@@ -28,15 +28,16 @@ namespace Jde::Markets
 	struct OptionComputation
 	{
 		std::unique_ptr<Proto::Results::OptionCalculation> ToProto( ContractPK contractId, ETickType tickType )const noexcept;
-		const bool ReturnBased;//vs price based TickAttrib;
-		const double ImpliedVol;
-		const double Delta;
-		const double OptPrice;
-		const double PVDividend;
-		const double Gamma;
-		const double Vega;
-		const double Theta;
-		const double UndPrice;
+		bool operator==(const OptionComputation& x)const noexcept=default;
+		bool ReturnBased;//vs price based TickAttrib;
+		double ImpliedVol;
+		double Delta;
+		double OptPrice;
+		double PVDividend;
+		double Gamma;
+		double Vega;
+		double Theta;
+		double UndPrice;
 	};
 
 	struct News
@@ -52,8 +53,10 @@ namespace Jde::Markets
 	struct Tick
 	{
 		typedef std::bitset<91> Fields;//ETickType::NOT_SET+1
-		typedef std::variant<nullptr_t,uint,int,double,time_t,str,sp<OptionComputation>> TVariant;
+		typedef std::variant<nullptr_t,uint,int,double,time_t,str,OptionComputation> TVariant;
 		Tick()=default;//TODO try to remove
+		//Tick( Tick&& )=default;
+		//Tick( const Tick& )=default;
 		Tick( ContractPK id ):ContractId{id}{}
 		Tick( ContractPK id, TickerId tickId ):ContractId{id},TwsRequestId{tickId}{};
 
@@ -61,14 +64,14 @@ namespace Jde::Markets
 		bool SetInt( ETickType type, int value )noexcept;
 		bool SetPrice( ETickType type, double value/*, const ::TickAttrib& attribs*/ )noexcept;
 		bool SetDouble( ETickType type, double value )noexcept;
-		bool SetOptionComputation( ETickType type, sp<OptionComputation> v )noexcept;
+		bool SetOptionComputation( ETickType type, OptionComputation&& v )noexcept;
 		bool FieldEqual( const Tick& other, ETickType tick )const noexcept;
 		bool IsSet( ETickType type )const noexcept{ return SetFields[type]; }
 		bool HasRatios()const noexcept;
 		void AddNews( News&& news )noexcept;
 		std::map<str,double> Ratios()const noexcept;
 		Proto::Results::MessageUnion ToProto( ETickType type )const noexcept;
-		void AddProto( ETickType type, std::vector<const Proto::Results::MessageUnion> messages )const noexcept;
+		void AddProto( ETickType type, std::vector<const Proto::Results::MessageUnion>& messages )const noexcept;
 
 		static Fields PriceFields()noexcept;
 		ContractPK ContractId{0};
@@ -83,10 +86,10 @@ namespace Jde::Markets
 		double Low;
 		uint Volume;
 		double ClosePrice;
-		sp<OptionComputation> BID_OPTION_COMPUTATION;
-		sp<OptionComputation> ASK_OPTION_COMPUTATION;
-		sp<OptionComputation> LAST_OPTION_COMPUTATION;
-		sp<OptionComputation> MODEL_OPTION;
+		OptionComputation BID_OPTION_COMPUTATION;
+		OptionComputation ASK_OPTION_COMPUTATION;
+		OptionComputation LAST_OPTION_COMPUTATION;
+		OptionComputation MODEL_OPTION;
 		double OpenTick;
 		double Low13Week;
 		double High13Week;
@@ -119,10 +122,10 @@ namespace Jde::Markets
 		double LOW_EFP_COMPUTATION;
 		double CLOSE_EFP_COMPUTATION;
 		time_t LastTimestamp;
-		int SHORTABLE;
+		double SHORTABLE;
 		str RatioString;
-		uint RT_VOLUME;
-		int Halted;
+		str RT_VOLUME;
+		double Halted;
 		double BID_YIELD;
 		double ASK_YIELD;
 		double LAST_YIELD;

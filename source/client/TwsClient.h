@@ -23,18 +23,19 @@ namespace Jde::Markets
 		virtual void CheckTimeouts()noexcept{};
 		static void CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static TwsClient& Instance()noexcept{return *_pInstance;}//ASSERT(_pInstance);
-		static sp<TwsClient> InstancePtr()noexcept{return _pInstance;}
+		static sp<TwsClient> InstancePtr()noexcept{ return _pInstance; }
 		static bool HasInstance()noexcept{ return _pInstance!=nullptr;}
 		ibapi::OrderId RequestId()noexcept{ return _requestId++; }
 		bool isConnected()const noexcept{ return EClientSocket::isConnected(); }
 		void SetRequestId( TickerId id )noexcept;
 
-		void cancelMktData( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelMktData()"sv, reqId); EClientSocket::cancelMktData(reqId); }
+		void cancelMktData( TickerId reqId, bool log=true )noexcept{ if( log )LOG(_logLevel, "({})cancelMktData()"sv, reqId); EClientSocket::cancelMktData(reqId); }
 		void cancelOrder( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelOrder()"sv, reqId); EClientSocket::cancelOrder(reqId); }
 		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "({})cancelPositionsMulti()"sv, reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		void cancelRealTimeBars( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelRealTimeBars()"sv, reqId); EClientSocket::cancelRealTimeBars(reqId); }
 		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
-		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept{ LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode); EClientSocket::reqAccountUpdates( subscribe, acctCode ); }
+		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept;
+		void reqAccountUpdates( const string& acctCode, function<void(const string&,const string&,const string&,const string&)> callback )noexcept;
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;

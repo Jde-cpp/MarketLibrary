@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	auto result = EXIT_FAILURE;
 	if( p )
 	{
-		::testing::GTEST_FLAG(filter) = "OrderManagerTests.*";
+		::testing::GTEST_FLAG(filter) = "OrderManagerTests.Adhoc";
 	   result = RUN_ALL_TESTS();
 		p = nullptr;
 	}

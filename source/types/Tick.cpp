@@ -14,7 +14,9 @@ namespace Jde::Markets
 		case ETickType::AskExchange: AskExchange = value; break;
 		//case ETickType::NEWS_TICK: NEWS_TICK = value; break;
 		case ETickType::LastExchange: LastExchange = value; break;
-		case ETickType::LastTimestamp: LastTimestamp = StringUtilities::TryTo<time_t>( value, 0 ); break;
+		case ETickType::LastTimestamp: LastTimestamp = StringUtilities::TryTo<time_t>( value ).value_or( 0 ); break;
+		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
+		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		default:
 			WARN( "Ticktype {} value {} is not a string."sv, type, value );
 			set = false;
@@ -40,10 +42,8 @@ namespace Jde::Markets
 		case ETickType::OPTION_PUT_VOLUME: OPTION_PUT_VOLUME = value; break;
 		case ETickType::AUCTION_VOLUME: AUCTION_VOLUME = value; break;
 		case ETickType::LastTimestamp: LastTimestamp = value; break;
-		case ETickType::SHORTABLE: SHORTABLE = value; break;
 		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
-		case ETickType::Halted: Halted = value; break;
 		case ETickType::TRADE_COUNT: TRADE_COUNT = value; break;
 		case ETickType::VOLUME_RATE: VOLUME_RATE = value; break;
 		case ETickType::SHORT_TERM_VOLUME_3_MIN: SHORT_TERM_VOLUME_3_MIN = value; break;
@@ -81,6 +81,16 @@ namespace Jde::Markets
 		case ETickType::MarkPrice: MarkPrice = value; break;
 		case ETickType::OpenTick: OpenTick = value; break;
 		case ETickType::ClosePrice: ClosePrice = value; break;
+		case ETickType::OptionHistoricalVol: OptionHistoricalVol = value; break;
+		case ETickType::OptionImpliedVol: OptionImpliedVol = value; break;
+		case ETickType::SHORTABLE: SHORTABLE = value; break;
+		case ETickType::Low13Week: Low13Week = value; break;
+		case ETickType::High13Week: High13Week = value; break;
+		case ETickType::Low26Week: Low26Week = value; break;
+		case ETickType::High26Week: High26Week = value; break;
+		case ETickType::Low52Week: Low52Week = value; break;
+		case ETickType::High52Week: High52Week = value; break;
+		case ETickType::Halted: Halted = value; break;
 		default:
 			WARN( "Ticktype {} value {} is not a price."sv, type, value );
 			set = SetDouble( type, value );
@@ -94,14 +104,8 @@ namespace Jde::Markets
 		bool set{ true };
 		switch( type )
 		{
-		case ETickType::Low13Week: Low13Week = value; break;
-		case ETickType::High13Week: High13Week = value; break;
-		case ETickType::Low26Week: Low26Week = value; break;
-		case ETickType::High26Week: High26Week = value; break;
-		case ETickType::Low52Week: Low52Week = value; break;
-		case ETickType::High52Week: High52Week = value; break;
-		case ETickType::OptionHistoricalVol: OptionHistoricalVol = value; break;
-		case ETickType::OptionImpliedVol: OptionImpliedVol = value; break;
+		//case ETickType::OptionHistoricalVol: OptionHistoricalVol = value; break;
+		//case ETickType::OptionImpliedVol: OptionImpliedVol = value; break;
 		case ETickType::OPTION_BID_EXCH: OPTION_BID_EXCH = value; break;
 		case ETickType::OPTION_ASK_EXCH: OPTION_ASK_EXCH = value; break;
 		case ETickType::INDEX_FUTURE_PREMIUM: INDEX_FUTURE_PREMIUM = value; break;
@@ -147,17 +151,17 @@ namespace Jde::Markets
 		return set;
 	}
 
-	bool Tick::SetOptionComputation( ETickType type, sp<OptionComputation> v )noexcept
+	bool Tick::SetOptionComputation( ETickType type, OptionComputation&& v )noexcept
 	{
 		bool set{ true };
 		switch( type )
 		{
-		case ETickType::BID_OPTION_COMPUTATION: BID_OPTION_COMPUTATION = v; break;
-		case ETickType::ASK_OPTION_COMPUTATION: ASK_OPTION_COMPUTATION = v; break;
-		case ETickType::LAST_OPTION_COMPUTATION: LAST_OPTION_COMPUTATION = v; break;
-		case ETickType::MODEL_OPTION: MODEL_OPTION = v; break;
+		case ETickType::BID_OPTION_COMPUTATION: BID_OPTION_COMPUTATION = move( v ); break;
+		case ETickType::ASK_OPTION_COMPUTATION: ASK_OPTION_COMPUTATION = move( v ); break;
+		case ETickType::LAST_OPTION_COMPUTATION: LAST_OPTION_COMPUTATION = move( v ); break;
+		case ETickType::MODEL_OPTION: MODEL_OPTION = move( v ); break;
 		default:
-			WARN( "Ticktype {} value {} is not a double."sv, type, v );
+			WARN( "Ticktype {} is not a option comp."sv, type );
 			set = false;
 		}
 		if( set )
@@ -171,11 +175,11 @@ namespace Jde::Markets
 	Proto::Results::MessageUnion Tick::ToProto( ETickType type )const noexcept
 	{
 		Proto::Results::MessageUnion msg;
-		auto price = [type, msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
-		auto size  = [type, msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
-		auto dble  = [type, msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
-		auto stng  = [type, msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
-		auto option  = [type, msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
+		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
+		auto size  = [type, &msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
+		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
+		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
+		auto option  = [type, &msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
 		up<google::protobuf::Message> p;
 		switch( type )
 		{
@@ -183,8 +187,8 @@ namespace Jde::Markets
 		case ETickType::AskPrice: price( Ask ); break;
 		case ETickType::LastPrice: price( LastPrice ); break;
 
-		case ETickType::BidSize: size( BidSize ); break;
-		case ETickType::AskSize: size( AskSize ); break;
+		case ETickType::BidSize: price( BidSize ); break;
+		case ETickType::AskSize: price( AskSize ); break;
 		case ETickType::Volume: size( Volume ); break;
 
 		case ETickType::BidExchange: stng( BidExchange ); break;
@@ -199,10 +203,10 @@ namespace Jde::Markets
 		case ETickType::OPTION_PUT_VOLUME: size( OPTION_PUT_VOLUME ); break;
 		case ETickType::AUCTION_VOLUME: size( AUCTION_VOLUME ); break;
 		case ETickType::LastTimestamp: size( LastTimestamp ); break;
-		case ETickType::SHORTABLE: size( SHORTABLE ); break;
+		case ETickType::SHORTABLE: price( SHORTABLE ); break;
 		case ETickType::FUNDAMENTAL_RATIOS: stng( RatioString ); break;
-		case ETickType::RT_VOLUME: size( RT_VOLUME ); break;
-		case ETickType::Halted: size( Halted ); break;
+		case ETickType::RT_VOLUME: stng( RT_VOLUME ); break;
+		case ETickType::Halted: price( Halted ); break;
 		case ETickType::TRADE_COUNT: size( TRADE_COUNT ); break;
 		case ETickType::VOLUME_RATE: size( VOLUME_RATE ); break;
 		case ETickType::SHORT_TERM_VOLUME_3_MIN: size( SHORT_TERM_VOLUME_3_MIN ); break;
@@ -220,17 +224,17 @@ namespace Jde::Markets
 		case ETickType::SHORTABLE_SHARES: size( SHORTABLE_SHARES ); break;
 		case ETickType::NOT_SET: size( NOT_SET ); break;
 
-		case ETickType::LastSize: dble( LastSize ); break;
-		case ETickType::High: dble( High ); break;
-		case ETickType::Low: dble( Low ); break;
-		case ETickType::ClosePrice: dble( ClosePrice ); break;
-		case ETickType::OpenTick: dble( OpenTick ); break;
-		case ETickType::Low13Week: dble( Low13Week ); break;
-		case ETickType::High13Week: dble( High13Week ); break;
-		case ETickType::Low26Week: dble( Low26Week ); break;
-		case ETickType::High26Week: dble( High26Week ); break;
-		case ETickType::Low52Week: dble( Low52Week ); break;
-		case ETickType::High52Week: dble( High52Week ); break;
+		case ETickType::LastSize: price( LastSize ); break;
+		case ETickType::High: price( High ); break;
+		case ETickType::Low: price( Low ); break;
+		case ETickType::ClosePrice: price( ClosePrice ); break;
+		case ETickType::OpenTick: price( OpenTick ); break;
+		case ETickType::Low13Week: price( Low13Week ); break;
+		case ETickType::High13Week: price( High13Week ); break;
+		case ETickType::Low26Week: price( Low26Week ); break;
+		case ETickType::High26Week: price( High26Week ); break;
+		case ETickType::Low52Week: price( Low52Week ); break;
+		case ETickType::High52Week: price( High52Week ); break;
 		case ETickType::OptionHistoricalVol: dble( OptionHistoricalVol ); break;
 		case ETickType::OptionImpliedVol: dble( OptionImpliedVol ); break;
 		case ETickType::OPTION_BID_EXCH: dble( OPTION_BID_EXCH ); break;
@@ -238,7 +242,7 @@ namespace Jde::Markets
 		case ETickType::INDEX_FUTURE_PREMIUM: dble( INDEX_FUTURE_PREMIUM ); break;
 		case ETickType::AUCTION_PRICE: dble( AUCTION_PRICE ); break;
 		case ETickType::AUCTION_IMBALANCE: dble( AUCTION_IMBALANCE ); break;
-		case ETickType::MarkPrice: dble( MarkPrice ); break;
+		case ETickType::MarkPrice: price( MarkPrice ); break;
 		case ETickType::BID_EFP_COMPUTATION: dble( BID_EFP_COMPUTATION ); break;
 		case ETickType::ASK_EFP_COMPUTATION: dble( ASK_EFP_COMPUTATION ); break;
 		case ETickType::LAST_EFP_COMPUTATION: dble( LAST_EFP_COMPUTATION ); break;
@@ -272,17 +276,17 @@ namespace Jde::Markets
 		case ETickType::NEWS_TICK:
 			ERR0( "ETickType::NEWS_TICK ToProto not implemented"sv );
 			break;
-#define OPTION(x) if( x ) option(*x); else CRITICAL0( "do not have value for '#x'"sv )
-		case ETickType::BID_OPTION_COMPUTATION: OPTION( BID_OPTION_COMPUTATION ); break;
-		case ETickType::ASK_OPTION_COMPUTATION: OPTION( ASK_OPTION_COMPUTATION ); break;
-		case ETickType::LAST_OPTION_COMPUTATION: OPTION( LAST_OPTION_COMPUTATION ); break;
-		case ETickType::MODEL_OPTION: OPTION( MODEL_OPTION ); break;
+//#define OPTION(x) if( x ) option(*x); else CRITICAL0( "do not have value for '#x'"sv )
+		case ETickType::BID_OPTION_COMPUTATION: option( BID_OPTION_COMPUTATION ); break;
+		case ETickType::ASK_OPTION_COMPUTATION: option( ASK_OPTION_COMPUTATION ); break;
+		case ETickType::LAST_OPTION_COMPUTATION: option( LAST_OPTION_COMPUTATION ); break;
+		case ETickType::MODEL_OPTION: option( MODEL_OPTION ); break;
 		default:
 			WARN( "Ticktype {} is not defined for proto."sv, type );
 		}
 		return msg;
 	}
-	void Tick::AddProto( ETickType type, vector<const Proto::Results::MessageUnion> messages )const noexcept
+	void Tick::AddProto( ETickType type, vector<const Proto::Results::MessageUnion>& messages )const noexcept
 	{
 		if( type==ETickType::NEWS_TICK && NewsPtr )
 		{
@@ -413,7 +417,7 @@ namespace Jde::Markets
 
 	bool Tick::HasRatios()const noexcept
 	{
-		return SetFields[ETickType::FUNDAMENTAL_RATIOS] && SetFields[ETickType::IB_DIVIDENDS];
+		return SetFields[ETickType::FUNDAMENTAL_RATIOS] /*&& SetFields[ETickType::IB_DIVIDENDS]*/;
 	}
 
 	map<string,double> Tick::Ratios()const noexcept

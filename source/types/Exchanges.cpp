@@ -396,6 +396,10 @@ namespace Jde
 			|| ( day<17533 && std::binary_search(other.begin(), other.end(), day) );
 	}
 
+	TimePoint Markets::PreviousTradingDay( const TimePoint& time )noexcept
+	{
+		return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) );
+	}
 
 	DayIndex Markets::PreviousTradingDay( DayIndex day )noexcept
 	{
@@ -441,6 +445,10 @@ namespace Jde
 		auto next = day+1;
 		for( ; IsHoliday(next); ++next );
 		return next;
+	}
+	TimePoint Markets::NextTradingDay( const TimePoint& time )noexcept
+	{
+		return FromDays( NextTradingDay(DaysSinceEpoch(time)) );
 	}
 	mutex _lock;
 	namespace Markets
@@ -565,4 +573,7 @@ namespace Jde
 		}
 		return isPreMarket;
 	}
+
+	Markets::TradingDay Markets::operator-( Markets::TradingDay copy, DayIndex x )noexcept{ ASSERT_DESC(x<10000, "should subtract market open days."); copy-=x; return copy; }
+	DayIndex Markets::DayCount( TradingDay start, DayIndex end )noexcept{ ASSERT(start<=end); auto count=0; for( ; start<=end; ++start, ++count); return count; }
 }

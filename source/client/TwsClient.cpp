@@ -53,7 +53,19 @@ namespace Jde::Markets
 		if( _requestId<id )
 			_requestId = id;
 	}
-
+	void TwsClient::reqAccountUpdates( bool subscribe, const string& acctCode )noexcept
+	{
+		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode);
+		if( !subscribe )
+			WrapperLogPtr()->ClearAccountUpdates();
+		EClientSocket::reqAccountUpdates( subscribe, acctCode );
+	}
+	void TwsClient::reqAccountUpdates( const string& acctCode, function<void(const string&,const string&,const string&,const string&)> callback )noexcept
+	{
+		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, false, acctCode );
+		WrapperLogPtr()->AddAccountUpdate( callback );
+		EClient::reqAccountUpdates( true, acctCode );
+	}
 	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV )noexcept
 	{
 		LOG( _logLevel, "({})reqAccountUpdatesMulti( {}, {}, {} )"sv, reqId, account, modelCode, ledgerAndNLV );

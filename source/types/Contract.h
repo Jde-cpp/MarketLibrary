@@ -4,6 +4,7 @@
 #include "./proto/ib.pb.h"
 //#include "Exchanges.h"
 //#include "../../../framework/io/Buffer.h"
+//#include "../../TypeDefs.h"
 #include "../TypeDefs.h"
 struct ContractDetails;
 struct Contract;
@@ -14,11 +15,11 @@ namespace Jde::Markets
 //	namespace Proto{ class Contract; class ComboLeg; class DeltaNeutralContract; enum Currencies : int; enum SecurityRight : int; enum SecurityType : int; enum Exchanges : int; }
 	namespace Proto::Results{ class ContractDetail; class ContractHours; }
 	using Proto::Exchanges;
-	typedef std::string str;
+/*	typedef std::string str;
 	typedef std::string_view sv;
-	typedef uint_fast16_t DayIndex;
+
 	typedef double PositionAmount;
-	typedef double Amount;
+	typedef double Amount;*/
 #pragma region DeltaNeutralContract
 	struct DeltaNeutralContract
 	{
@@ -79,6 +80,7 @@ namespace Jde::Markets
 		explicit Contract( ContractPK id, sv symbol="" )noexcept;
 		Contract( ContractPK id, Proto::Currencies currency, sv localSymbol, uint_fast32_t multiplier, sv name, Exchanges exchange, sv symbol, sv tradingClass, TimePoint issueDate=TimePoint::max() )noexcept;
 		Contract( const ::Contract& contract )noexcept;
+		Contract( const Contract& contract )noexcept=default;
 		Contract( const ContractDetails& details )noexcept;
 		Contract( const Proto::Contract& contract )noexcept;
 		~Contract();

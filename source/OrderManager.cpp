@@ -1,28 +1,34 @@
 #include "OrderManager.h"
 #include "types/OrderEnums.h"
+#include "client/TwsClientSync.h"
 
-#define InstancePtr if( sp<OrderWorker> p=OrderWorker::Instance(); p ) p
+#define OMInstancePtr if( sp<OrderWorker> p=OrderWorker::Instance(); p ) p
 #define var const auto
 namespace Jde::Markets
 {
-	inline void OrderManager::Cancel( Coroutine::Handle h )noexcept
+	void OrderManager::Cancel( Coroutine::Handle h )noexcept
 	{
-		//InstancePtr->Cancel( h );
+		OMInstancePtr->Cancel( h );
+	}
+	optional<OrderManager::Cache> OrderManager::GetLatest( ::OrderId orderId )noexcept
+	{
+		var p = OrderWorker::Instance();
+		return p ? p->Latest( orderId ) : optional<OrderManager::Cache>{};
 	}
 	void OrderManager::Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int /*clientId*/, const std::string& whyHeld, double mktCapPrice )noexcept
 	{
 		var eOrderStatus = ToOrderStatus( status );
 		OrderStatus x{orderId, eOrderStatus, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, whyHeld, mktCapPrice};
-		InstancePtr->Push( make_shared<const OrderStatus>(x) );
+		OMInstancePtr->Push( make_shared<const OrderStatus>(x) );
 	}
 	void OrderManager::Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept
 	{
-		InstancePtr->Push( make_shared<const MyOrder>(order), contract, make_shared<const OrderState>(orderState) );
+		OMInstancePtr->Push( make_shared<const MyOrder>(order), contract, make_shared<const OrderState>(orderState) );
 	}
 
 	void OrderManager::Push( const ::Order& order, const ::Contract& contract )noexcept
 	{
-		InstancePtr->Push( make_shared<const MyOrder>(order), contract );
+		OMInstancePtr->Push( make_shared<const MyOrder>(order), contract );
 	}
 
 
@@ -68,7 +74,7 @@ namespace OrderManager
 */
 	void Awaitable::await_suspend( Awaitable::Handle h )noexcept
 	{
-		InstancePtr->Subscribe( OrderWorker::SubscriptionInfo{ {h, _hClient}, *this} );
+		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{ {h, _hClient}, *this} );
 	}
 
 /*	void OrderManager::Add( const MyOrder& order, MyOrder::Fields orderFields, const OrderStatus& status, OrderStatus::Fields statusFields, Handles handles )noexcept
@@ -127,7 +133,7 @@ namespace OrderManager
 			if( pState )
 				cache.StatePtr = pState;
 			if( !cache.ContractPtr )
-				cache.ContractPtr = make_shared<Contract>( contract );
+				cache.ContractPtr = make_shared<const Markets::Contract>( contract );
 		}
 		else
 			_incoming.try_emplace( pOrder->orderId, Cache{pOrder, make_shared<Contract>(contract), {}, pState} );
@@ -198,21 +204,28 @@ namespace OrderManager
 			}
 		}
 	}
-
-	sp<OrderWorker> OrderWorker::_pInstance{nullptr};
+	optional<Cache> OrderWorker::Latest( ::OrderId orderId )noexcept
+	{
+		shared_lock l{_cacheMutex};
+		auto p = _cache.find( orderId );
+		return p==_cache.end() ? optional<Cache>{} : p->second;
+	}
+	sp<OrderWorker> OrderWorker::_pInstance;
+	sp<TwsClientSync> OrderWorker::_pTws;
 	std::once_flag _singleThread;
 	sp<OrderWorker> OrderWorker::Instance()noexcept
 	{
-		auto pInstance = _pInstance;
-		if( !pInstance && !IApplication::ShuttingDown() )
-		{
-			std::call_once( _singleThread, [&pInstance]()mutable
+		//if( !pInstance && !IApplication::ShuttingDown() )
+		//{
+			std::call_once( _singleThread, []()
 			{
-				pInstance = make_shared<OrderWorker>();
-				pInstance->Start();
+				DBG0( "Creating OrderWroker"sv );
+				OrderWorker::_pInstance = make_shared<OrderWorker>();
+				OrderWorker::_pInstance->Start();
+				_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );
 			});
-		}
-		return pInstance;
+		//}
+		return _pInstance;
 	}
 /*	void StatusWorker::Process()noexcept
 	{

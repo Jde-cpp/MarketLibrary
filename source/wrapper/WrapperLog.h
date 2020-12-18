@@ -35,7 +35,8 @@ namespace Jde::Markets
 		void contractDetailsEnd( int reqId)noexcept override;
 		void execDetails( int reqId, const ::Contract& contract, const Execution& execution)noexcept override;
 		void execDetailsEnd( int reqId)noexcept override;
-		void error(int id, int errorCode, const std::string& errorString)noexcept override;
+		void error( int id, int errorCode, const std::string& errorMsg )noexcept override;
+		bool error2( int id, int errorCode, const std::string& errorMsg )noexcept;
 		void updateMktDepth(TickerId id, int position, int operation, int side, double price, int size)noexcept override;
 		void updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int side, double price, int size, bool isSmartDepth)noexcept override;
 		void updateNewsBulletin(int msgId, int msgType, const std::string& newsMessage, const std::string& originExch)noexcept override;
@@ -99,11 +100,14 @@ namespace Jde::Markets
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
 		void AddHistoricalDataRequest2( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
+		void AddAccountUpdate( function<void(const string&,const string&,const string&,const string&)> callback )noexcept;
+		void ClearAccountUpdates()noexcept;
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 		sp<TickManager::TickWorker> _pTickWorker;
+		vector<function<void(const string&,const string&,const string&,const string&)>> _accountUpdateCallbacks; shared_mutex _accountUpdateCallbackMutex;
 		friend TickManager::TickWorker;
 	};
 }

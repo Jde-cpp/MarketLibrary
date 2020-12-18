@@ -1,5 +1,8 @@
 #pragma once
 #include <experimental/coroutine>
+#include <boost/container/flat_set.hpp>
+#include <boost/container/flat_map.hpp>
+
 #include "../../Framework/source/threading/Worker.h"
 #include "../../Framework/source/coroutine/Awaitable.h"
 #include "../../Framework/source/coroutine/Coroutine.h"
@@ -8,7 +11,6 @@
 #include "../../Framework/source/collections/Map.h"
 #include "../../Framework/source/collections/UnorderedSet.h"
 #include "../../Framework/source/collections/UnorderedMapValue.h"
-#include <boost/container/flat_set.hpp>
 #include "types/proto/requests.pb.h"
 #include "types/proto/results.pb.h"
 #include "types/Tick.h"
@@ -16,6 +18,9 @@
 namespace Jde::Markets{ struct TwsClient; }
 namespace Jde::Markets
 {
+	using boost::container::flat_map;
+	using boost::container::flat_set;
+	using boost::container::flat_multimap;
 	using std::experimental::coroutine_handle;
 	using Proto::Requests::ETickList; using Proto::Results::ETickType;
 	struct JDE_MARKETS_EXPORT TickManager final
@@ -26,27 +31,25 @@ namespace Jde::Markets
 			Markets::Tick Tick;
 		};
 
-		struct JDE_MARKETS_EXPORT Awaitable final : Coroutine::CancelAwaitable<Coroutine::Task<Tick>>, TickParams
+		struct JDE_MARKETS_EXPORT Awaitable final : Coroutine::CancelAwaitable<Coroutine::TaskError<Tick>>, TickParams
 		{
-			typedef Coroutine::CancelAwaitable<Coroutine::Task<Markets::Tick>> base;
-			typedef Coroutine::Task<Markets::Tick>::promise_type PromiseType;
+			typedef Coroutine::TaskError<Markets::Tick> TTask;
+			typedef TTask::TResult TResult;
+			typedef Coroutine::CancelAwaitable<TTask> base;
+			typedef TTask::promise_type PromiseType;
 			typedef coroutine_handle<PromiseType> Handle;
 			Awaitable( const TickParams& params, Coroutine::Handle& h )noexcept;
 			~Awaitable()=default;
 			bool await_ready()noexcept;
-			void await_suspend( Awaitable::Handle h )noexcept;
-			Markets::Tick await_resume()noexcept
+			void await_suspend( base::Handle h )noexcept override;
+			TResult await_resume()noexcept
 			{
-				DBG( "({})TickManager::Awaitable::await_resume"sv, std::this_thread::get_id() );
-				if( _pPromise )
-				{
-					const auto& result = _pPromise->get_return_object().Result;
-					return result;
-				}
-				return Tick;
+				base::AwaitResume();
+				//std::variant<Markets::Tick, std::exception_ptr> x{ TickParams::Tick };
+				return _pPromise ? _pPromise->get_return_object().Result : TResult{TickParams::Tick};
 			}
 		private:
-			PromiseType* _pPromise{nullptr};
+			PromiseType* _pPromise{ nullptr };
 			//optional<Tick> _tick;
 			//void End( Awaitable::Handle h, const Tick* pTick )noexcept; std::once_flag _singleEnd;
 		};
@@ -75,7 +78,7 @@ namespace Jde::Markets
 			void PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept;
 			void Push( TickerId id, ETickType type, int v )noexcept;
 			void Push( TickerId id, ETickType type, const std::string& v )noexcept;
-
+			bool HandleError( int id, int errorCode, const std::string& errorString )noexcept;
 		private:
 			void Process()noexcept override;
 			void Cancel( Coroutine::Handle h )noexcept;
@@ -103,7 +106,7 @@ namespace Jde::Markets
 			struct TickListSource{ ESubscriptionSource Source; uint Id; flat_set<ETickList> Ticks; };
 			void RemoveTwsSubscription( ESubscriptionSource source, uint id, ContractPK contractId )noexcept;
 			flat_set<ETickList> GetSubscribedTicks( ContractPK id )const noexcept;
-			void AddSubscription(ContractPK contractId, const TickListSource& source )noexcept;
+			void AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock={} )noexcept;
 			flat_multimap<TimePoint,tuple<ESubscriptionSource, uint, ContractPK>> _delays; std::shared_mutex _delayMutex;
 			flat_multimap<ContractPK,TickListSource> _twsSubscriptions; std::mutex _twsSubscriptionMutex;
 

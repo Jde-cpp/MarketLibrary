@@ -5,6 +5,11 @@
 #define _client TwsClient::Instance()
 namespace Jde::Markets
 {
+	bool WrapperLog::error2( int id, int errorCode, const std::string& errorMsg )noexcept
+	{
+		WrapperLog::error( id, errorCode, errorMsg );
+		return id!=-1 && _pTickWorker->HandleError( id, errorCode, errorMsg );
+	}
 	void WrapperLog::error( int id, int errorCode, const std::string& errorMsg )noexcept
 	{
 		if( _historicalDataRequests.erase(id) )
@@ -15,8 +20,7 @@ namespace Jde::Markets
 			ERR( "Disconnected:  {} - {}"sv, errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"sv); }
-	/***********TO Implement************/
-	void WrapperLog::accountDownloadEnd( const std::string& accountName )noexcept { LOG( _logLevel, "WrapperLog::accountDownloadEnd( {} )"sv, accountName); }
+
 	void WrapperLog::connectionClosed()noexcept { LOG0(_logLevel, "WrapperLog::connectionClosed()"sv); }
 	void WrapperLog::bondContractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept  { LOG( _logLevel, "WrapperLog::bondContractDetails( {}, {} )"sv, reqId, contractDetails.contract.conId); }
 	void WrapperLog::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
@@ -59,7 +63,23 @@ namespace Jde::Markets
 	void WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int /*bidSize*/, int /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )"sv, reqId, time, bidPrice, askPrice); }
 	void WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickMidPoint( {}, {}, {} )"sv, reqId, time, midPoint); }
 	void WrapperLog::tickReqParams( int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )"sv, tickerId, minTick, bboExchange, snapshotPermissions ); }
-	void WrapperLog::updateAccountValue(const std::string& key, const std::string& val, const std::string& currency, const std::string& accountName)noexcept{ LOG( _logLevel, "updateAccountValue( {}, {}, {}, {} )"sv, key, val, currency, accountName); }
+	void WrapperLog::updateAccountValue( const std::string& key, const std::string& val, const std::string& currency, const std::string& accountName )noexcept
+	{
+		LOG( _logLevel, "updateAccountValue( {}, {}, {}, {} )"sv, key, val, currency, accountName );
+		{
+			shared_lock l{ _accountUpdateCallbackMutex };
+			std::for_each( _accountUpdateCallbacks.begin(), _accountUpdateCallbacks.end(), [&](auto& x){ x(key, val, currency, accountName); } );
+		}
+	}
+	void WrapperLog::accountDownloadEnd( const std::string& accountName )noexcept
+	{
+		LOG( _logLevel, "WrapperLog::accountDownloadEnd( {} )"sv, accountName);
+		{
+			shared_lock l{ _accountUpdateCallbackMutex };
+			std::for_each( _accountUpdateCallbacks.begin(), _accountUpdateCallbacks.end(), [&](auto& x){ x({}, {}, {}, accountName); } );
+		}
+	}
+
 	void WrapperLog::updatePortfolio( const ::Contract& contract, double position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName )noexcept{ LOG( _logLevel, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )"sv, contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountName); }
 	void WrapperLog::updateAccountTime(const std::string& timeStamp)noexcept{ LOG( ELogLevel::Trace, "WrapperLog::updateAccountTime( {} )"sv, timeStamp); }
 	void WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, int /*size*/)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepth( {}, {}, {}, {} )"sv, id, position, operation, side); }
@@ -162,4 +182,14 @@ namespace Jde::Markets
 	}
 	void WrapperLog::completedOrdersEnd()noexcept{LOG0( _logLevel, "WrapperLog::completedOrdersEnd()"sv); }
 
+	void WrapperLog::AddAccountUpdate( function<void(const string&,const string&,const string&,const string&)> callback )noexcept
+	{
+		unique_lock l{ _accountUpdateCallbackMutex };
+		_accountUpdateCallbacks.push_back( callback );
+	}
+	void WrapperLog::ClearAccountUpdates()noexcept
+	{
+		unique_lock l{ _accountUpdateCallbackMutex };
+		_accountUpdateCallbacks.clear();
+	}
 }

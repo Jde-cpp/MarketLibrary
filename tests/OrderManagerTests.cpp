@@ -23,7 +23,7 @@ namespace Jde::Markets
 
 	using namespace Chrono;
 
-	Coroutine::Task<Tick> Run2()
+	Coroutine::TaskError<Jde::Markets::Tick> Run2()
 	{
 		var& contract = Contracts::Spy;
 		var priceFields = Tick::PriceFields();
@@ -32,7 +32,23 @@ namespace Jde::Markets
 		{
 			Coroutine::Handle handle;
 			const TickManager::TickParams params{ priceFields, tick };
-			var newTick = co_await TickManager::Subscribe( params, handle );
+//coroutine_handle<Jde::Coroutine::Task<std::__1::variant<Jde::Markets::Tick, std::exception_ptr>>::promise_type>
+//coroutine_handle<Jde::Coroutine::CancelAwaitable<Jde::Coroutine::TaskError<Jde::Markets::Tick>>::TPromise>'
+			auto result = co_await TickManager::Subscribe( params, handle );
+			DBG( "Index = {}"sv, result.index() );
+			if( result.index()==1 )
+			{
+				try
+				{
+					std::rethrow_exception( std::get<std::exception_ptr>(result) );
+				}
+				catch( const Exception& e )
+				{
+					DBG( "Error has occured. - {}"sv, e.what() );
+				}
+				break;
+			}
+			auto newTick = std::get<Jde::Markets::Tick>( result );
 			DBG( "bid={}"sv, newTick.Bid );
 			tick = newTick;
 		}

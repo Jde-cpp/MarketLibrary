@@ -1,19 +1,23 @@
 #pragma once
+#include <boost/container/flat_map.hpp>
 #include "../../Framework/source/collections/Queue.h"
 #include "../../Framework/source/threading/Worker.h"
 #include "../../Framework/source/coroutine/CoWorker.h"
 #include "../../Framework/source/coroutine/Awaitable.h"
 #include "../../Framework/source/coroutine/Task.h"
 #include "types/MyOrder.h"
-/*#include <functional>
-#include <mutex>
-#include <thread>
-#include "../TypeDefs.h"
-*/
+#include "types/Contract.h"
+
+
+namespace Jde::Markets{ struct TwsClientSync; }
+
 namespace Jde::Markets::OrderManager
 {
 	using std::experimental::coroutine_handle;
 	using std::experimental::suspend_never;
+	using boost::container::flat_multimap;
+	using boost::container::flat_map;
+
 	struct OrderParams /*~final*/
 	{
 		//OrderParams( OrderParams&& x )noexcept{}//TODO
@@ -37,7 +41,7 @@ namespace Jde::Markets::OrderManager
 	struct Cache /*~final*/
 	{
 		sp<const MyOrder> OrderPtr;
-		sp<const Contract> ContractPtr;
+		sp<const Markets::Contract> ContractPtr;
 		sp<const OrderStatus> StatusPtr;
 		sp<const OrderState> StatePtr;
 	};
@@ -100,6 +104,7 @@ namespace Jde::Markets::OrderManager
 
 	void Cancel( Coroutine::Handle h )noexcept;
 	inline auto Subscribe( const CombinedParams& params, Coroutine::Handle& h )noexcept{ return Awaitable{params, h}; }
+	optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 	void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
 	void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 	void Push( const ::Order& order, const ::Contract& contract )noexcept;
@@ -113,17 +118,20 @@ namespace Jde::Markets::OrderManager
 		static sp<OrderWorker> Instance()noexcept;
 		//void Shutdown()noexcept override;
 		void Process()noexcept override;
+		optional<Cache> Latest( ::OrderId orderId )noexcept;
 		void Cancel( Coroutine::Handle h )noexcept;
 		void Subscribe( const SubscriptionInfo& params )noexcept;
 		void Push( sp<const OrderStatus> status )noexcept;
 		void Push( sp<const MyOrder> order, const ::Contract& contract, sp<const OrderState> state={} )noexcept;
 
 		static sp<OrderWorker> _pInstance;
+		static sp<TwsClientSync> _pTws;
 		flat_map<::OrderId,Cache> _incoming; mutex _incomingMutex;
-		flat_map<::OrderId,Cache> _cache; mutex _cacheMutex;
+		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
 		friend void Cancel( Coroutine::Handle h )noexcept;
+		friend optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 		friend void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
 		friend void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 		friend void Push( const ::Order& order, const ::Contract& contract )noexcept;

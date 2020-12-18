@@ -9,16 +9,16 @@ namespace Jde::Markets
 	struct Contract;
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
-	using namespace Chrono;
+	//using namespace Chrono;
 
 	constexpr std::array<std::string_view,26> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE" };
 	JDE_MARKETS_EXPORT string_view ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( string_view pszName )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;
 	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
-	inline TimePoint PreviousTradingDay( const TimePoint& time )noexcept{ return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) ); }
+	TimePoint PreviousTradingDay( const TimePoint& time )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
-	inline TimePoint NextTradingDay( const TimePoint& time )noexcept{ return FromDays( NextTradingDay(DaysSinceEpoch(time)) ); }
+	TimePoint NextTradingDay( const TimePoint& time )noexcept;
 
 	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
@@ -53,12 +53,12 @@ namespace Jde::Markets
 			for( DayIndex i = 0; i<day; ++i, --*this );
 			return *this;
 		}
-		friend TradingDay operator-( TradingDay copy, DayIndex x ){ ASSERT_DESC(x<10000, "should subtract market open days."); copy-=x; return copy; }
 		operator DayIndex()const noexcept{ return _value; }
 	private:
 		DayIndex _value;
 		Exchanges _exchange;
 	};
-	inline DayIndex DayCount( TradingDay start, DayIndex end )noexcept{ ASSERT(start<=end); auto count=0; for( ; start<=end; ++start, ++count); return count; }
+	DayIndex DayCount( TradingDay start, DayIndex end )noexcept;
+	TradingDay operator-( TradingDay copy, DayIndex x )noexcept;
 
 }

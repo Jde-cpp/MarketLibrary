@@ -198,6 +198,7 @@ message PlaceOrder
 	Order order=3;
 	double stop=4;
 	double stop_limit=5;
+	string block_id=6;
 }
 
 message RequestExecutions

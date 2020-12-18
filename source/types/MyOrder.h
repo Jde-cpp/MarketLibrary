@@ -41,6 +41,7 @@ namespace Jde::Markets
 			Aux	 		= 1 << 6,
 			Transmit		= 1 << 7,
 			Account		= 1 << 8,
+			All = std::numeric_limits<uint>::max() //(uint)~0
 		};
 		Fields Changes( const MyOrder& status, Fields fields )const noexcept;
 		std::chrono::system_clock::time_point LastUpdate;

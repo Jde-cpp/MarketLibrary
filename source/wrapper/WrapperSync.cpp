@@ -31,11 +31,12 @@ namespace Jde::Markets
 	}
 	bool WrapperSync::error2( int id, int errorCode, const std::string& errorString )noexcept
 	{
-		WrapperLog::error( id, errorCode, errorString );
-		bool handled = false;
+		bool handled = WrapperLog::error2( id, errorCode, errorString );
+		if( handled )
+			return true;
 		if( errorCode==502 )
 			SendCurrentTime( TimePoint{} );
-		if( id>0 )
+		else if( id>0 )
 		{
 			if( (handled = _historicalData.Contains(id)) )
 			{
