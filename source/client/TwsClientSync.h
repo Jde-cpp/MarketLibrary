@@ -43,8 +43,8 @@ namespace Jde::Markets
 		//vector<ActiveOrderPtr> ReqAllOpenOrders()noexcept(false);//timeout
 		static TwsClientSync& Instance()noexcept;//{ ASSERT(_pInstance); return *_pInstance;}
 		static bool IsConnected()noexcept;
-	private:
 		void ReqIds()noexcept;
+	private:
 		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
 		void OnHeadTimestamp( TickerId reqId, TimePoint t );
 		shared_ptr<WrapperSync> Wrapper()noexcept;

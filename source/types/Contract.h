@@ -137,6 +137,7 @@ namespace Jde::Markets
 		extern const Contract Psq;
 		JDE_MARKETS_EXPORT extern const Contract Tsla;
 		JDE_MARKETS_EXPORT extern const Contract Aig;
+		JDE_MARKETS_EXPORT extern const Contract Xom;
 	}
 #pragma endregion
 }

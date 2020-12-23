@@ -275,6 +275,8 @@ namespace Jde::Markets
 			_requestIdsPromisePtr = nullptr;
 			_requestIdsFuturePtr = nullptr;
 		}
+		else
+			_pClient->SetRequestId( orderId );
 	}
 
 	void WrapperSync::openOrderEnd()noexcept

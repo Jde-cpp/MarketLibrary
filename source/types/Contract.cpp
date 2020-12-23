@@ -286,6 +286,7 @@ namespace Jde::Markets
 		const Contract Psq{ 43661924, Proto::Currencies::UsDollar, "PSQ", 0, "PROSHARES SHORT QQQ", Exchanges::Arca, "PSQ", "PSQ" };
 		const Contract Tsla{ 76792991, Proto::Currencies::UsDollar, "TSLA", 0, "TESLA INC", Exchanges::Nasdaq, "TSLA", "TSLA" };
 		const Contract Aig{ 61319701, Proto::Currencies::UsDollar, "AIG", 0, "AMERICAN INTERNATIONAL GROUP", Exchanges::Nyse, "AIG", "AIG", DateTime(2004,1,23,14,30,00).GetTimePoint() };
+		const Contract Xom{ 13977, Proto::Currencies::UsDollar, "XOM", 0, "EXXON MOBIL", Exchanges::Nyse, "XOM", "XOM", DateTime(2004,1,23,14,30,00).GetTimePoint() };
 	}
 #pragma region SecurityRight
 	SecurityRight ToSecurityRight( string_view inputName )noexcept

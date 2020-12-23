@@ -14,6 +14,7 @@
 namespace Jde{ template<typename> class Vector; }
 namespace Jde::Markets
 {
+	class OptionTests;
 	typedef long ContractPK;
 	typedef std::string str;
 	template<class T> using sp = std::shared_ptr<T>;
@@ -170,5 +171,6 @@ namespace Jde::Markets
 	private:
 		Fields SetFields;
 		TVariant Variant( ETickType type )const noexcept;
+		friend OptionTests;
 	};
 }

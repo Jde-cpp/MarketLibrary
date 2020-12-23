@@ -39,76 +39,32 @@ namespace OrderManager
 		CombinedParams{ params }
 	{}
 
-	// Task<OrderParams> Awaitable::SubscribeOrders( Awaitable::Handle h )noexcept
-	// {
-	// 	auto t = co_await OrderManager::Subscribe( (OrderParams&)*this, _orderHandle );
-	// 	_orderHandle = 0;
-	// 	if( _statusHandle )
-	// 		OrderManager::CancelStatus( _statusHandle );
-	// 	CombinedParams x{ move(t), move((StatusParams)*this) };
-	// 	End( h, &x );
-	// }
-	// Task<StatusParams> Awaitable::SubscribeStatus( Awaitable::Handle h )noexcept
-	// {
-	// 	auto t = co_await OrderManager::Subscribe( (StatusParams&)*this, _statusHandle );
-	// 	_statusHandle = 0;
-	// 	if( _orderHandle )
-	// 		OrderManager::CancelOrder( _orderHandle );
-	// 	CombinedParams x{ move((OrderParams)*this), move(t) };
-	// 	End( h, &x );
-	// }
-
-/*	void Awaitable::End( Awaitable::Handle h, const Cache* pCache )noexcept
-	{
-		std::call_once( _singleEnd, [h, pCache]()mutable
-		{
-			if( pCache )
-			{
-				h.promise().get_return_object().result = *pCache;
-				h.resume();
-			}
-			else
-				h.destroy();
-		});
-	}
-*/
 	void Awaitable::await_suspend( Awaitable::Handle h )noexcept
 	{
+		_pPromise = &h.promise();
 		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{ {h, _hClient}, *this} );
 	}
 
-/*	void OrderManager::Add( const MyOrder& order, MyOrder::Fields orderFields, const OrderStatus& status, OrderStatus::Fields statusFields, Handles handles )noexcept
-	{
-		if( orderFields!=MyOrder::Fields::None )
-		{
-			unique_lock l{ _orderSubscriptionMutex };
-			_subscriptions.emplace( order.orderId, {handles,order,orderFields} );
-		}
-		if( statusFields!=OrderStatus::Fields::None )
-		{
-			unique_lock l{ _statusSubscriptionMutex };
-			_statusSubscriptions.try_emplace( order.orderId, {handles,status,statusFields} );
-		}
-	}
-*/
 	void OrderWorker::Cancel( Coroutine::Handle h )noexcept
 	{
 		unique_lock l{ _subscriptionMutex };
 		if( auto p = std::find_if(_subscriptions.begin(), _subscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_subscriptions.end() )
 		{
-			DBG( "Cancel({})"sv, h );
+			DBG( "({})OrderWorker::Cancel({})"sv, p->first, h );
 
 			p->second.HCoroutine.destroy();
 			_subscriptions.erase( p );
 		}
 		else
-			DBG( "Could not find handle {}."sv, h );
+			DBG( "OrderWorker - Could not find handle {}."sv, h );
 	}
 
 	void OrderWorker::Subscribe( const SubscriptionInfo& params )noexcept
 	{
 		ASSERT( params.Params.OrderPtr );
 		unique_lock l{ _subscriptionMutex };
+		//--------------------------------------------------
+		DBG( "({})OrderManager add subscription."sv, params.Params.OrderPtr->orderId );
 		_subscriptions.emplace( params.Params.OrderPtr->orderId, params );
 	}
 	void OrderWorker::Push( sp<const OrderStatus> pStatus )noexcept
@@ -131,7 +87,10 @@ namespace OrderManager
 			auto& cache = p->second;
 			cache.OrderPtr = pOrder;
 			if( pState )
+			{
+				//DBG( "cache.StatePtr={}"sv, pState->status );
 				cache.StatePtr = pState;
+			}
 			if( !cache.ContractPtr )
 				cache.ContractPtr = make_shared<const Markets::Contract>( contract );
 		}
@@ -146,13 +105,13 @@ namespace OrderManager
 	void OrderWorker::Process()noexcept
 	{
 		OrderId id;
-		optional<Cache> newCache;
+		optional<Cache> pUpdate;
 		{
 			unique_lock l{_incomingMutex};
 			if( auto p=_incoming.begin(); p!=_incoming.end() )
 			{
 				id = p->first;
-				newCache = p->second;
+				pUpdate = p->second;
 				_incoming.erase( p );
 			}
 			else
@@ -162,44 +121,53 @@ namespace OrderManager
 				_cv.wait_for( lk, WakeDuration );
 			}
 		}
-		if( newCache )
+		if( !pUpdate )
+			return;
+		Cache latest;
 		{
+			var& update = *pUpdate;
+			unique_lock l{ _cacheMutex };
+			if( auto p=_cache.find(id); p!=_cache.end() )
 			{
-				unique_lock l{ _cacheMutex };
-				if( auto p=_cache.find(id); p!=_cache.end() )
+				DBG( "({})OrderManager update."sv, id );
+				auto& v = p->second;
+				if( update.OrderPtr )
+					v.OrderPtr = update.OrderPtr;
+				if( update.StatusPtr )
+					v.StatusPtr = update.StatusPtr;
+				if( update.StatePtr )
+					v.StatePtr = update.StatePtr;
+				latest = v;
+			}
+			else
+			{
+				DBG( "OrderManager add {} to cache."sv, id );
+				_cache.emplace( id, update );
+				latest = update;
+			}
+		}
+		{
+			unique_lock l222{ _subscriptionMutex };
+			auto range = _subscriptions.equal_range( id );
+			for( auto p = range.first; p!=_subscriptions.end() && p->first==id; )
+			{
+				DBG0( "OrderManager have subscription."sv );
+				auto& original = p->second.Params;
+				var orderChange = (!original.OrderPtr && latest.OrderPtr) || (original.OrderPtr && latest.OrderPtr && latest.OrderPtr->Changes( *original.OrderPtr, original.OrderFields)!=MyOrder::Fields::None );
+				var statusChange = orderChange || (!original.StatusPtr && latest.StatusPtr) || (original.StatusPtr && latest.StatusPtr && latest.StatusPtr->Changes( *original.StatusPtr, original.StatusFields)!=OrderStatus::Fields::None );
+				var stateChange = statusChange || (!original.StatePtr && latest.StatePtr) || (original.StatePtr && latest.StatePtr && latest.StatePtr->Changes( *original.StatePtr, original.StateFields)!=OrderState::Fields::None );
+				if( stateChange )
 				{
-					auto& new_ = newCache.value();
-					auto& v = p->second;
-					if( new_.OrderPtr )
-						v.OrderPtr = new_.OrderPtr;
-					if( new_.StatusPtr )
-						v.StatusPtr = new_.StatusPtr;
-					if( new_.StatePtr )
-						v.StatePtr = new_.StatePtr;
+					DBG( "OrderManager changes. {} {}"sv, _subscriptions.size(), Threading::GetThreadId() );
+					auto& h = p->second.HCoroutine;
+					h.promise().get_return_object().Result = latest;
+					Coroutine::CoroutinePool::Resume( move(h) );
+					p = _subscriptions.erase( p );
 				}
 				else
-					_cache.emplace( id, newCache.value() );
-			}
-			{
-				unique_lock l{ _subscriptionMutex };
-				auto range = _subscriptions.equal_range( id );
-				for( auto p = range.first; p!=range.second; ++p )
 				{
-					var& new_ = newCache.value();
-					auto& original = p->second.Params;
-					var orderChange = (!original.OrderPtr && new_.OrderPtr) || (original.OrderPtr && new_.OrderPtr && new_.OrderPtr->Changes( *original.OrderPtr, original.OrderFields)!=MyOrder::Fields::None );
-					var statusChange = orderChange || (!original.StatusPtr && new_.StatusPtr) || (original.StatusPtr && new_.StatusPtr && new_.StatusPtr->Changes( *original.StatusPtr, original.StatusFields)!=OrderStatus::Fields::None );
-					var stateChange = statusChange || (!original.StatePtr && new_.StatePtr) || (original.StatePtr && new_.StatePtr && new_.StatePtr->Changes( *original.StatePtr, original.StateFields)!=OrderState::Fields::None );
-					if( stateChange )
-					{
-						/*original.OrderPtr = new_.OrderPtr;
-						original.StatusPtr = new_.StatusPtr;
-						original.StatePtr = new_.StatePtr;*/
-						auto& h = p->second.HCoroutine;
-						h.promise().get_return_object().Result = new_;
-						h.resume();
-						_subscriptions.erase( p );
-					}
+					DBG0( "OrderManager no changes."sv );
+					++p;
 				}
 			}
 		}
@@ -215,37 +183,14 @@ namespace OrderManager
 	std::once_flag _singleThread;
 	sp<OrderWorker> OrderWorker::Instance()noexcept
 	{
-		//if( !pInstance && !IApplication::ShuttingDown() )
-		//{
-			std::call_once( _singleThread, []()
-			{
-				DBG0( "Creating OrderWroker"sv );
-				OrderWorker::_pInstance = make_shared<OrderWorker>();
-				OrderWorker::_pInstance->Start();
-				_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );
-			});
-		//}
+		std::call_once( _singleThread, []()
+		{
+			DBG0( "Creating OrderWroker"sv );
+			OrderWorker::_pInstance = make_shared<OrderWorker>();
+			OrderWorker::_pInstance->Start();
+			_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );
+			_pTws->reqAllOpenOrders();
+		});
 		return _pInstance;
 	}
-/*	void StatusWorker::Process()noexcept
-	{
-		while( !Threading::GetThreadInterruptFlag().IsSet() || !_queue.Empty() )
-		{
-			auto pStatus = _queue.WaitAndPop( WakeDuration );
-			unique_lock l{ _subscriptionMutex };
-			auto range = _subscriptions.equal_range( pStatus->Id );
-			for( auto p = range.first; p!=range.second; ++p )
-			{
-				auto& value = p->second;
-				auto changes = pStatus->Changes( value.Status, value.Fields );
-				if( changes!=MyOrder::Fields::None )
-				{
-					auto& h = value.HCoroutine;
-					h.promise().get_return_object().result = move( *pStatus );
-					h.resume();
-					_subscriptions.erase( p );
-				}
-			}
-		}
-	}*/
 }}

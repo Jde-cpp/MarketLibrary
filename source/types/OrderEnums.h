@@ -1,6 +1,7 @@
 #pragma once
 #include "proto/ib.pb.h"
 #include "proto/results.pb.h"
+#include "../../../Framework/source/StringUtilities.h"
 
 namespace Jde
 {

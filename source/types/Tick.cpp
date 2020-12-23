@@ -12,7 +12,7 @@ namespace Jde::Markets
 		{
 		case ETickType::BidExchange: BidExchange = value; break;
 		case ETickType::AskExchange: AskExchange = value; break;
-		//case ETickType::NEWS_TICK: NEWS_TICK = value; break;
+		//case ETickType::NewsTick: NewsTick = value; break;
 		case ETickType::LastExchange: LastExchange = value; break;
 		case ETickType::LastTimestamp: LastTimestamp = StringUtilities::TryTo<time_t>( value ).value_or( 0 ); break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
@@ -273,8 +273,8 @@ namespace Jde::Markets
 		case ETickType::DELAYED_ASK_OPTION_COMPUTATION: dble( DELAYED_ASK_OPTION_COMPUTATION ); break;
 		case ETickType::DELAYED_LAST_OPTION_COMPUTATION: dble( DELAYED_LAST_OPTION_COMPUTATION ); break;
 		case ETickType::DELAYED_MODEL_OPTION_COMPUTATION: dble( DELAYED_MODEL_OPTION_COMPUTATION ); break;
-		case ETickType::NEWS_TICK:
-			ERR0( "ETickType::NEWS_TICK ToProto not implemented"sv );
+		case ETickType::NewsTick:
+			ERR0( "ETickType::NewsTick ToProto not implemented"sv );
 			break;
 //#define OPTION(x) if( x ) option(*x); else CRITICAL0( "do not have value for '#x'"sv )
 		case ETickType::BID_OPTION_COMPUTATION: option( BID_OPTION_COMPUTATION ); break;
@@ -288,7 +288,7 @@ namespace Jde::Markets
 	}
 	void Tick::AddProto( ETickType type, vector<const Proto::Results::MessageUnion>& messages )const noexcept
 	{
-		if( type==ETickType::NEWS_TICK && NewsPtr )
+		if( type==ETickType::NewsTick && NewsPtr )
 		{
 			shared_lock l{ NewsPtr->Mutex };
 			for( auto p = NewsPtr->begin(l); p!=NewsPtr->end(l); ++p )
@@ -398,7 +398,7 @@ namespace Jde::Markets
 
 		case ETickType::BidExchange: result = BidExchange; break;
 		case ETickType::AskExchange: result = AskExchange; break;
-		case ETickType::NEWS_TICK: result = NEWS_TICK; break;
+		case ETickType::NewsTick: result = NEWS_TICK; break;
 		case ETickType::LastExchange: result = LastExchange; break;
 		case ETickType::BID_OPTION_COMPUTATION: result = BID_OPTION_COMPUTATION; break;
 		case ETickType::ASK_OPTION_COMPUTATION: result = ASK_OPTION_COMPUTATION; break;

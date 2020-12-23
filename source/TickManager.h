@@ -15,9 +15,11 @@
 #include "types/proto/results.pb.h"
 #include "types/Tick.h"
 
-namespace Jde::Markets{ struct TwsClient; }
 namespace Jde::Markets
 {
+	struct TwsClient;
+	class EventManagerTests; class OptionTests;
+
 	using boost::container::flat_map;
 	using boost::container::flat_set;
 	using boost::container::flat_multimap;
@@ -130,6 +132,7 @@ namespace Jde::Markets
 
 			uint InternalSubscriptionHandle{0};
 			friend TickManager;
+			friend EventManagerTests; friend OptionTests;
 		};
 	};
 

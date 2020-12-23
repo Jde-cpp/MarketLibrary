@@ -180,7 +180,7 @@ namespace Jde::Markets
 	void TickManager::TickWorker::Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept
 	{
 		News v{ timeStamp, providerCode, articleId, headline, extraData };
-		Push( id, ETickType::NEWS_TICK, [v](Tick& tick)mutable{ tick.AddNews(move(v));} );
+		Push( id, ETickType::NewsTick, [v](Tick& tick)mutable{ tick.AddNews(move(v));} );
 	}
 
 	void TickManager::TickWorker::Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept
@@ -272,7 +272,7 @@ namespace Jde::Markets
 					var& fields = pOutgoingField->second;
 					auto& tick = pValue->second;
 					outgoing = make_tuple( tick, fields );
-					if( fields[ETickType::NEWS_TICK] )
+					if( fields[ETickType::NewsTick] )
 						tick.NewsPtr->clear();
 				}
 				else
@@ -290,7 +290,7 @@ namespace Jde::Markets
 				unique_lock l{ _subscriptionMutex };
 				auto range = _subscriptions.equal_range( contractId );
 				haveSubscription = range.first!=range.second;
-				for( auto p = range.first; p!=range.second; )
+				for( auto p = range.first; p!=_subscriptions.end() && p->first==contractId; )
 				{
 					auto& params = p->second.Params;
 					auto& clientTick = params.Tick;
@@ -300,8 +300,6 @@ namespace Jde::Markets
 					{
 						auto h = p->second.HCoroutine;
 						var hClient = p->second.HClient;
-						p = _subscriptions.erase( p );
-						l.unlock();
 						{
 							unique_lock l2{ _delayMutex };
 							_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, hClient, contractId) );
@@ -310,7 +308,7 @@ namespace Jde::Markets
 						returnObject.Result = tick;
 						DBG( "({})TickManager - Calling resume()."sv, hClient );
 						Coroutine::CoroutinePool::Resume( move(h)/*, move(p->second.ThreadParam)*/ );
-						//h.resume();//TODO put in another thread.
+						p = _subscriptions.erase( p );
 					}
 					else
 						p = next( p );
@@ -554,7 +552,7 @@ namespace Jde::Markets
 			else
 			{
 				unique_lock l{ _valuesMutex };
-				DBG( "_tickerContractMap adding [{}]={}"sv, reqId, contractId );
+				DBG( "_tickerContractMap[{}]={}"sv, reqId, contractId );
 				if( auto p=_tickerContractMap.emplace( reqId, contractId ); !p.second )
 					p.first->second = contractId;
 				if( auto pValue = _values.find(contractId); pValue!=_values.end() )
