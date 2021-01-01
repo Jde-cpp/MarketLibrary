@@ -1,9 +1,10 @@
 #pragma once
 #include "../Exports.h"
 #include "../TypeDefs.h"
+#pragma warning( disable : 4244 )
 #include "proto/ib.pb.h"
 #include "proto/results.pb.h"
-
+#pragma warning( default : 4244 )
 namespace Jde::Markets
 {
 	struct Contract;
@@ -18,7 +19,7 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
 	TimePoint PreviousTradingDay( const TimePoint& time )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
-	TimePoint NextTradingDay( const TimePoint& time )noexcept;
+	JDE_MARKETS_EXPORT TimePoint NextTradingDay( const TimePoint& time )noexcept;
 
 	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }

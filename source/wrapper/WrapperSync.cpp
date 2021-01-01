@@ -21,7 +21,15 @@ namespace Jde::Markets
 		_pTickWorker = TickManager::TickWorker::CreateInstance( _pClient );
 		return _pClient;
 	}
-
+	WrapperSync::~WrapperSync()
+	{
+		Shutdown();
+	}
+	void WrapperSync::Shutdown()noexcept
+	{
+		_pClient = nullptr;
+		_pTickWorker = nullptr;
+	}
 	void WrapperSync::SendCurrentTime( const TimePoint& time )noexcept
 	{
 		unique_lock l{ _currentTimeCallbacksMutex };
@@ -275,7 +283,7 @@ namespace Jde::Markets
 			_requestIdsPromisePtr = nullptr;
 			_requestIdsFuturePtr = nullptr;
 		}
-		else
+		else if( _pClient )
 			_pClient->SetRequestId( orderId );
 	}
 

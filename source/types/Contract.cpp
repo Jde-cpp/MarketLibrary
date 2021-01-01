@@ -1,6 +1,8 @@
 #include "Contract.h"
 #include "Currencies.h"
+#pragma warning( disable : 4244 )
 #include "proto/results.pb.h"
+#pragma warning( default : 4244 )
 #include "../types/Exchanges.h"
 #include "../../../Framework/source/Cache.h"
 

@@ -3,7 +3,9 @@
 #include "../Exports.h"
 #include "../../../Framework/source/SmartPointer.h"
 #include "../../../Framework/source/Settings.h"
+#pragma warning( disable : 4244 )
 #include "../types/proto/OptionOI.pb.h"
+#pragma warning( default : 4244 )
 
 struct ContractDetails;
 namespace Jde::Markets

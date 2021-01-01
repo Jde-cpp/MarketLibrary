@@ -43,3 +43,5 @@ tests/.vscode/settings.json
 tests/.vscode/tasks.json
 *.i
 *.diff
+source/.vscode/tasks.json
+tests/.vscode/c_cpp_properties.json

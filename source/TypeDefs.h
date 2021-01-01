@@ -1,14 +1,9 @@
 #pragma once
-
-//#include "../../Framework/source/math/Decimal.h"
-//#include <boost/container/flat_map.hpp>
+#ifndef JDE_MARKETS_TYPE_DEFS
+#define JDE_MARKETS_TYPE_DEFS
 
 namespace Jde::Markets
 {
-	/*
-	using boost::container::flat_map;
-	using boost::container::flat_set;
-	using fmt::format;*/
 	typedef int32 AccountPK;
 	typedef long ContractPK;
 	typedef int32 DecisionTreePK;
@@ -22,3 +17,4 @@ namespace Jde::Markets
 	typedef double PositionAmount;
 	inline PositionAmount ToPosition( double value ){ return value; }
 }
+#endif

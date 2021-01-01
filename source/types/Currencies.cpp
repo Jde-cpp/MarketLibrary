@@ -1,5 +1,7 @@
 #include "Currencies.h"
+#pragma warning( disable : 4244 )
 #include "proto/ib.pb.h"
+#pragma warning( default : 4244 )
 
 #define var const auto
 namespace Jde

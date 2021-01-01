@@ -17,24 +17,24 @@ namespace Jde::Markets
 		return p->Ratios( contractId );
 	}
 
-	void TickManager::Subscribe( uint hClient, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept
+	void TickManager::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept
 	{
-		WorkerPtr->Subscribe( hClient, contractId, fields, snapshot, fnctn );
+		WorkerPtr->Subscribe( sessionId, clientId,  contractId, fields, snapshot, fnctn );
 	}
 
-	void TickManager::CalcImpliedVolatility( uint hClient, const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept
+	void TickManager::CalcImpliedVolatility( uint32 sessionId, uint32 clientId, const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept
 	{
-		WorkerPtr->CalcImpliedVolatility( hClient, contract, optionPrice, underPrice, fnctn );
+		WorkerPtr->CalcImpliedVolatility( sessionId, contract, optionPrice, underPrice, fnctn );
 	}
 
-	void TickManager::CalculateOptionPrice( uint hClient, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept
+	void TickManager::CalculateOptionPrice( uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept
 	{
-		WorkerPtr->CalculateOptionPrice( hClient, contract, volatility, underPrice, fnctn );
+		WorkerPtr->CalculateOptionPrice( sessionId, contract, volatility, underPrice, fnctn );
 	}
 
-	void TickManager::CancelProto( uint hClient, ContractPK contractId )noexcept
+	void TickManager::CancelProto( uint sessionId, uint /*clientId*/, ContractPK contractId )noexcept
 	{
-		WorkerPtr->CancelProto( hClient, contractId );
+		WorkerPtr->CancelProto( sessionId, contractId );
 	}
 
 	void TickManager::Cancel( Coroutine::Handle h )noexcept
@@ -188,14 +188,15 @@ namespace Jde::Markets
 		Proto::Results::MessageUnion msg;
 		OptionComputation optionComp{ tickAttrib==0, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice };
 		unique_lock l{ _optionRequestMutex };
+
+		
 		if( auto p = _optionRequests.find(id); p!=_optionRequests.end() )
 		{
-			var handle = get<0>( p->second );
-			const uint32_t clientId = (uint32_t)handle;
-			const uint32_t sessionId = (uint32_t)(handle >> 32);
+			const uint32_t clientId = p->second.ClientId;
+			const uint32_t sessionId = p->second.SessionId;
 			msg.set_allocated_option_calculation( optionComp.ToProto( clientId, type ).release() );
 			unique_lock l{ _optionRequestMutex };
-			get<1>( p->second )( {msg}, sessionId );
+			p->second.Function( {msg}, sessionId );
 			_optionRequests.erase( p );
 		}
 		else
@@ -234,7 +235,7 @@ namespace Jde::Markets
 						Proto::Results::MessageUnion message;
 						auto pError = make_unique<Proto::Results::Error>(); pError->set_request_id(contractId); pError->set_code(errorCode); pError->set_message(errorString);
 						message.set_allocated_error( pError.release() );
-						get<1>(p->second)( {message}, contractId );
+						p->second.Function( {message}, contractId );
 					}
 				}
 				else if( s.Source==ESubscriptionSource::Internal )
@@ -321,7 +322,7 @@ namespace Jde::Markets
 				{
 					haveSubscription = true;
 					auto f = fields;
-					vector<const Proto::Results::MessageUnion> messages;
+					vector<Proto::Results::MessageUnion> messages;
 					for( uint i = 0; f.any() && i < f.size(); ++i )
 					{
 						if( !f[i] )
@@ -333,13 +334,13 @@ namespace Jde::Markets
 					try
 					{
 						if( messages.size() )
-							get<1>(p->second)( messages, contractId );
+							p->second.Function( messages, contractId );
 						else
 							DBG0( "!messages.size()"sv );
 					}
-					catch( const Exception& e)
+					catch( const Exception& /*e*/)
 					{
-						CancelProto( get<0>(p->second), contractId );
+						CancelProto( p->second.SessionId, contractId );
 					}
 				}
 			}
@@ -473,36 +474,36 @@ namespace Jde::Markets
 		else
 			DBG( "Could not find handle {}."sv, h );
 	}
-	void TickManager::TickWorker::CancelProto( uint hClient, ContractPK contractId )noexcept
+	void TickManager::TickWorker::CancelProto( uint sessionId, ContractPK contractId )noexcept
 	{
 		unique_lock l{ _protoSubscriptionMutex };
 		auto remove = [this]( auto p )
 		{
-			DBG( "_delays.emplace[{}]={} - Proto Cancel"sv, get<0>(p->second), p->first );
+			DBG( "_delays.emplace[{}]={} - Proto Cancel"sv, p->second.SessionId, p->first );
 			unique_lock l{ _delayMutex };
-			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Proto, get<0>(p->second), p->first) );
+			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Proto, p->second.SessionId, p->first) );
 			return _protoSubscriptions.erase( p );
 		};
 		if( contractId )
 		{
 			auto range = _protoSubscriptions.equal_range( contractId );
-			auto p = std::find_if( range.first, range.second, [hClient](auto x){ return get<0>(x.second)==hClient; } );
+			auto p = std::find_if( range.first, range.second, [sessionId](auto x){ return x.second.SessionId==sessionId; } );
 			if( p!=range.second )
 				remove( p );
 			else
-				DBG( "Could not find proto contractId={} hClient={}"sv, contractId, hClient );
+				DBG( "Could not find proto contractId={} sessionId={}"sv, contractId, sessionId );
 		}
 		else
-			for( auto p = _protoSubscriptions.begin(); p!=_protoSubscriptions.end(); p = hClient==get<0>(p->second) ? remove(p) : std::next(p) );
+			for( auto p = _protoSubscriptions.begin(); p!=_protoSubscriptions.end(); p = sessionId==p->second.SessionId ? remove(p) : std::next(p) );
 	}
 
-	#define PREFIX auto pTwsClient = _pTwsClient; if( !pTwsClient ) return; var id = pTwsClient->RequestId(); unique_lock l{ _optionRequestMutex }; _optionRequests.emplace( id, make_tuple(hClient, fnctn) );
-	void TickManager::TickWorker::CalcImpliedVolatility( uint hClient, const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept
+	#define PREFIX auto pTwsClient = _pTwsClient; if( !pTwsClient ) return; var id = pTwsClient->RequestId(); unique_lock l{ _optionRequestMutex }; _optionRequests.emplace( id, ProtoSubscription{sessionId, 0, fnctn} );
+	void TickManager::TickWorker::CalcImpliedVolatility( uint32 sessionId, const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept
 	{
 		PREFIX
 		pTwsClient->calculateImpliedVolatility( id, contract, optionPrice, underPrice, {} );
 	}
-	void TickManager::TickWorker::CalculateOptionPrice( uint hClient, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept
+	void TickManager::TickWorker::CalculateOptionPrice( uint32 sessionId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept
 	{
 		PREFIX
 		pTwsClient->calculateOptionPrice( id, contract, volatility, underPrice, {} );
@@ -599,13 +600,13 @@ namespace Jde::Markets
 		TwsClientPtr->cancelMktData( oldId, false );
 	}
 
-	void TickManager::TickWorker::Subscribe( uint hClient, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept
+	void TickManager::TickWorker::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept
 	{
 		{
 			unique_lock l{ _protoSubscriptionMutex };
-			_protoSubscriptions.emplace( contractId, make_tuple(hClient,fnctn) );
+			_protoSubscriptions.emplace( contractId, ProtoSubscription{sessionId, clientId, fnctn} );
 		}
-		AddSubscription( contractId, TickListSource{ESubscriptionSource::Proto, hClient, fields} );
+		AddSubscription( contractId, TickListSource{ESubscriptionSource::Proto, sessionId, fields} );
 	}
 	void TickManager::TickWorker::Subscribe( const SubscriptionInfo& subscription )noexcept
 	{

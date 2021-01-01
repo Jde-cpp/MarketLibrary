@@ -1,13 +1,15 @@
 #pragma once
 #include "../TypeDefs.h"
 #include "../Exports.h"
-#include "../types/proto/bar.pb.h"
+//#include "../types/proto/bar.pb.h"
 #include "boost/container/flat_set.hpp"
 #include "../../../Framework/source/Settings.h"
 #include "../../../Framework/source/io/File.h"
 
+struct Bar;
 namespace Jde::Markets
 {
+	namespace Proto{ class BarFile; }
 	struct Contract;
 	struct CandleStick;
 	using boost::container::flat_set;

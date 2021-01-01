@@ -1,5 +1,8 @@
 #pragma once
+#pragma warning( disable : 4244 )
 #include <boost/container/flat_map.hpp>
+#pragma warning( default : 4244 )
+
 #include "../../Framework/source/collections/Queue.h"
 #include "../../Framework/source/threading/Worker.h"
 #include "../../Framework/source/coroutine/CoWorker.h"
@@ -7,6 +10,7 @@
 #include "../../Framework/source/coroutine/Task.h"
 #include "types/MyOrder.h"
 #include "types/Contract.h"
+#include "Exports.h"
 
 
 namespace Jde::Markets{ struct TwsClientSync; }
@@ -40,8 +44,8 @@ namespace Jde::Markets::OrderManager
 		sp<const OrderState> StatePtr;
 	};
 
-	using std::experimental::coroutine_handle;
-	using std::experimental::suspend_never;
+	//using std::experimental::coroutine_handle;
+	//using std::experimental::suspend_never;
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
@@ -60,11 +64,11 @@ namespace Jde::Markets::OrderManager
 		void End( Awaitable::Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
 	};
 
-	void Cancel( Coroutine::Handle h )noexcept;
+	JDE_MARKETS_EXPORT void Cancel( Coroutine::Handle h )noexcept;
 	inline auto Subscribe( const CombinedParams& params, Coroutine::Handle& h )noexcept{ return Awaitable{params, h}; }
-	optional<Cache> GetLatest( ::OrderId orderId )noexcept;
+	JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 	void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-	void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
+	JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 	void Push( const ::Order& order, const ::Contract& contract )noexcept;
 
 
@@ -88,10 +92,10 @@ namespace Jde::Markets::OrderManager
 		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
-		friend void Cancel( Coroutine::Handle h )noexcept;
-		friend optional<Cache> GetLatest( ::OrderId orderId )noexcept;
+		friend JDE_MARKETS_EXPORT void Cancel( Coroutine::Handle h )noexcept;
+		friend JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 		friend void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-		friend void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
+		friend JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 		friend void Push( const ::Order& order, const ::Contract& contract )noexcept;
 	};
 }

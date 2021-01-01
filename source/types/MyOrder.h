@@ -1,9 +1,17 @@
 #pragma once
+#ifndef JDE_ORDER
+#define JDE_ORDER
+
 #include <Order.h>
 #include <OrderState.h>
 #include <CommonDefs.h>
 #include "../Exports.h"
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4996 )
 #include "proto/results.pb.h"
+#pragma warning( default : 4244 )
+#pragma warning( default : 4996 )
+
 
 namespace Jde::Markets::Proto{ class Order; enum ETimeInForce : int; enum EOrderType : int; }
 namespace Jde::Markets::Proto::Results{ enum EOrderStatus : int; }
@@ -97,3 +105,4 @@ namespace Jde::Markets
 	inline OrderState::Fields operator| (OrderState::Fields a, OrderState::Fields b){ return (OrderState::Fields)( (uint_fast8_t)a | (uint_fast8_t)b ); }
 	inline OrderState::Fields operator|=(OrderState::Fields& a, OrderState::Fields b){ return a = (OrderState::Fields)( (uint)a | (uint)b ); }
 }
+#endif

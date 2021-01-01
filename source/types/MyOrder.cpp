@@ -1,7 +1,7 @@
 #include "MyOrder.h"
 #include "OrderEnums.h"
-#include "proto/requests.pb.h"
-#include "proto/results.pb.h"
+//#include "proto/requests.pb.h"
+//#include "proto/results.pb.h"
 
 #define var const auto
 namespace Jde::Markets

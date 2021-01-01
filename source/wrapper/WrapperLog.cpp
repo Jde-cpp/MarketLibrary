@@ -1,4 +1,5 @@
 #include "WrapperLog.h"
+#include <CommissionReport.h>
 #include "../OrderManager.h"
 
 #define var const auto

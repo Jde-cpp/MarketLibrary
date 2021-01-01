@@ -1,7 +1,13 @@
 #pragma once
+#ifndef JDE_CONTRACT
+#define JDE_CONTRACT
+
 #include <ostream>
 #include "../Exports.h"
+#pragma warning( disable : 4244 )
 #include "./proto/ib.pb.h"
+#pragma warning( default : 4244 )
+
 //#include "Exchanges.h"
 //#include "../../../framework/io/Buffer.h"
 //#include "../../TypeDefs.h"
@@ -132,7 +138,7 @@ namespace Jde::Markets
 	namespace Contracts
 	{
 		JDE_MARKETS_EXPORT extern const Contract Spy;
-		extern const Contract SH;
+		JDE_MARKETS_EXPORT extern const Contract SH;
 		extern const Contract Qqq;
 		extern const Contract Psq;
 		JDE_MARKETS_EXPORT extern const Contract Tsla;
@@ -141,3 +147,4 @@ namespace Jde::Markets
 	}
 #pragma endregion
 }
+#endif

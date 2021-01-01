@@ -5,17 +5,19 @@
 namespace Jde::Markets
 {
 	shared_ptr<Settings::Container> SettingsPtr;
- 	sp<WrapperSync> Startup()noexcept
+ 	sp<WrapperSync> Startup( int argc, char **argv )noexcept
 	{
 		var sv2 = "Tests.MarketLibrary"sv;
 		string appName{ sv2 };
-		std::filesystem::path settingsPath{ fmt::format("{}.json", appName) };
+		OSApp::Startup( argc, argv, appName );
+
+/*		std::filesystem::path settingsPath{ fmt::format("{}.json", appName) };
 		if( !fs::exists(settingsPath) )
 			settingsPath = std::filesystem::path( fmt::format("../{}.json", appName) );
 		Settings::SetGlobal( std::make_shared<Jde::Settings::Container>(settingsPath) );
 		InitializeLogger( appName );
 		Cache::CreateInstance();
-
+*/
 		auto pInstance = make_shared<WrapperSync>();
 		try
 		{
@@ -34,14 +36,22 @@ constexpr auto ms = std::make_shared<T>;
 
 int main(int argc, char **argv)
 {
+	 _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+ //   _CrtSetBreakAlloc( 11626 );
 	::testing::InitGoogleTest( &argc, argv );
-	auto p = Jde::Markets::Startup();
+	auto x = new char[]{"aaaaaaaaaaaaaaaaaaaaaaaaaa"};
+	auto p = Jde::Markets::Startup( argc, argv );
 	auto result = EXIT_FAILURE;
 	if( p )
 	{
-		::testing::GTEST_FLAG(filter) = "OrderManagerTests.Adhoc";
+		//::testing::GTEST_FLAG(filter) = "OrderManagerTests.Adhoc";
+		::testing::GTEST_FLAG(filter) = "HistoricalDataCacheTest.LoadOptions";//SaveToFile
 	   result = RUN_ALL_TESTS();
+		p->Shutdown();
 		p = nullptr;
 	}
+	Jde::IApplication::Instance().Wait();
+	Jde::IApplication::CleanUp();
+
 	return result;
 }

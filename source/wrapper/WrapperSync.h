@@ -16,6 +16,8 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT WrapperSync : public WrapperCache, std::enable_shared_from_this<WrapperSync>
 	{
 		WrapperSync()noexcept;
+		~WrapperSync();
+		void Shutdown()noexcept;
 		virtual sp<TwsClientSync> CreateClient( uint twsClientId )noexcept;
 		typedef function<void(TickerId id, int errorCode, const std::string& errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;

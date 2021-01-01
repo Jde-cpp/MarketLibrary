@@ -1,5 +1,9 @@
 #include "Tick.h"
+#include "../Exports.h"
+#pragma warning( disable : 4244 )
 #include "proto/results.pb.h"
+#pragma warning( default : 4244 )
+
 #include "../../../Framework/source/collections/Vector.h"
 
 #define var const auto
@@ -17,6 +21,7 @@ namespace Jde::Markets
 		case ETickType::LastTimestamp: LastTimestamp = StringUtilities::TryTo<time_t>( value ).value_or( 0 ); break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
 		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
+		case ETickType::IB_DIVIDENDS: DividendString = value; break;
 		default:
 			WARN( "Ticktype {} value {} is not a string."sv, type, value );
 			set = false;
@@ -126,7 +131,6 @@ namespace Jde::Markets
 		case ETickType::TRADE_RATE: TRADE_RATE = value; break;
 		case ETickType::LAST_RTH_TRADE: LAST_RTH_TRADE = value; break;
 		case ETickType::RT_HISTORICAL_VOL: RT_HISTORICAL_VOL = value; break;
-		case ETickType::IB_DIVIDENDS: DividendString = value; break;
 		case ETickType::BOND_FACTOR_MULTIPLIER: BOND_FACTOR_MULTIPLIER = value; break;
 		case ETickType::REGULATORY_IMBALANCE: REGULATORY_IMBALANCE = value; break;
 		case ETickType::DELAYED_BID: DELAYED_BID = value; break;
@@ -189,39 +193,39 @@ namespace Jde::Markets
 
 		case ETickType::BidSize: price( BidSize ); break;
 		case ETickType::AskSize: price( AskSize ); break;
-		case ETickType::Volume: size( Volume ); break;
+		case ETickType::Volume: size( (int)Volume ); break;
 
 		case ETickType::BidExchange: stng( BidExchange ); break;
 		case ETickType::AskExchange: stng( AskExchange ); break;
 		case ETickType::LastExchange: stng( LastExchange ); break;
 
-		case ETickType::AverageVolume: size( AverageVolume ); break;
-		case ETickType::OPEN_INTEREST: size( OPEN_INTEREST ); break;
-		case ETickType::OPTION_CALL_OPEN_INTEREST: size( OPTION_CALL_OPEN_INTEREST ); break;
-		case ETickType::OPTION_PUT_OPEN_INTEREST: size( OPTION_PUT_OPEN_INTEREST ); break;
-		case ETickType::OPTION_CALL_VOLUME: size( OPTION_CALL_VOLUME ); break;
-		case ETickType::OPTION_PUT_VOLUME: size( OPTION_PUT_VOLUME ); break;
-		case ETickType::AUCTION_VOLUME: size( AUCTION_VOLUME ); break;
-		case ETickType::LastTimestamp: size( LastTimestamp ); break;
+		case ETickType::AverageVolume: size( (int)AverageVolume ); break;
+		case ETickType::OPEN_INTEREST: size( (int)OPEN_INTEREST ); break;
+		case ETickType::OPTION_CALL_OPEN_INTEREST: size( (int)OPTION_CALL_OPEN_INTEREST ); break;
+		case ETickType::OPTION_PUT_OPEN_INTEREST: size( (int)OPTION_PUT_OPEN_INTEREST ); break;
+		case ETickType::OPTION_CALL_VOLUME: size( (int)OPTION_CALL_VOLUME ); break;
+		case ETickType::OPTION_PUT_VOLUME: size( (int)OPTION_PUT_VOLUME ); break;
+		case ETickType::AUCTION_VOLUME: size( (int)AUCTION_VOLUME ); break;
+		case ETickType::LastTimestamp: size( (int)LastTimestamp ); break;
 		case ETickType::SHORTABLE: price( SHORTABLE ); break;
 		case ETickType::FUNDAMENTAL_RATIOS: stng( RatioString ); break;
 		case ETickType::RT_VOLUME: stng( RT_VOLUME ); break;
 		case ETickType::Halted: price( Halted ); break;
-		case ETickType::TRADE_COUNT: size( TRADE_COUNT ); break;
-		case ETickType::VOLUME_RATE: size( VOLUME_RATE ); break;
-		case ETickType::SHORT_TERM_VOLUME_3_MIN: size( SHORT_TERM_VOLUME_3_MIN ); break;
-		case ETickType::SHORT_TERM_VOLUME_5_MIN: size( SHORT_TERM_VOLUME_5_MIN ); break;
-		case ETickType::SHORT_TERM_VOLUME_10_MIN: size( SHORT_TERM_VOLUME_10_MIN ); break;
-		case ETickType::DELAYED_BID_SIZE: size( DELAYED_BID_SIZE ); break;
-		case ETickType::DELAYED_ASK_SIZE: size( DELAYED_ASK_SIZE ); break;
-		case ETickType::DELAYED_LAST_SIZE: size( DELAYED_LAST_SIZE ); break;
-		case ETickType::DELAYED_VOLUME: size( DELAYED_VOLUME ); break;
-		case ETickType::RT_TRD_VOLUME: size( RT_TRD_VOLUME ); break;
-		case ETickType::LAST_REG_TIME: size( LAST_REG_TIME ); break;
-		case ETickType::FUTURES_OPEN_INTEREST: size( FUTURES_OPEN_INTEREST ); break;
-		case ETickType::AVG_OPT_VOLUME: size( AVG_OPT_VOLUME ); break;
-		case ETickType::DELAYED_LAST_TIMESTAMP: size( DELAYED_LAST_TIMESTAMP ); break;
-		case ETickType::SHORTABLE_SHARES: size( SHORTABLE_SHARES ); break;
+		case ETickType::TRADE_COUNT: size( (int)TRADE_COUNT ); break;
+		case ETickType::VOLUME_RATE: size( (int)VOLUME_RATE ); break;
+		case ETickType::SHORT_TERM_VOLUME_3_MIN: size( (int)SHORT_TERM_VOLUME_3_MIN ); break;
+		case ETickType::SHORT_TERM_VOLUME_5_MIN: size( (int)SHORT_TERM_VOLUME_5_MIN ); break;
+		case ETickType::SHORT_TERM_VOLUME_10_MIN: size( (int)SHORT_TERM_VOLUME_10_MIN ); break;
+		case ETickType::DELAYED_BID_SIZE: size( (int)DELAYED_BID_SIZE ); break;
+		case ETickType::DELAYED_ASK_SIZE: size( (int)DELAYED_ASK_SIZE ); break;
+		case ETickType::DELAYED_LAST_SIZE: size( (int)DELAYED_LAST_SIZE ); break;
+		case ETickType::DELAYED_VOLUME: size( (int)DELAYED_VOLUME ); break;
+		case ETickType::RT_TRD_VOLUME: size( (int)RT_TRD_VOLUME ); break;
+		case ETickType::LAST_REG_TIME: size( (int)LAST_REG_TIME ); break;
+		case ETickType::FUTURES_OPEN_INTEREST: size( (int)FUTURES_OPEN_INTEREST ); break;
+		case ETickType::AVG_OPT_VOLUME: size( (int)AVG_OPT_VOLUME ); break;
+		case ETickType::DELAYED_LAST_TIMESTAMP: size( (int)DELAYED_LAST_TIMESTAMP ); break;
+		case ETickType::SHORTABLE_SHARES: size( (int)SHORTABLE_SHARES ); break;
 		case ETickType::NOT_SET: size( NOT_SET ); break;
 
 		case ETickType::LastSize: price( LastSize ); break;
@@ -286,7 +290,7 @@ namespace Jde::Markets
 		}
 		return msg;
 	}
-	void Tick::AddProto( ETickType type, vector<const Proto::Results::MessageUnion>& messages )const noexcept
+	void Tick::AddProto( ETickType type, vector<Proto::Results::MessageUnion>& messages )const noexcept
 	{
 		if( type==ETickType::NewsTick && NewsPtr )
 		{
@@ -398,7 +402,7 @@ namespace Jde::Markets
 
 		case ETickType::BidExchange: result = BidExchange; break;
 		case ETickType::AskExchange: result = AskExchange; break;
-		case ETickType::NewsTick: result = NEWS_TICK; break;
+		case ETickType::NewsTick: result = NewsPtr; break;
 		case ETickType::LastExchange: result = LastExchange; break;
 		case ETickType::BID_OPTION_COMPUTATION: result = BID_OPTION_COMPUTATION; break;
 		case ETickType::ASK_OPTION_COMPUTATION: result = ASK_OPTION_COMPUTATION; break;

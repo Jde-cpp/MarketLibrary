@@ -2,7 +2,9 @@
 #include <EClientSocket.h>
 #include "../Exports.h"
 #include "../types/TwsConnectionSettings.h"
+#pragma warning( disable : 4244 )
 #include "../types/proto/requests.pb.h"
+#pragma warning( default : 4244 )
 #include "../TypeDefs.h"
 #include "../TickManager.h"
 
