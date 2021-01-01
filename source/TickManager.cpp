@@ -317,29 +317,31 @@ namespace Jde::Markets
 			{//Proto Subscriptions
 				unique_lock l{ _protoSubscriptionMutex };//only shared.
 				auto range = _protoSubscriptions.equal_range( contractId );
-				for( auto p = range.first; p!=range.second; ++p )
+				if( range.first!=range.second )
 				{
 					haveSubscription = true;
+					vector<Proto::Results::MessageUnion> messages;
 					auto f = fields;
-					vector<const Proto::Results::MessageUnion> messages;
 					for( uint i = 0; f.any() && i < f.size(); ++i )
 					{
 						if( !f[i] )
 							continue;
 						f.reset( i );
-						var tickType = (ETickType)i;
-						tick.AddProto( tickType, messages );
+						tick.AddProto( (ETickType)i, messages );
 					}
-					try
+					for( auto p = range.first; messages.size() && p!=range.second; ++p )
 					{
-						if( messages.size() )
-							get<1>(p->second)( messages, contractId );
-						else
-							DBG0( "!messages.size()"sv );
-					}
-					catch( const Exception& e)
-					{
-						CancelProto( get<0>(p->second), contractId );
+						try
+						{
+							if( messages.size() )
+								get<1>(p->second)( messages, contractId );
+							else
+								DBG0( "!messages.size()"sv );
+						}
+						catch( const Exception& e)
+						{
+							CancelProto( get<0>(p->second), contractId );
+						}
 					}
 				}
 			}
