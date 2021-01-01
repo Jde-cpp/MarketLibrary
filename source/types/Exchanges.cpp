@@ -1,6 +1,7 @@
 #include "Exchanges.h"
 #include "Contract.h"
 #include "proto/results.pb.h"
+#include "../../Framework/source/JdeAssert.h"
 #define var const auto
 
 namespace Jde
@@ -51,7 +52,26 @@ namespace Jde
 			var year = date.Year();
 			var day = date.Day();
 			var month= date.Month();
-			if( year==2020 )
+			if( year==2021 || year==2010 )
+			{
+				if( month == 1 )
+					isHoliday = day==1 || day==18;
+				else if( month==2 )
+					isHoliday = day==15;
+				else if( month==4 )
+					isHoliday = day==2;
+				else if( month==5 )
+					isHoliday = day==31;
+				else if( month==7 )
+					isHoliday = day==5;
+				else if( month==9 )
+					isHoliday = day==6;
+				else if( month==11 )
+					isHoliday = day==25;
+				else if( month==12 )
+					isHoliday = day==24;
+			}
+			else if( year==2020 )
 			{
 				if( month == 1 )
 					isHoliday = day==1 || day==20;
@@ -108,14 +128,14 @@ namespace Jde
 				else if( month==12 )
 					isHoliday = day==25 || day==5;  //5=bush Death
 			}
-			else if( year==2017 )
+			else if( year==2017 || year==2006 || year==2023 )
 			{
 				if( month == 1 )
 					isHoliday = day==2 || day==16;
 				else if( month==2 )
 					isHoliday = day==20;
 				else if( month==4 )
-					isHoliday = day==14;
+					isHoliday = year==2023 ? day==7 : day==14;
 				else if( month==5 )
 					isHoliday = day==29;
 				else if( month==7 )
@@ -243,25 +263,6 @@ namespace Jde
 				else if( month==12 )
 					isHoliday = day==26;
 			}
-			else if( year==2010 )
-			{
-				if( month == 1 )
-					isHoliday = day==1 || day==18;
-				else if( month==2 )
-					isHoliday = day==15;
-				else if( month==4 )
-					isHoliday = day==2;
-				else if( month==5 )
-					isHoliday = day==31;
-				else if( month==7 )
-					isHoliday = day==5;
-				else if( month==9 )
-					isHoliday = day==6;
-				else if( month==11 )
-					isHoliday = day==25;
-				else if( month==12 )
-					isHoliday = day==24;
-			}
 			else if( year==2009 )
 			{
 				if( month == 1 )
@@ -319,33 +320,16 @@ namespace Jde
 				else if( month==12 )
 					isHoliday = day==25;
 			}
-			else if( year==2006 )
-			{
-				if( month == 1 )
-					isHoliday = day==2 || day==16;
-				else if( month==2 )
-					isHoliday = day==20;
-				else if( month==4 )
-					isHoliday = day==14;
-				else if( month==5 )
-					isHoliday = day==29;
-				else if( month==7 )
-					isHoliday = day==4;
-				else if( month==9 )
-					isHoliday = day==4;
-				else if( month==11 )
-					isHoliday = day==23;
-				else if( month==12 )
-					isHoliday = day==25;
-			}
-			else if( year==2005 )
+			else if( year==2005 || year==2022 )
 			{
 				if( month == 1 )
 					isHoliday = day==17;
 				else if( month==2 )
 					isHoliday = day==21;
-				else if( month==3 )
+				else if( month==3 && year==2005 )
 					isHoliday = day==25;
+				else if( month==4 && year==2022 )
+					isHoliday = day==15;
 				else if( month==5 )
 					isHoliday = day==30;
 				else if( month==7 )
@@ -389,8 +373,8 @@ namespace Jde
 	bool Markets::IsHoliday( DayIndex day, Exchanges /*exchange*/ )noexcept
 	{
 		var mod = day%7;
-		constexpr array<DayIndex,27> last3years = {17546,17581,17620,17679,17716,17777,17857,17870,17890,17897,17917,17945,18005,18043,18081,18141,18228,18255,18262,18281,18309,18362,18407,18446,18512,18592,18621};
-		constexpr array<DayIndex,136> other = {12418,12446,12447,12457,12458,12464,12501,12517,12569,12580,12604,12611,12667,12747,12776,12800,12835,12867,12933,12968,13031,13111,13143,13150,13164,13199,13252,13297,13333,13395,13475,13507,13514,13515,13528,13552,13563,13609,13661,13696,13698,13759,13839,13872,13879,13899,13927,13959,14025,14064,14123,14210,14238,14245,14263,14291,14344,14389,14428,14494,14574,14603,14610,14627,14655,14701,14760,14795,14858,14938,14967,14991,15026,15086,15124,15159,15222,15302,15334,15341,15355,15390,15436,15488,15525,15586,15642,15643,15666,15699,15706,15726,15754,15793,15852,15890,15950,16037,16064,16071,16090,16118,16178,16216,16255,16314,16401,16429,16436,16454,16482,16528,16580,16619,16685,16765,16794,16801,16818,16846,16885,16951,16986,17049,17129,17161,17168,17182,17217,17270,17315,17351,17413,17493,17525,17532};
+		constexpr array<DayIndex,27> last3years = {17897,17917,17945,18005,18043,18081,18141,18228,18255,18262,18281,18309,18362,18407,18446,18512,18592,18621,18628,18645,18673,18719,18778,18813,18876,18956,18985};
+		constexpr array<DayIndex,145> other = {12418,12446,12447,12457,12458,12464,12501,12517,12569,12580,12604,12611,12667,12747,12776,12800,12835,12867,12933,12968,13031,13111,13143,13150,13164,13199,13252,13297,13333,13395,13475,13507,13514,13515,13528,13552,13563,13609,13661,13696,13698,13759,13839,13872,13879,13899,13927,13959,14025,14064,14123,14210,14238,14245,14263,14291,14344,14389,14428,14494,14574,14603,14610,14627,14655,14701,14760,14795,14858,14938,14967,14991,15026,15086,15124,15159,15222,15302,15334,15341,15355,15390,15436,15488,15525,15586,15642,15643,15666,15699,15706,15726,15754,15793,15852,15890,15950,16037,16064,16071,16090,16118,16178,16216,16255,16314,16401,16429,16436,16454,16482,16528,16580,16619,16685,16765,16794,16801,16818,16846,16885,16951,16986,17049,17129,17161,17168,17182,17217,17270,17315,17351,17413,17493,17525,17532,17546,17581,17620,17679,17716,17777,17857,17870,17890};
 		return mod==2 || mod==3
 			|| ( day>17532 && std::binary_search(last3years.begin(), last3years.end(), day) )
 			|| ( day<17533 && std::binary_search(other.begin(), other.end(), day) );

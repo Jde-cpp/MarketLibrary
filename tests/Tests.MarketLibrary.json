@@ -1,1 +1,19 @@
-../../bin/Tests.MarketLibrary.json
+{
+	"zzzbarPath": "/mnt/2TB/securities",
+	"zzdbDriver":  "./libJde.MySql.so",
+	"logging":
+	{
+		"level": 1,
+		"flushOn": 1,
+		"path": "..",
+		"serverPort":  0,
+		"serverPortTest":  4321
+	},
+	"twsClientId": 14,
+	"tws":
+	{
+		"host": "localhost",
+		"ports": [7497,7496,4001,4002],
+		"maxHistoricalDataRequest": 40
+	}
+}

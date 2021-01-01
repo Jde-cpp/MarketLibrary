@@ -83,6 +83,9 @@
     <ClInclude Include="types\MyOrder.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
+    <ClInclude Include="types\Tick.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="types\proto\ib.pb.cc">
@@ -139,9 +142,6 @@
     <ClCompile Include="types\Currencies.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
-    <ClCompile Include="types\proto\watch.pb.cc">
-      <Filter>Source Files\types\proto</Filter>
-    </ClCompile>
     <ClCompile Include="data\HistoricalDataCache.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
@@ -159,6 +159,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Windows\source\dllmain.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OrderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TickManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="types\Tick.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="types\proto\watch.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

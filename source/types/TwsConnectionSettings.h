@@ -1,6 +1,8 @@
 #pragma once
 #include "../Exports.h"
-
+#pragma warning( disable : 4715 )
+#include <nlohmann/json.hpp>
+#pragma warning( default : 4715 )
 namespace Jde::Markets
 {
 	using nlohmann::json;

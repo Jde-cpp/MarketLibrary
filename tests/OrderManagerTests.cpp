@@ -4,7 +4,9 @@
 #include "../../MarketLibrary/source/client/TwsClientSync.h"
 #include "../../MarketLibrary/source/types/IBException.h"
 #include "../../MarketLibrary/source/TickManager.h"
-#include "../../Tws/source/data/ContractData.h"
+#ifdef TWS_TESTS
+	#include "../../Tws/source/data/ContractData.h"
+#endif
 
 #define var const auto
 #define _client TwsClientSync::Instance()

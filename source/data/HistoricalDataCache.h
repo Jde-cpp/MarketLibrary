@@ -2,9 +2,12 @@
 #include "../TypeDefs.h"
 #include "../Exports.h"
 #include "../types/Exchanges.h"
+#pragma warning( disable : 4244 )
 #include "../types/proto/requests.pb.h"
+#pragma warning( default : 4244 )
 #include "../../../Framework/source/math/MathUtilities.h"
 
+struct Bar;
 namespace Jde::Markets
 {
 	struct Contract;

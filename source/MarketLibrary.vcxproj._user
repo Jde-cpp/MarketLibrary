@@ -2,13 +2,13 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Label="Globals">
-    <IncludePath>$(BOOST_DIR);$(REPO_DIR)/spdlog/include;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/json/include;C:\TWS API\source\CppClient\client;$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_DIR)/stage/lib;$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(BOOST_DIR);$(REPO_DIR)/spdlog/include;$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/json/include;C:\TWS API\source\CppClient\client;$(IncludePath)</IncludePath>
+    <LibraryPath>$(BOOST_DIR)/stage/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(REPO_DIR)/vcpkg/buildtrees/protobuf/x64-windows-dbg;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\protobuf\cmake\build\debug;$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)/tws-api/source/cppclient/client/.bin/release;$(REPO_DIR)/vcpkg/buildtrees/protobuf/x64-windows-rel;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\protobuf\cmake\build\release;$(REPO_DIR)/tws-api/source/cppclient/client/.bin/release;$(REPO_DIR)\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
 </Project>

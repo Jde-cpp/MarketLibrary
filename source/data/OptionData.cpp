@@ -1,7 +1,11 @@
 #include "./OptionData.h"
 #include "BarData.h"
 #include "../types/Contract.h"
+
+#pragma warning( disable : 4244 )
 #include "../types/proto/results.pb.h"
+#pragma warning( default : 4244 )
+
 #include "../types/Exchanges.h"
 #include "../../../Framework/source/io/File.h"
 #include "../../../Framework/source/db/Database.h"

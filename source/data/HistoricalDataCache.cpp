@@ -1,10 +1,14 @@
 #include "./HistoricalDataCache.h"
+#include <bar.h>
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
 #include "../types/Contract.h"
 #include "../data/BarData.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/math/MathUtilities.h"
+#pragma warning( disable : 4244 )
+#include "../types/proto/bar.pb.h"
+#pragma warning( default : 4244 )
 
 
 #define var const auto
@@ -120,7 +124,7 @@ namespace Jde::Markets
 			return startEnd;
 		};
 		var startEnd = load();
-		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && barSize!=EBarSize::Day && BarData::HavePath() && contract.SecType==SecurityType::Stock )//look in files
+		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && barSize!=EBarSize::Day /*&& BarData::HavePath()*/ && contract.SecType==SecurityType::Stock )//look in files
 		{
 			auto add = [pBars, &days, pMinutes=dynamic_pointer_cast<SubDataCache>(pCache), contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )mutable
 			{//add to cache so can subsequently load pBars from cache.

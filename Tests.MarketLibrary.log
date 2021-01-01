@@ -1,0 +1,44 @@
+[2020-12-30 15:30:27.601] [my_logger] [info] Created log level:  Debug,  flush on:  Information
+[2020-12-30 15:30:27.603] [my_logger] [info] C:\Users\duffyj\source\repos\jde\TwsWebSocket\source\.bin\Debug\Jde.Tests.Markets.exe, settings='"Tests.MarketLibrary.json"' Running as console='true'
+[2020-12-30 15:30:27.604] [my_logger] [debug] TwsClientSync::CreateInstance
+[2020-12-30 15:30:27.604] [my_logger] [debug] Attempt to connect to Tws:  7497
+[2020-12-30 15:30:27.639] [my_logger] [debug] WrapperLog::connectAck()
+[2020-12-30 15:30:27.682] [my_logger] [debug] connected to Tws:  7497.
+[2020-12-30 15:30:27.683] [my_logger] [debug] TwsProcessor::CreateInstance
+[2020-12-30 15:30:27.683] [my_logger] [debug] TwsProcessor::Stop _pInstance=false
+[2020-12-30 15:30:27.684] [my_logger] [debug] Leaving TwsProcessor::Stop
+[2020-12-30 15:30:27.688] [my_logger] [debug] Connected to Tws Host='localhost', Port'7497', Client='14'
+[2020-12-30 15:30:27.688] [my_logger] [debug] Enter TwsProcessor::ProcessMessages IsConnected = true, Threading::GetThreadInterruptFlag().IsSet=false
+[2020-12-30 15:30:27.691] [my_logger] [debug] TickWorker - Starting
+[2020-12-30 15:30:27.691] [my_logger] [info] WrapperLog::nextValidId( '1' )
+[2020-12-30 15:30:27.692] [my_logger] [debug] (-1)WrapperLog::error( 2104, Market data farm connection is OK:usfarm )
+[2020-12-30 15:30:27.692] [my_logger] [debug] (-1)WrapperLog::error( 2106, HMDS data farm connection is OK:euhmds )
+[2020-12-30 15:30:27.693] [my_logger] [debug] (-1)WrapperLog::error( 2106, HMDS data farm connection is OK:fundfarm )
+[2020-12-30 15:30:27.695] [my_logger] [debug] (1)reqContractDetails( 'SPY', 'OPT', '20230120' )
+[2020-12-30 15:30:27.696] [my_logger] [debug] (-1)WrapperLog::error( 2106, HMDS data farm connection is OK:ushmds )
+[2020-12-30 15:30:27.697] [my_logger] [debug] (-1)WrapperLog::error( 2158, Sec-def data farm connection is OK:secdefnj )
+[2020-12-30 15:30:27.698] [my_logger] [debug] WrapperLog::managedAccounts( DU1330817 )
+[2020-12-30 15:30:27.775] [my_logger] [debug] (1)WrapperLog::contractDetails( '445047968', 'SPY   230120C00330000', 'SPY', 'C', '20230120' )
+[2020-12-30 15:30:27.778] [my_logger] [debug] (1)WrapperLog::contractDetailsEnd()
+[2020-12-30 15:30:27.791] [my_logger] [debug] ClearMemoryLog
+[2020-12-30 15:30:27.820] [my_logger] [debug] (3)reqHistoricalData( 'SPY   230120C00330000', '20201228 23:59:59 GMT', '1 D', '1 hour', 'TRADES', useRth='true', keepUpToDate='false' )0
+[2020-12-30 15:30:28.556] [my_logger] [debug] (3)_historicalDataRequests.erase()0
+[2020-12-30 15:30:28.562] [my_logger] [debug] (3)WrapperLog::error( 162, Historical Market Data Service error message:HMDS query returned no data: SPY   230120C00330000@SMART Trades )
+[2020-12-30 15:30:28.564] [my_logger] [debug] _tickerContractMap=0
+[2020-12-30 15:30:28.565] [my_logger] [debug] (3)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:28.569] [my_logger] [debug] (2)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:28.569] [my_logger] [debug] ClearMemoryLog
+[2020-12-30 15:30:28.597] [my_logger] [debug] (5)reqHistoricalData( 'SPY   230120C00330000', '20201229 23:59:59 GMT', '1 D', '1 hour', 'TRADES', useRth='true', keepUpToDate='false' )0
+[2020-12-30 15:30:28.896] [my_logger] [debug] (5)_historicalDataRequests.erase()0
+[2020-12-30 15:30:28.897] [my_logger] [debug] (5)WrapperLog::error( 162, Historical Market Data Service error message:HMDS query returned no data: SPY   230120C00330000@SMART Trades )
+[2020-12-30 15:30:28.898] [my_logger] [debug] _tickerContractMap=0
+[2020-12-30 15:30:28.898] [my_logger] [debug] (5)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:28.899] [my_logger] [debug] (4)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:28.900] [my_logger] [debug] ClearMemoryLog
+[2020-12-30 15:30:28.901] [my_logger] [debug] (7)reqHistoricalData( 'SPY   230120C00330000', '20201224 23:59:59 GMT', '1 D', '1 hour', 'TRADES', useRth='true', keepUpToDate='false' )0
+[2020-12-30 15:30:29.016] [my_logger] [debug] (7)_historicalDataRequests.erase()0
+[2020-12-30 15:30:29.017] [my_logger] [debug] (7)WrapperLog::error( 162, Historical Market Data Service error message:HMDS query returned no data: SPY   230120C00330000@SMART Trades )
+[2020-12-30 15:30:29.019] [my_logger] [debug] _tickerContractMap=0
+[2020-12-30 15:30:29.023] [my_logger] [debug] (7)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:29.055] [my_logger] [debug] (6)WrapperLog::historicalDataEnd()0
+[2020-12-30 15:30:29.056] [my_logger] [debug] ClearMemoryLog

@@ -60,16 +60,16 @@ namespace Jde::Markets
 		req( end, 3, PreviousTradingDay(start) );
 	}
 
-	TEST_F(HistoricalDataCacheTest, SaveToFile)
+	TEST_F( HistoricalDataCacheTest, SaveToFile )
 	{
 		ClearMemoryLog();
 		var& contract = Contracts::Aig;
-
-		var dates = BarData::FindExisting( Contracts::Aig, DaysSinceEpoch(DateTime{2020,1,1}) );
+		var testFrom = DaysSinceEpoch( DateTime{2020,1,1} );
+		var dates = BarData::FindExisting( Contracts::Aig, testFrom );
 		bool tested = false;
 		var start = IsOpen( contract ) ? PreviousTradingDay() : CurrentTradingDay();
 		var end = dates.size() ? *dates.begin() : start;
-		for( auto day = start; !tested && day>end; day=PreviousTradingDay(day) )
+		for( auto day = start; !tested && day>testFrom; day=PreviousTradingDay(day) )
 		{
 			var file = BarData::File( contract, day );
 			tested = !fs::exists( file );
@@ -106,11 +106,11 @@ namespace Jde::Markets
 		for( uint i=0; i<actual.size() && _testCompareBar; ++i )
 			CompareBar( actual[i], expected[i], compareVolume );
 	}
-	TEST_F(HistoricalDataCacheTest, LoadFromFile)
+	TEST_F( HistoricalDataCacheTest, LoadFromFile )
 	{
-		var& contract = Contracts::Spy;
+		var& contract = Contracts::Aig;
 		//compare with non-cache.
-		var dates = BarData::FindExisting( Contracts::Spy, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
+		var dates = BarData::FindExisting( contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
 		var day = *dates.rbegin();
 		ClearMemoryLog();
 		var pCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, true ).get();
@@ -142,12 +142,13 @@ namespace Jde::Markets
 	{
 		var test = []( const HistoricalDataCache::StatCount& actual, const HistoricalDataCache::StatCount& expected )
 		{
-			var near = 1e-9;
-			ASSERT_NEAR( actual.Average, expected.Average, near );
-			ASSERT_NEAR( actual.Variance, expected.Variance, near );
+			var near2 = 1e-9;
+		//	switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar = (::testing::internal::DoubleNearPredFormat("actual.Average", "expected.Average", "", actual.Average, expected.Average,))) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, "C:\\Users\\duffyj\\source\\repos\\jde\\MarketLibrary\\tests\\HistoricalDataCacheTest.cpp", 146, gtest_ar.failure_message()) = ::testing::Message() ;
+			ASSERT_NEAR( actual.Average, expected.Average, near2 );
+			ASSERT_NEAR( actual.Variance, expected.Variance, near2 );
 			ASSERT_EQ( actual.Count, expected.Count );
-			ASSERT_NEAR( actual.Min, expected.Min, near );
-			ASSERT_NEAR( actual.Max, expected.Max, near );
+			ASSERT_NEAR( actual.Min, expected.Min, near2 );
+			ASSERT_NEAR( actual.Max, expected.Max, near2 );
 		};
 		var& contract = Contracts::Spy;
 		auto pValues = HistoricalDataCache::ReqStats( contract, 5, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint()) );
@@ -162,7 +163,7 @@ namespace Jde::Markets
 
 	TEST_F(HistoricalDataCacheTest, CombineMinuteBars)
 	{
-		var& contract = Contracts::Spy;
+		var& contract = Contracts::Aig;
 		var dates = BarData::FindExisting( contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
 		var day = *dates.rbegin();
 

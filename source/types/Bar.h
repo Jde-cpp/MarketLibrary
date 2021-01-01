@@ -1,7 +1,9 @@
 #pragma once
 #include "../TypeDefs.h"
 #include "../Exports.h"
+#pragma warning( disable : 4244 )
 #include "./proto/requests.pb.h"
+#pragma warning( default : 4244 )
 struct Bar;
 
 namespace Jde::Markets

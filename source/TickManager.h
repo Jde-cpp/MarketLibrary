@@ -1,5 +1,5 @@
 #pragma once
-#include <experimental/coroutine>
+//#include <experimental/coroutine>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
 
@@ -11,8 +11,11 @@
 #include "../../Framework/source/collections/Map.h"
 #include "../../Framework/source/collections/UnorderedSet.h"
 #include "../../Framework/source/collections/UnorderedMapValue.h"
+#include "Exports.h"
+#pragma warning( disable : 4244 )
 #include "types/proto/requests.pb.h"
 #include "types/proto/results.pb.h"
+#pragma warning( default : 4244 )
 #include "types/Tick.h"
 
 namespace Jde::Markets
@@ -23,7 +26,6 @@ namespace Jde::Markets
 	using boost::container::flat_map;
 	using boost::container::flat_set;
 	using boost::container::flat_multimap;
-	using std::experimental::coroutine_handle;
 	using Proto::Requests::ETickList; using Proto::Results::ETickType;
 	struct JDE_MARKETS_EXPORT TickManager final
 	{
@@ -56,13 +58,13 @@ namespace Jde::Markets
 			//void End( Awaitable::Handle h, const Tick* pTick )noexcept; std::once_flag _singleEnd;
 		};
 
-		typedef function<void(const vector<const Proto::Results::MessageUnion>&, uint32_t)> ProtoFunction;
-		static void CalcImpliedVolatility( uint hClient, const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept;
-		static void CalculateOptionPrice(  uint hClient, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept;
+		typedef function<void(const vector<Proto::Results::MessageUnion>&, uint32_t)> ProtoFunction;
+		static void CalcImpliedVolatility( uint32 sessionId, uint32 clientId,  const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept;
+		static void CalculateOptionPrice(  uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept;
 		static void Cancel( Coroutine::Handle h )noexcept;
 		static auto Subscribe( const TickParams& params, Coroutine::Handle& h )noexcept{ return Awaitable{params, h}; }
-		static void Subscribe( uint hClient, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept;
-		static void CancelProto( uint hClient, ContractPK contractId )noexcept;
+		static void Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept;
+		static void CancelProto( uint sessionId, uint clientId, ContractPK contractId )noexcept;
 		static std::future<Tick> Ratios( const ContractPK contractId )noexcept;
 
 
@@ -77,7 +79,7 @@ namespace Jde::Markets
 			void Push( TickerId id, ETickType type, double v )noexcept;
 			void Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept;
 			void Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept;
-			void PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept;
+			JDE_MARKETS_EXPORT void PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept;
 			void Push( TickerId id, ETickType type, int v )noexcept;
 			void Push( TickerId id, ETickType type, const std::string& v )noexcept;
 			bool HandleError( int id, int errorCode, const std::string& errorString )noexcept;
@@ -114,8 +116,15 @@ namespace Jde::Markets
 
 			flat_multimap<ContractPK,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;//Type=0, handleIndex=clientId
 
-			void Subscribe( uint hClient, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept;
-			flat_multimap<ContractPK,tuple<uint,TickManager::ProtoFunction>> _protoSubscriptions; mutex _protoSubscriptionMutex;//Type=1, handleIndex=[SessionId,clientId]
+			void Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept;
+			struct ProtoSubscription
+			{
+				uint32 SessionId;
+				uint32 ClientId;
+
+				TickManager::ProtoFunction Function;
+			};
+			flat_multimap<ContractPK,ProtoSubscription> _protoSubscriptions; mutex _protoSubscriptionMutex;//Type=1, handleIndex=[SessionId,clientId]
 
 			flat_multimap<ContractPK,tuple<std::promise<Tick>,TimePoint,uint>> _ratioSubscriptions; mutex _ratioSubscriptionMutex;
 
@@ -126,9 +135,9 @@ namespace Jde::Markets
 			sp<TwsClient> _pTwsClient;
 			TimePoint LastOutgoing;
 
-			void CalcImpliedVolatility( uint hClient, const ::Contract& contract, double optionPrice, double underPrice, TickManager::ProtoFunction fnctn )noexcept;
-			void CalculateOptionPrice( uint hClient, const ::Contract& contract, double volatility, double underPrice, TickManager::ProtoFunction fnctn )noexcept;
-			flat_multimap<TickerId,tuple<uint,TickManager::ProtoFunction>> _optionRequests; mutex _optionRequestMutex;
+			void CalcImpliedVolatility( uint32 hClient, const ::Contract& contract, double optionPrice, double underPrice, TickManager::ProtoFunction fnctn )noexcept;
+			void CalculateOptionPrice( uint32 hClient, const ::Contract& contract, double volatility, double underPrice, TickManager::ProtoFunction fnctn )noexcept;
+			flat_multimap<TickerId,ProtoSubscription> _optionRequests; mutex _optionRequestMutex;
 
 			uint InternalSubscriptionHandle{0};
 			friend TickManager;

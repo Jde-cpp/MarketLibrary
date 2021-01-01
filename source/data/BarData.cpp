@@ -2,7 +2,9 @@
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
 #include "../types/Contract.h"
+#pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
+#pragma warning( default : 4244 )
 #include "../../../XZ/source/XZ.h"
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/File.h"
@@ -142,7 +144,7 @@ namespace Jde::Markets
 					pResults->try_emplace( pResults->end(), day, pBars );
 			}
 		};
-		if( HavePath() )
+		//if( HavePath() )
 			ForEachFile( contract, fnctn, start, end );
 		return pResults;
 	}
@@ -277,7 +279,7 @@ namespace Jde::Markets
 			{
 				if( !fs::exists(barPath) )
 				{
-					fs::create_directory( barPath );
+					fs::create_directories( barPath );
 					DBG( "Created directory '{}'"sv, barPath.string() );
 				}
 				const fs::path tempPath{ barPath/("~"+completeFileName) };

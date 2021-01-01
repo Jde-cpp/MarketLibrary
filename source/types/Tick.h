@@ -1,16 +1,13 @@
 #pragma once
+#ifndef JDE_TICK
+#define JDE_TICK
+
 #include <variant>
 #include <map>
 #include <bitset>
 #include <CommonDefs.h>
-/*
-#include "../../../Framework/source/collections/Vector.h"
 #include "../Exports.h"
-#include "../TypeDefs.h"
 
-#include "proto/requests.pb.h"
-#include "proto/results.pb.h"
-*/
 namespace Jde{ template<typename> class Vector; }
 namespace Jde::Markets
 {
@@ -29,7 +26,7 @@ namespace Jde::Markets
 	struct OptionComputation
 	{
 		std::unique_ptr<Proto::Results::OptionCalculation> ToProto( ContractPK contractId, ETickType tickType )const noexcept;
-		bool operator==(const OptionComputation& x)const noexcept=default;
+		bool operator==(const OptionComputation& x)const noexcept{ return memcmp(this, &x, sizeof(OptionComputation))==0; }
 		bool ReturnBased;//vs price based TickAttrib;
 		double ImpliedVol;
 		double Delta;
@@ -51,10 +48,10 @@ namespace Jde::Markets
 		const str ExtraData;
 	};
 
-	struct Tick
+	struct JDE_MARKETS_EXPORT Tick
 	{
 		typedef std::bitset<91> Fields;//ETickType::NOT_SET+1
-		typedef std::variant<nullptr_t,uint,int,double,time_t,str,OptionComputation> TVariant;
+		typedef std::variant<nullptr_t,uint,int,double,time_t,str,OptionComputation,sp<Vector<News>>> TVariant;
 		Tick()=default;//TODO try to remove
 		//Tick( Tick&& )=default;
 		//Tick( const Tick& )=default;
@@ -72,7 +69,7 @@ namespace Jde::Markets
 		void AddNews( News&& news )noexcept;
 		std::map<str,double> Ratios()const noexcept;
 		Proto::Results::MessageUnion ToProto( ETickType type )const noexcept;
-		void AddProto( ETickType type, std::vector<const Proto::Results::MessageUnion>& messages )const noexcept;
+		void AddProto( ETickType type, std::vector<Proto::Results::MessageUnion>& messages )const noexcept;
 
 		static Fields PriceFields()noexcept;
 		ContractPK ContractId{0};
@@ -174,3 +171,4 @@ namespace Jde::Markets
 		friend OptionTests;
 	};
 }
+#endif
