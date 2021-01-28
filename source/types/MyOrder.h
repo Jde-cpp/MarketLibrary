@@ -52,7 +52,7 @@ namespace Jde::Markets
 			All = std::numeric_limits<uint>::max() //(uint)~0
 		};
 		Fields Changes( const MyOrder& status, Fields fields )const noexcept;
-		std::chrono::system_clock::time_point LastUpdate;
+		mutable std::chrono::system_clock::time_point LastUpdate;
 	};
 	inline MyOrder::Fields operator|(MyOrder::Fields a, MyOrder::Fields b){ return (MyOrder::Fields)( (uint)a | (uint)b ); }
 	inline MyOrder::Fields operator|=(MyOrder::Fields& a, MyOrder::Fields b){ return a = (MyOrder::Fields)( (uint)a | (uint)b ); }

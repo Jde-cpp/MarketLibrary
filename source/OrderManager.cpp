@@ -82,21 +82,20 @@ namespace OrderManager
 	{
 		ASSERT( pOrder );
 		unique_lock l{_incomingMutex};
+		sp<const Contract> pContract;
 		if( auto p = _incoming.find(pOrder->orderId); p!=_incoming.end() )
 		{
 			auto& cache = p->second;
 			cache.OrderPtr = pOrder;
 			if( pState )
-			{
-				//DBG( "cache.StatePtr={}"sv, pState->status );
 				cache.StatePtr = pState;
-			}
 			if( !cache.ContractPtr )
 				cache.ContractPtr = make_shared<const Markets::Contract>( contract );
+			pContract = cache.ContractPtr;
 		}
 		else
-			_incoming.try_emplace( pOrder->orderId, Cache{pOrder, make_shared<Contract>(contract), {}, pState} );
-
+			_incoming.try_emplace( pOrder->orderId, Cache{pOrder, pContract = make_shared<Contract>(contract), {}, pState} );
+		DBG( "({})added order -{} limit={}"sv, pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
 		std::unique_lock<std::mutex> lk( _mtx );
 		l.unlock();
 		_cv.notify_one();
@@ -129,15 +128,21 @@ namespace OrderManager
 			unique_lock l{ _cacheMutex };
 			if( auto p=_cache.find(id); p!=_cache.end() )
 			{
-				DBG( "({})OrderManager update."sv, id );
+				string log = format( "({})OrderManager update."sv, id );
 				auto& v = p->second;
 				if( update.OrderPtr )
+				{
+					log.append( format(" limit={}", update.OrderPtr->lmtPrice) );
+					var lastUpdate = v.OrderPtr->LastUpdate;
 					v.OrderPtr = update.OrderPtr;
+					v.OrderPtr->LastUpdate = lastUpdate;
+				}
 				if( update.StatusPtr )
 					v.StatusPtr = update.StatusPtr;
 				if( update.StatePtr )
 					v.StatePtr = update.StatePtr;
 				latest = v;
+				DBG0( log );
 			}
 			else
 			{

@@ -92,6 +92,7 @@ namespace Jde::Markets
 		~Contract();
 		bool operator <(const Contract &b)const noexcept{return Id<b.Id;}
 
+		string Display()const noexcept;
 		sp<::Contract> ToTws()const noexcept;
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};

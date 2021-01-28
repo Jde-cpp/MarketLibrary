@@ -19,7 +19,7 @@ namespace Jde::Markets
 	JDE_MARKETS_EXPORT DayIndex NextTradingDay( DayIndex day )noexcept;
 	TimePoint PreviousTradingDay( const TimePoint& time )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept;
-	JDE_MARKETS_EXPORT TimePoint NextTradingDay( const TimePoint& time )noexcept;
+	JDE_MARKETS_EXPORT TimePoint NextTradingDay( TimePoint time )noexcept;
 
 	inline DayIndex CurrentTradingDay( DayIndex day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	inline DayIndex CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }

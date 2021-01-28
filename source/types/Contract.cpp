@@ -203,6 +203,14 @@ namespace Jde::Markets
 	{
 		return Amount( std::round( (static_cast<double>(price)-.000005)*100.0 )/100.0 );//.00005 rounds down .005
 	}
+
+	string Contract::Display()const noexcept
+	{
+		return SecType==SecurityType::Option 
+			? format("{} - {}@{}", Symbol, Chrono::DateDisplay(Expiration), Strike )
+			: Symbol;
+	}
+
 	std::ostream& Contract::to_stream( std::ostream& os, bool includePrimaryExchange )const noexcept
 	{
 		os << Id << Symbol << SecType << Expiration << Strike << ToString(Right) << Multiplier << Exchange;

@@ -26,6 +26,7 @@ namespace Jde::Markets
 		void winError( const std::string& str, int lastError)noexcept override;
 		void connectionClosed()noexcept override;
 		void updateAccountValue(const std::string& key, const std::string& val,	const std::string& currency, const std::string& accountName)noexcept override;
+		bool updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept;
 		void updatePortfolio( const ::Contract& contract, double position,	double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName)noexcept override;
 		void updateAccountTime(const std::string& timeStamp)noexcept override;
 		void accountDownloadEnd(const std::string& accountName)noexcept override;
@@ -100,14 +101,14 @@ namespace Jde::Markets
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
 		void AddHistoricalDataRequest2( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
-		void AddAccountUpdate( function<void(const string&,const string&,const string&,const string&)> callback )noexcept;
+		void AddAccountUpdate( function<void(sv,sv,sv,sv)> callback )noexcept;
 		void ClearAccountUpdates()noexcept;
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 		sp<TickManager::TickWorker> _pTickWorker;
-		vector<function<void(const string&,const string&,const string&,const string&)>> _accountUpdateCallbacks; shared_mutex _accountUpdateCallbackMutex;
+		vector<function<void(sv,sv,sv,sv)>> _accountUpdateCallbacks; shared_mutex _accountUpdateCallbackMutex;
 		friend TickManager::TickWorker;
 	};
 }

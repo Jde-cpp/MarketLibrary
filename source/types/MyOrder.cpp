@@ -62,7 +62,11 @@ namespace Jde::Markets
 		randomizePrice = proto.randomize_price();
 
 		if( proto.volatility() && !isnan(proto.volatility()) ) volatility = proto.volatility();
-		if( proto.volatility_type() ) volatilityType = proto.volatility_type();// 1=daily, 2=annual
+		if( proto.volatility_type() ) 
+		{
+			WARN( "volatilityType={}"sv, proto.volatility_type() );
+			volatilityType = proto.volatility_type();// 1=daily, 2=annual
+		}
 		deltaNeutralOrderType = proto.delta_neutral_order_type();
 		if( proto.delta_neutral_aux_price() && !isnan(proto.delta_neutral_aux_price()) ) deltaNeutralAuxPrice = proto.delta_neutral_aux_price();
 		deltaNeutralConId = proto.delta_neutral_con_id();

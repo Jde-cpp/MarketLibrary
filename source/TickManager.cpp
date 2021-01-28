@@ -50,6 +50,7 @@ namespace Jde::Markets
 	void TickManager::Awaitable::await_suspend( TickManager::Awaitable::base::Handle h )noexcept
 	{
 		base::await_suspend( h );
+		ASSERT( Tick.ContractId );
 		_pPromise = &h.promise();
 		if( auto p=TickWorker::Instance(); p )
 			p->Subscribe( TickWorker::SubscriptionInfo{ {h, _hClient}, *this} );
@@ -151,6 +152,7 @@ namespace Jde::Markets
 			if( auto pValue=_values.find(contractId); pValue!=_values.end() )
 			{
 				fnctn( pValue->second );
+				l.unlock();
 				AddOutgoingField( contractId, tickType );
 			}
 		}
@@ -259,12 +261,14 @@ namespace Jde::Markets
 		}
 		return true;
 	}
+
+	uint index = 0;
 	void TickManager::TickWorker::Process()noexcept
 	{
-		optional<tuple<Tick,TickFields>> outgoing;
+		vector<tuple<Tick,TickFields>> outgoingTicks;
 		{
 			unique_lock l{_outgoingFieldsMutex};
-			if( auto pOutgoingField=_outgoingFields.begin(); pOutgoingField!=_outgoingFields.end() )
+			for( auto pOutgoingField=_outgoingFields.begin(); pOutgoingField!=_outgoingFields.end(); ++pOutgoingField )
 			{
 				var contractId = pOutgoingField->first;
 				shared_lock l{_valuesMutex};
@@ -272,19 +276,25 @@ namespace Jde::Markets
 				{
 					var& fields = pOutgoingField->second;
 					auto& tick = pValue->second;
-					outgoing = make_tuple( tick, fields );
+					outgoingTicks.push_back( {tick, fields} );
 					if( fields[ETickType::NewsTick] )
 						tick.NewsPtr->clear();
 				}
 				else
 					CRITICAL( "({})Could not find contract in values."sv, contractId );
-				_outgoingFields.erase( pOutgoingField );
 			}
+			_outgoingFields.clear();
 		}
-		if( outgoing )
+		if( outgoingTicks.size() )
 		{
-			var& tick = get<0>( outgoing.value() );
-			var& fields = get<1>( outgoing.value() );
+			if( ++index %1000 == 0 )
+				DBG( "index={}k"sv, index/1000 );
+		}
+		for( var& outgoing : outgoingTicks )
+		{
+			
+			var& tick = get<0>( outgoing );
+			var& fields = get<1>( outgoing );
 			var contractId = tick.ContractId;
 			bool haveSubscription;
 			{//coroutine Subscriptions
@@ -403,11 +413,11 @@ namespace Jde::Markets
 				CancelMarketData( p->second, 0 );
 			}
 		}
-		if( !outgoing )
+		if( !outgoingTicks.size() )
 		{
-			if( Clock::now()-LastOutgoing<WakeDuration )
+		/*	if( Clock::now()-LastOutgoing<WakeDuration )
 				std::this_thread::yield();
-			else
+			else */
 			{
 				std::unique_lock<std::mutex> lk( _mtx );
 				_cv.wait_for( lk, WakeDuration );
