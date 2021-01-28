@@ -60,7 +60,7 @@ namespace Jde::Markets
 			WrapperLogPtr()->ClearAccountUpdates();
 		EClientSocket::reqAccountUpdates( subscribe, acctCode );
 	}
-	void TwsClient::reqAccountUpdates( const string& acctCode, function<void(const string&,const string&,const string&,const string&)> callback )noexcept
+	void TwsClient::reqAccountUpdates( const string& acctCode, function<void(sv,sv,sv,sv)> callback )noexcept
 	{
 		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, false, acctCode );
 		WrapperLogPtr()->AddAccountUpdate( callback );

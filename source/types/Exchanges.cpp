@@ -430,9 +430,13 @@ namespace Jde
 		for( ; IsHoliday(next); ++next );
 		return next;
 	}
-	TimePoint Markets::NextTradingDay( const TimePoint& time )noexcept
+	TimePoint Markets::NextTradingDay( TimePoint time )noexcept
 	{
-		return FromDays( NextTradingDay(DaysSinceEpoch(time)) );
+		DateTime t2{ time-Timezone::EasternTimezoneDifference(time) };
+		DBG0( ToIsoString(time+Timezone::EasternTimezoneDifference(time)) );
+		if( t2.Hour()<4 )
+			time -= 4h;
+		return FromDays( NextTradingDay(DaysSinceEpoch(t2)) );
 	}
 	mutex _lock;
 	namespace Markets
