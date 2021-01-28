@@ -191,7 +191,7 @@ namespace Jde::Markets
 		OptionComputation optionComp{ tickAttrib==0, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice };
 		unique_lock l{ _optionRequestMutex };
 
-		
+
 		if( auto p = _optionRequests.find(id); p!=_optionRequests.end() )
 		{
 			const uint32_t clientId = p->second.ClientId;
@@ -328,9 +328,10 @@ namespace Jde::Markets
 			{//Proto Subscriptions
 				unique_lock l{ _protoSubscriptionMutex };//only shared.
 				auto range = _protoSubscriptions.equal_range( contractId );
-				for( auto p = range.first; p!=range.second; ++p )
+				if( range.first!=range.second )
 				{
 					haveSubscription = true;
+					vector<Proto::Results::MessageUnion> messages;
 					auto f = fields;
 					vector<Proto::Results::MessageUnion> messages;
 					for( uint i = 0; f.any() && i < f.size(); ++i )
