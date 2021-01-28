@@ -1,0 +1,74 @@
+{
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "label": "build",
+         "type": "shell",
+         "command": "tput reset; ../../Framework/cmake/buildc.sh ${workspaceFolder}",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"]},
+         "group": {"kind": "build","isDefault": true }
+      },
+      {
+         "label": "clean",
+         "type": "shell",
+         "command": "clear;cd .obj/asan;make clean; cd ../release; make clean;cd ../..",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"],
+				"pattern": {"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$","file": 1,"line": 2,"column": 3,"severity": 4,"message": 5}
+			}
+      },
+      {
+         "label": "rebuild",
+         "type": "shell",
+         "command": "tput reset;../../Framework/cmake/buildc.sh ${workspaceFolder} asan 1",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"],
+				"pattern": {"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$","file": 1,"line": 2,"column": 3,"severity": 4,"message": 5}
+			}
+      },
+      {
+         "label": "rebuildRelease",
+         "type": "shell",
+         "command": "clear;../../Framework/cmake/buildc.sh ${workspaceFolder} RelWithDebInfo 1",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"],
+            "pattern": {"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$","file": 1,"line": 2,"column": 3,"severity": 4,"message": 5}
+         }
+      },
+      {
+         "label": "release",
+         "type": "shell",
+         "command": "clear;../../Framework/cmake/buildc.sh ${workspaceFolder} RelWithDebInfo 0",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"],
+            "pattern": {"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$","file": 1,"line": 2,"column": 3,"severity": 4,"message": 5}
+         }
+      },
+      {
+         "label": "make",
+         "type": "shell",
+         "command": "clear;cd .obj/asan;make",
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"],
+            "pattern": {"regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$","file": 1,"line": 2,"column": 3,"severity": 4,"message": 5}
+         }
+      },
+      {
+         "label": "clearScreen",
+         "type": "shell",
+         "command": "clear"
+		},
+      {
+         "label": "echo",
+         "type": "shell",
+         "command": "clear;echo compile ${fileBasename}"
+		},
+      {
+         "type": "shell",
+         "label": "compile",
+			"command": "ccache",
+			"args": ["clang++","-DJde_${config:window.title}_EXPORTS","-O0","-g", "-Wall", "-Wno-unknown-pragmas", "-Wno-empty-body","-fsanitize=address",
+				"-I${env:REPO_DIR}/eigen", "-I${env:REPO_DIR}/json/include","-I${env:REPO_DIR}/boostorg/boost_1_74_0","-I${env:REPO_DIR}/spdlog/include", "-I${env:REPO_DIR}/tws-api/source/cppclient/client",
+				"-fno-omit-frame-pointer","-fPIC","-std=c++20", "-stdlib=libc++","-include","${workspaceFolder}/.obj/asan/CMakeFiles/Jde.${config:window.title}.dir/CMakeFiles/Jde.${config:window.title}.dir/cmake_pch.hxx","-o","${workspaceFolder}/.obj/asan/CMakeFiles/Jde.${config:window.title}.dir/${fileBasename}.o","-c", "${file}"],
+			"dependsOrder": "sequence",
+			"dependsOn": ["echo"],
+			"options": {"cwd": "/usr/bin" },
+         "problemMatcher": { "base": "$gcc", "fileLocation": ["absolute"]},
+      }
+   ]
+}

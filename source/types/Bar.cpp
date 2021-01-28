@@ -3,7 +3,7 @@
 #pragma warning( disable : 4244 )
 #include "./proto/bar.pb.h"
 #pragma warning( default : 4244 )
-#include "../../Framework/source/JdeAssert.h"
+#include "../../../Framework/source/JdeAssert.h"
 
 #define var const auto
 

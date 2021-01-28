@@ -317,6 +317,8 @@ enum ERequests
 	Portfolios							= -4;
 	DeleteWatchList					= -5;
 	EditWatchList						= -6;
+	GoogleLogin							= -7;
+	Query									= -8;
 
 	MarketData             			= 1;
 	CancelMarketData              = 2;

@@ -601,6 +601,8 @@ enum EResults
 	Accept	                                	= 0;
 	MultiEnd												=-1;
 	DaySummary_											=-2;
+	Authentication                            =-3;
+	Query													=-4;
 	TickPriceMessage                          = 1;
 	TickSizeMessage                           = 2;
 	OrderStatus_                             	= 3;

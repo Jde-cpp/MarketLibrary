@@ -323,7 +323,6 @@ namespace Jde::Markets
 					haveSubscription = true;
 					vector<Proto::Results::MessageUnion> messages;
 					auto f = fields;
-					vector<Proto::Results::MessageUnion> messages;
 					for( uint i = 0; f.any() && i < f.size(); ++i )
 					{
 						if( !f[i] )
@@ -332,17 +331,22 @@ namespace Jde::Markets
 						var tickType = (ETickType)i;
 						tick.AddProto( tickType, messages );
 					}
-					try
+					if( messages.size() )
 					{
-						if( messages.size() )
-							p->second.Function( messages, contractId );
-						else
-							DBG0( "!messages.size()"sv );
+						for( auto p=range.first; p!=range.second; ++p )
+						{
+							try
+							{
+								p->second.Function( messages, contractId );
+							}
+							catch( const Exception& /*e*/)
+							{
+								CancelProto( p->second.SessionId, contractId );
+							}
+						}
 					}
-					catch( const Exception& /*e*/)
-					{
-						CancelProto( p->second.SessionId, contractId );
-					}
+					else
+						DBG0( "!messages.size()"sv );
 				}
 			}
 			{//Ratio Subscriptions
