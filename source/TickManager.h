@@ -86,7 +86,7 @@ namespace Jde::Markets
 		private:
 			void Process()noexcept override;
 			void Cancel( Coroutine::Handle h )noexcept;
-			void CancelProto( uint hClient, ContractPK contractId )noexcept;
+			void CancelProto( uint hClient, ContractPK contractId, unique_lock<mutex>* pLock=nullptr )noexcept;
 			void Subscribe( const SubscriptionInfo& params )noexcept;
 			void AddOutgoingField( ContractPK id, ETickType t )noexcept;
 

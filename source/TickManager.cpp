@@ -225,7 +225,7 @@ namespace Jde::Markets
 #define FOR(X) FORX(X,p)
 #define IBExceptionPtr std::make_exception_ptr(IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__})
 		{
-			unique_lock<mutex> l{ _twsSubscriptionMutex };
+			unique_lock l{ _twsSubscriptionMutex };
 			FORX(_twsSubscriptions, pSub )
 			{
 				const TickListSource& s = pSub->second;
@@ -267,11 +267,11 @@ namespace Jde::Markets
 	{
 		vector<tuple<Tick,TickFields>> outgoingTicks;
 		{
-			unique_lock l{_outgoingFieldsMutex};
+			unique_lock ul{_outgoingFieldsMutex};
 			for( auto pOutgoingField=_outgoingFields.begin(); pOutgoingField!=_outgoingFields.end(); ++pOutgoingField )
 			{
 				var contractId = pOutgoingField->first;
-				shared_lock l{_valuesMutex};
+				shared_lock l2{_valuesMutex};
 				if( auto pValue = _values.find(contractId); pValue!=_values.end() )
 				{
 					var& fields = pOutgoingField->second;
@@ -292,13 +292,13 @@ namespace Jde::Markets
 		}
 		for( var& outgoing : outgoingTicks )
 		{
-			
+
 			var& tick = get<0>( outgoing );
 			var& fields = get<1>( outgoing );
 			var contractId = tick.ContractId;
 			bool haveSubscription;
 			{//coroutine Subscriptions
-				unique_lock l{ _subscriptionMutex };
+				unique_lock ul{ _subscriptionMutex };
 				auto range = _subscriptions.equal_range( contractId );
 				haveSubscription = range.first!=range.second;
 				for( auto p = range.first; p!=_subscriptions.end() && p->first==contractId; )
@@ -312,7 +312,7 @@ namespace Jde::Markets
 						auto h = p->second.HCoroutine;
 						var hClient = p->second.HClient;
 						{
-							unique_lock l2{ _delayMutex };
+							unique_lock ul2{ _delayMutex };
 							_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, hClient, contractId) );
 						}
 						auto& returnObject = h.promise().get_return_object();
@@ -326,7 +326,7 @@ namespace Jde::Markets
 				}
 			}
 			{//Proto Subscriptions
-				unique_lock l{ _protoSubscriptionMutex };//only shared.
+				unique_lock ul{ _protoSubscriptionMutex };//only shared.
 				auto range = _protoSubscriptions.equal_range( contractId );
 				if( range.first!=range.second )
 				{
@@ -349,9 +349,10 @@ namespace Jde::Markets
 							{
 								p->second.Function( messages, contractId );
 							}
-							catch( const Exception& /*e*/)
+							catch( const Exception& /*e*/ )
 							{
-								CancelProto( p->second.SessionId, contractId );
+								var sessionId = p->second.SessionId;
+								CancelProto( sessionId, contractId, &ul );
 							}
 						}
 					}
@@ -360,7 +361,7 @@ namespace Jde::Markets
 				}
 			}
 			{//Ratio Subscriptions
-				unique_lock l{ _ratioSubscriptionMutex };
+				unique_lock ul{ _ratioSubscriptionMutex };
 				auto range = _ratioSubscriptions.equal_range( contractId );
 				haveSubscription = haveSubscription || range.first!=range.second;
 				for( auto p = range.first; p!=range.second; ++p )
@@ -369,23 +370,23 @@ namespace Jde::Markets
 						continue;
 					get<0>(p->second).set_value( tick );
 					_ratioSubscriptions.erase( p );
-					unique_lock l{ _delayMutex };
+					unique_lock ul2{ _delayMutex };
 					DBG( "_delays.emplace[{}]={} - ratios"sv, get<2>(p->second), contractId );
 					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), contractId) );
 				}
 			}
 			LastOutgoing = Clock::now();
-			unique_lock l{ _orphanMutex };
+			unique_lock ul{ _orphanMutex };
 			if( !haveSubscription && std::find_if(_orphans.begin(), _orphans.end(), [&tick](auto x){return tick.ContractId==x.second;})==_orphans.end() )
 			{
-				shared_lock l{ _delayMutex };
+				shared_lock l2{ _delayMutex };
 				var haveDelay = std::find_if( _delays.begin(), _delays.end(), [contractId](auto x){return contractId==get<2>(x.second);} )!=_delays.end();
 				if( !haveDelay && !_canceledTicks.contains(tick.TwsRequestId) && tick.TwsRequestId )
 					_orphans.emplace( Clock::now()+3s, tick.TwsRequestId );
 			}
 		}
 		{//ratio timeouts
-			unique_lock l{ _ratioSubscriptionMutex };
+			unique_lock ul{ _ratioSubscriptionMutex };
 			for( auto p = _ratioSubscriptions.begin(); p!=_ratioSubscriptions.end(); )
 			{
 				auto& value = p->second;
@@ -395,14 +396,14 @@ namespace Jde::Markets
 					DBG( "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
 					DBG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(p->second), p->first );
 					get<0>(value).set_exception( std::make_exception_ptr(Exception("Timeout")) );
-					unique_lock l{ _delayMutex };
+					unique_lock ul2{ _delayMutex };
 					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), p->first) );
 				}
 				p = remove ? _ratioSubscriptions.erase( p ) : next( p );
 			}
 		}
 		{
-			unique_lock l{ _delayMutex };
+			unique_lock ul{ _delayMutex };
 			for( auto p = _delays.begin(); p!=_delays.end() && p->first<Clock::now();  )
 			{
 				var& value = p->second;
@@ -411,7 +412,7 @@ namespace Jde::Markets
 			}
 		}
 		{
-			unique_lock l{ _orphanMutex };
+			unique_lock ul{ _orphanMutex };
 			for( auto p = _orphans.begin(); p!=_orphans.end() && p->first<Clock::now(); p = _orphans.erase( p ) )
 			{
 				DBG( "({})Canceling orphan request {}<now"sv, p->second, ToIsoString(p->first) );
@@ -424,8 +425,8 @@ namespace Jde::Markets
 				std::this_thread::yield();
 			else */
 			{
-				std::unique_lock<std::mutex> lk( _mtx );
-				_cv.wait_for( lk, WakeDuration );
+				std::unique_lock<std::mutex> ul( _mtx );
+				_cv.wait_for( ul, WakeDuration );
 			}
 		}
 	}
@@ -489,9 +490,9 @@ namespace Jde::Markets
 		else
 			DBG( "Could not find handle {}."sv, h );
 	}
-	void TickManager::TickWorker::CancelProto( uint sessionId, ContractPK contractId )noexcept
+	void TickManager::TickWorker::CancelProto( uint sessionId, ContractPK contractId, unique_lock<mutex>* pLock )noexcept
 	{
-		unique_lock l{ _protoSubscriptionMutex };
+		auto pl = pLock ? up<unique_lock<mutex>>{} : make_unique<unique_lock<mutex>>( _protoSubscriptionMutex );
 		auto remove = [this]( auto p )
 		{
 			DBG( "_delays.emplace[{}]={} - Proto Cancel"sv, p->second.SessionId, p->first );
