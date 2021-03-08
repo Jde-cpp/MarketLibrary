@@ -12,6 +12,7 @@ namespace Jde::Markets
 {
 	using namespace Chrono;
 	sp<TwsClient> TwsClient::_pInstance;
+	ELogLevel TwsClient::_logLevel{ ELogLevel::Debug };
 	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		if( _pInstance )
@@ -53,18 +54,43 @@ namespace Jde::Markets
 		if( _requestId<id )
 			_requestId = id;
 	}
-	void TwsClient::reqAccountUpdates( bool subscribe, const string& acctCode )noexcept
+/*	void TwsClient::reqAccountUpdates( bool subscribe, sv acctCode )noexcept
 	{
-		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode);
-		if( !subscribe )
+		LOG( _logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode );
+		var p = TwsClient::_pInstance;
+		if( p )
+			p->reqAccountUpdates( subscribe, string{acctCode} );
+/ *		unique_lock l{ _accountUpdateMutex };
+		var haveSubscription = _accountUpdates.contains( string{acctCode} );
+		if( !haveSubscription && subscribe )
+		{
 			WrapperLogPtr()->ClearAccountUpdates();
-		EClientSocket::reqAccountUpdates( subscribe, acctCode );
-	}
-	void TwsClient::reqAccountUpdates( const string& acctCode, function<void(sv,sv,sv,sv)> callback )noexcept
+			_accountUpdates.emplace( acctCode );
+		}
+		else if( !haveSubscription && subscribe )
+		{
+			WrapperLogPtr()->ClearAccountUpdates();
+			_accountUpdates.emplace( acctCode );
+		}		EClientSocket::reqAccountUpdates( subscribe, string{acctCode} );
+	}*/
+
+	uint TwsClient::RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> callback )noexcept
 	{
 		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, false, acctCode );
-		WrapperLogPtr()->AddAccountUpdate( callback );
-		EClient::reqAccountUpdates( true, acctCode );
+		auto [handle,subscribe] = WrapperLogPtr()->AddAccountUpdate( acctCode, callback );
+		if( subscribe )
+		 	EClient::reqAccountUpdates( true, string{acctCode} );
+		return handle;
+	}
+	void TwsClient::CancelAccountUpdates( sv acctCode, Handle handle )noexcept
+	{
+		auto p = _pInstance; if( !p ) return;
+		LOG(_logLevel, "({})CancelAccountUpdates( '{}' )"sv, handle, acctCode );
+		if( p->WrapperLogPtr()->RemoveAccountUpdate( acctCode, handle) )
+		{
+			LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, false, acctCode );
+			p->reqAccountUpdates( false, string{acctCode} );
+		}
 	}
 	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV )noexcept
 	{
@@ -129,7 +155,7 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqNewsProviders()noexcept
 	{
-		LOGN0( _logLevel, "reqNewsProviders"sv, ReqNewsProvidersLogId );
+		LOGN( _logLevel, "reqNewsProviders"sv, ReqNewsProvidersLogId );
 		EClientSocket::reqNewsProviders();
 	}
 
@@ -161,18 +187,18 @@ namespace Jde::Markets
 
 	void TwsClient::reqCurrentTime()noexcept
 	{
-		LOG0( _logLevel, "reqCurrentTime"sv );
+		LOG( _logLevel, "reqCurrentTime"sv );
 		EClientSocket::reqCurrentTime();
 	}
 
 	void TwsClient::reqOpenOrders()noexcept
 	{
-		LOG0( _logLevel, "reqOpenOrders"sv );
+		LOG( _logLevel, "reqOpenOrders"sv );
 		EClientSocket::reqOpenOrders();
 	}
 	void TwsClient::reqAllOpenOrders()noexcept
 	{
-		LOG0( _logLevel, "reqAllOpenOrders"sv );
+		LOG( _logLevel, "reqAllOpenOrders"sv );
 		EClientSocket::reqAllOpenOrders();
 	}
 	void TwsClient::reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept

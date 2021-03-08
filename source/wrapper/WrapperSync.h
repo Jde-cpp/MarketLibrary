@@ -18,7 +18,7 @@ namespace Jde::Markets
 		WrapperSync()noexcept;
 		~WrapperSync();
 		void Shutdown()noexcept;
-		virtual sp<TwsClientSync> CreateClient( uint twsClientId )noexcept;
+		virtual sp<TwsClientSync> CreateClient( uint twsClientId )noexcept(false);
 		typedef function<void(TickerId id, int errorCode, const std::string& errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;

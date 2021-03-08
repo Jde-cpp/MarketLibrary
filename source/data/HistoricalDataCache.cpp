@@ -91,7 +91,7 @@ namespace Jde::Markets
 	MapPtr<DayIndex,VectorPtr<BarPtr>> HistoricalDataCache::ReqHistoricalData( const Contract& contract, DayIndex endDay, uint dayCount, EBarSize barSize, EDisplay display, bool useRth )noexcept
 	{
 		MapPtr<DayIndex,VectorPtr<BarPtr>> pBars;
-		if( !dayCount ){ ERR0("0 daycount sent in."sv); return pBars; }
+		if( !dayCount ){ ERR("0 daycount sent in."sv); return pBars; }
 		flat_set<DayIndex> days;
 		for( DayIndex i = endDay; days.size()<dayCount; --i )
 		{

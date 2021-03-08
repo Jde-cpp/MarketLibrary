@@ -1,9 +1,11 @@
 #include "WrapperLog.h"
 #include <CommissionReport.h>
+#include "../../../Framework/source/Cache.h"
 #include "../OrderManager.h"
+#include "../client/TwsClient.h"
 
 #define var const auto
-#define _client TwsClient::Instance()
+#define _client auto pClient = TwsClient::InstancePtr(); if( pClient ) (*pClient)
 namespace Jde::Markets
 {
 	bool WrapperLog::error2( int id, int errorCode, const std::string& errorMsg )noexcept
@@ -20,9 +22,9 @@ namespace Jde::Markets
 		if( errorCode==509 )
 			ERR( "Disconnected:  {} - {}"sv, errorCode, errorMsg );
 	}
-	void WrapperLog::connectAck()noexcept{ LOG0( _logLevel, "WrapperLog::connectAck()"sv); }
+	void WrapperLog::connectAck()noexcept{ LOG( _logLevel, "WrapperLog::connectAck()"sv); }
 
-	void WrapperLog::connectionClosed()noexcept { LOG0(_logLevel, "WrapperLog::connectionClosed()"sv); }
+	void WrapperLog::connectionClosed()noexcept { LOG(_logLevel, "WrapperLog::connectionClosed()"sv); }
 	void WrapperLog::bondContractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept  { LOG( _logLevel, "WrapperLog::bondContractDetails( {}, {} )"sv, reqId, contractDetails.contract.conId); }
 	void WrapperLog::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
@@ -56,7 +58,7 @@ namespace Jde::Markets
 		OrderManager::Push( order, contract, orderState );
 		LOG( _logLevel, "WrapperLog::openOrder( {}, {}@{}, {} )"sv, orderId, contract.symbol, toString(order), orderState.status );
 	}
-	void WrapperLog::openOrderEnd()noexcept{ LOG0( _logLevel, "WrapperLog::openOrderEnd()"sv); }
+	void WrapperLog::openOrderEnd()noexcept{ LOG( _logLevel, "WrapperLog::openOrderEnd()"sv); }
 #pragma endregion
 	void WrapperLog::realtimeBar( TickerId reqId, long time, double open, double high, double low, double close, long volume, double wap, int count )noexcept{}
 	void WrapperLog::receiveFA(faDataType pFaDataType, const std::string& cxml)noexcept{ LOG( _logLevel, "WrapperLog::receiveFA( {}, {} )"sv, pFaDataType, cxml); }
@@ -66,13 +68,15 @@ namespace Jde::Markets
 	void WrapperLog::tickReqParams( int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )"sv, tickerId, minTick, bboExchange, snapshotPermissions ); }
 	bool WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept
 	{
-		shared_lock l{ _accountUpdateCallbackMutex };
+		unique_lock l{ _accountUpdateCallbackMutex };
 		bool haveCallback = false;
-		for( var& callback : _accountUpdateCallbacks )
+		if( auto p  = _accountUpdateCallbacks.find(string{accountName}); p!=_accountUpdateCallbacks.end() )
 		{
-			callback( key, val, currency, accountName );
-			haveCallback = true;
+			haveCallback = p->second.size();
+			std::for_each( p->second.begin(), p->second.end(), [&](auto x){ x.second->UpdateAccountValue(key, val, currency, accountName); } );
 		}
+		auto& accountValues = _accountUpdateCache.try_emplace( string{accountName} ).first->second;
+		accountValues[string{key}] = make_tuple( string{val}, string{currency} );
 		return haveCallback;
 	}
 	void WrapperLog::updateAccountValue( const std::string& key, const std::string& val, const std::string& currency, const std::string& accountName )noexcept
@@ -83,13 +87,49 @@ namespace Jde::Markets
 	void WrapperLog::accountDownloadEnd( const std::string& accountName )noexcept
 	{
 		LOG( _logLevel, "WrapperLog::accountDownloadEnd( {} )"sv, accountName);
-		{
-			shared_lock l{ _accountUpdateCallbackMutex };
-			std::for_each( _accountUpdateCallbacks.begin(), _accountUpdateCallbacks.end(), [&](auto& x){ x({}, {}, {}, accountName); } );
-		}
+		shared_lock l{ _accountUpdateCallbackMutex };
+		if( auto p  = _accountUpdateCallbacks.find(accountName); p!=_accountUpdateCallbacks.end() )
+			std::for_each( p->second.begin(), p->second.end(), [&](auto& x){ x.second->UpdateAccountValue({}, {}, {}, accountName); } );
 	}
 
-	void WrapperLog::updatePortfolio( const ::Contract& contract, double position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountName )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )"sv, contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountName); }
+	void WrapperLog::updatePortfolio( const ::Contract& contract, double position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountNumber )noexcept
+	{
+		LOG( ELogLevel::Trace, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )"sv, contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountNumber);
+		Proto::Results::PortfolioUpdate update;
+		unique_lock l{ _accountUpdateCallbackMutex };
+		auto p  = _accountUpdateCallbacks.find( string{accountNumber} );
+		if( p==_accountUpdateCallbacks.end() || p->second.empty() )
+		{
+			if( p!=_accountUpdateCallbacks.end() )
+				_accountPortfolioUpdates.erase( string{accountNumber} );
+			LOG( ELogLevel::Trace, "WrapperLog::updatePortfolio - no callbacks canceling"sv );
+			return TwsClient::CancelAccountUpdates( accountNumber, 0 );
+		}
+
+		Contract myContract{ contract };
+		update.set_allocated_contract( myContract.ToProto(true).get() );
+		update.set_position( position );
+		update.set_market_price( marketPrice );
+		update.set_market_value( marketValue );
+		update.set_average_cost( averageCost );
+		update.set_unrealized_pnl( unrealizedPNL );
+		update.set_realized_pnl( realizedPNL );
+		update.set_account_number( accountNumber );
+		if( myContract.SecType==SecurityType::Option )
+		{
+			const string cacheId{ format("reqContractDetails.{}", myContract.Symbol) };
+			if( Cache::Has(cacheId) )
+			{
+				var details = Cache::Get<vector<::ContractDetails>>( cacheId );
+				if( details->size()==1 )
+					update.mutable_contract()->set_underlying_id( details->front().underConId );
+				else
+					WARN( "'{}' returned multiple securities"sv, myContract.Symbol );
+			}
+		}
+		std::for_each( p->second.begin(), p->second.end(), [&](auto x){ x.second->PortfolioUpdate(update); } );
+		_accountPortfolioUpdates[accountNumber][contract.conId]=update;
+	}
 	void WrapperLog::updateAccountTime(const std::string& timeStamp)noexcept{ LOG( ELogLevel::Trace, "WrapperLog::updateAccountTime( {} )"sv, timeStamp); }
 	void WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, int /*size*/)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepth( {}, {}, {}, {} )"sv, id, position, operation, side); }
 	void WrapperLog::updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int /*side*/, double /*price*/, int /*size*/, bool isSmartDepth)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepthL2( {}, {}, {}, {}, {} )"sv, id, position, marketMaker, operation, isSmartDepth); }
@@ -118,7 +158,7 @@ namespace Jde::Markets
 	void WrapperLog::commissionReport( const CommissionReport& commissionReport )noexcept{ LOG( _logLevel, "WrapperLog::commissionReport( {} )"sv, commissionReport.commission ); }
 #pragma region Poision
 	void WrapperLog::position( const std::string& account, const ::Contract& contract, double position, double avgCost )noexcept{ LOG( _logLevel, "WrapperLog::position( {}, {}, {}, {}, {} )"sv, account, contract.conId, contract.symbol, position, avgCost ); }
-	void WrapperLog::positionEnd()noexcept{ LOG0( _logLevel, "WrapperLog::positionEnd()"sv ); }
+	void WrapperLog::positionEnd()noexcept{ LOG( _logLevel, "WrapperLog::positionEnd()"sv ); }
 #pragma endregion
 	void WrapperLog::accountSummary( int reqId, const std::string& account, const std::string& tag, const std::string& value, const std::string& /*curency*/)noexcept{ LOG( _logLevel, "WrapperLog::accountSummary({},{},{},{})"sv, reqId, account, tag, value); }
 	void WrapperLog::verifyMessageAPI( const std::string& apiData )noexcept{ LOG( _logLevel, "WrapperLog::verifyMessageAPI({})"sv, apiData); }
@@ -189,16 +229,35 @@ namespace Jde::Markets
 
 		LOG( _logLevel, "WrapperLog::openOrder( {}, {}@{}, {} )"sv, contract.symbol, toString(order), orderState.status );
 	}
-	void WrapperLog::completedOrdersEnd()noexcept{LOG0( _logLevel, "WrapperLog::completedOrdersEnd()"sv); }
-
-	void WrapperLog::AddAccountUpdate( function<void(sv,sv,sv,sv)> callback )noexcept
+	void WrapperLog::completedOrdersEnd()noexcept{LOG( _logLevel, "WrapperLog::completedOrdersEnd()"sv); }
+	Handle WrapperLog::_accountUpdateHandle{0};
+	tuple<uint,bool> WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
-		_accountUpdateCallbacks.push_back( callback );
+		var handle = ++_accountUpdateHandle;
+		auto& handleCallbacks = _accountUpdateCallbacks.try_emplace( string{account} ).first->second;
+		handleCallbacks.emplace( handle, callback );
+		var newCall = handleCallbacks.size()==1;
+		if( var p=_accountUpdateCache.find(string{account}); !newCall && p!=_accountUpdateCache.end() )
+		{
+			for( var& [key,values] : p->second )
+				callback->UpdateAccountValue( key, get<0>(values), get<1>(values), account );
+		}
+		return make_tuple( handle, newCall );
 	}
-	void WrapperLog::ClearAccountUpdates()noexcept
+
+	bool WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept
 	{
+		bool cancel = true;
 		unique_lock l{ _accountUpdateCallbackMutex };
-		_accountUpdateCallbacks.clear();
+		if( auto p  = _accountUpdateCallbacks.find(string{account}); p!=_accountUpdateCallbacks.end() )
+		{
+			if( handle )
+				p->second.erase( handle );
+			else
+				p->second.clear();
+			cancel = p->second.empty();
+		}
+		return cancel;
 	}
 }

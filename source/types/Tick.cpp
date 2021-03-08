@@ -278,7 +278,7 @@ namespace Jde::Markets
 		case ETickType::DELAYED_LAST_OPTION_COMPUTATION: dble( DELAYED_LAST_OPTION_COMPUTATION ); break;
 		case ETickType::DELAYED_MODEL_OPTION_COMPUTATION: dble( DELAYED_MODEL_OPTION_COMPUTATION ); break;
 		case ETickType::NewsTick:
-			ERR0( "ETickType::NewsTick ToProto not implemented"sv );
+			ERR( "ETickType::NewsTick ToProto not implemented"sv );
 			break;
 //#define OPTION(x) if( x ) option(*x); else CRITICAL0( "do not have value for '#x'"sv )
 		case ETickType::BID_OPTION_COMPUTATION: option( BID_OPTION_COMPUTATION ); break;

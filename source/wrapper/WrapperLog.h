@@ -6,6 +6,11 @@
 
 namespace Jde::Markets
 {
+	struct IAccountUpdateHandler
+	{
+		virtual bool UpdateAccountValue( sv key, sv val, sv currency, sv accountName )noexcept=0;
+		virtual bool PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept=0;
+	};
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
@@ -101,14 +106,14 @@ namespace Jde::Markets
 		ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
 		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
 		void AddHistoricalDataRequest2( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
-		void AddAccountUpdate( function<void(sv,sv,sv,sv)> callback )noexcept;
-		void ClearAccountUpdates()noexcept;
+		tuple<uint,bool> AddAccountUpdate( sv accountNumber, sp<IAccountUpdateHandler> callback )noexcept;
+		bool RemoveAccountUpdate( sv account, uint handle )noexcept;
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 		sp<TickManager::TickWorker> _pTickWorker;
-		vector<function<void(sv,sv,sv,sv)>> _accountUpdateCallbacks; shared_mutex _accountUpdateCallbackMutex;
+		flat_map<string, flat_map<Handle,sp<IAccountUpdateHandler>>> _accountUpdateCallbacks; static uint _accountUpdateHandle; flat_map<string,flat_map<string,tuple<string,string>>> _accountUpdateCache; flat_map<string,flat_map<ContractPK,Proto::Results::PortfolioUpdate>> _accountPortfolioUpdates; shared_mutex _accountUpdateCallbackMutex;
 		friend TickManager::TickWorker;
 	};
 }

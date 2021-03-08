@@ -21,6 +21,7 @@ namespace Jde::Markets
 		template<class T> using Container = VectorPtr<T>;
 		template<class T> using Future = std::future<Container<T>>;
 		static sp<TwsClientSync> CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
 		void CheckTimeouts()noexcept override;

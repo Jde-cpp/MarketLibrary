@@ -17,6 +17,8 @@ namespace ibapi
 
 namespace Jde::Markets
 {
+	//typedef uint Handle;
+	struct IAccountUpdateHandler;
 	//namespace Private{  TickWorker; }
 	struct TwsProcessor; struct TwsConnectionSettings; struct WrapperLog; struct Contract; class ClientConnection;
 
@@ -35,19 +37,20 @@ namespace Jde::Markets
 		void cancelOrder( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelOrder()"sv, reqId); EClientSocket::cancelOrder(reqId); }
 		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "({})cancelPositionsMulti()"sv, reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		void cancelRealTimeBars( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelRealTimeBars()"sv, reqId); EClientSocket::cancelRealTimeBars(reqId); }
-		void reqIds( int _=1 )noexcept{ LOG0(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
-		void reqAccountUpdates( bool subscribe, const string& acctCode )noexcept;
-		void reqAccountUpdates( const string& acctCode, function<void(sv,sv,sv,sv)> callback )noexcept;
+		void reqIds( int _=1 )noexcept{ LOG(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
+		//void reqAccountUpdates( bool subscribe, sv acctCode )noexcept;
+		Handle RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept;
+		static void CancelAccountUpdates( sv acctCode, Handle handle )noexcept;
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;
 		void reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept; static constexpr uint32 ReqHistoricalDataLogId = 2998346204;
-		void reqPositions()noexcept{ LOG0( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
+		void reqPositions()noexcept{ LOG( _logLevel, "reqPositions()"sv ); EClientSocket::reqPositions(); }
 		void reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept;
 
-		void cancelPositions()noexcept{ LOG0( _logLevel, "cancelPositions()"sv ); EClientSocket::cancelPositions(); }
+		void cancelPositions()noexcept{ LOG( _logLevel, "cancelPositions()"sv ); EClientSocket::cancelPositions(); }
 		void reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept;
-		void reqManagedAccts()noexcept{ LOG0( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }
+		void reqManagedAccts()noexcept{ LOG( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }
 		virtual void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
 		void reqContractDetails( int reqId, const ::Contract& contract )noexcept;
 		void reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
@@ -71,8 +74,8 @@ namespace Jde::Markets
 		void reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions) noexcept;
 		TwsConnectionSettings _settings;
 		std::atomic<TickerId> _requestId{1};
-		ELogLevel _logLevel{ ELogLevel::Debug };
-
+		static ELogLevel _logLevel;
+		flat_set<string> _accountUpdates; shared_mutex _accountUpdateMutex;
 		friend TwsProcessor;
 		friend TickManager::TickWorker;
 		friend ClientConnection;

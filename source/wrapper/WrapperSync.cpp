@@ -13,7 +13,7 @@ namespace Jde::Markets
 		_pReaderSignal{ make_shared<EReaderOSSignal>(1000) }
 	{
 	}
-	sp<TwsClientSync> WrapperSync::CreateClient( uint twsClientId )noexcept
+	sp<TwsClientSync> WrapperSync::CreateClient( uint twsClientId )noexcept(false)
 	{
 		TwsConnectionSettings twsSettings;
 		from_json( Jde::Settings::Global().SubContainer("tws")->Json(), twsSettings );

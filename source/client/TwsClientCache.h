@@ -11,7 +11,7 @@
 namespace Jde::Markets
 {
 	struct WrapperCache;
-	//enum class SecurityRight : uint8;
+	//#define BASE auto p=TwsClient::InstancePtr(); if( p ) (*p)
 	struct TwsConnectionSettings;
 	struct Contract;
 	struct JDE_MARKETS_EXPORT TwsClientCache : public TwsClient
@@ -28,6 +28,7 @@ namespace Jde::Markets
 		virtual std::future<VectorPtr<::Bar>> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)=0;
 		virtual std::future<VectorPtr<::Bar>> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept=0;
 
-		//UnorderedMapValue<ReqId,string> _cacheIds;
+		//static void reqAllOpenOrders()noexcept{ BASE.reqAllOpenOrders(); }
+		//static bool isConnected()noexcept{ auto p=TwsClient::InstancePtr(); return p ? (*p).isConnected() : false; }
 	};
 }
