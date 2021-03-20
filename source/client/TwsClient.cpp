@@ -76,7 +76,7 @@ namespace Jde::Markets
 
 	uint TwsClient::RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> callback )noexcept
 	{
-		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, false, acctCode );
+		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )"sv, true, acctCode );
 		auto [handle,subscribe] = WrapperLogPtr()->AddAccountUpdate( acctCode, callback );
 		if( subscribe )
 		 	EClient::reqAccountUpdates( true, string{acctCode} );

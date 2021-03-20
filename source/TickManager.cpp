@@ -549,7 +549,7 @@ namespace Jde::Markets
 		return get<0>( p->second ).get_future();
 	}
 
-	void TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept
+	bool TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept
 	{
 		auto newTicks = 0;
 
@@ -582,6 +582,7 @@ namespace Jde::Markets
 			::Contract contract;  contract.conId = contractId; contract.exchange = "SMART";
 			_pTwsClient->reqMktData( reqId, contract, StringUtilities::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		}
+		return newTicks;
 	}
 	//orphans
 	//add/remove subscription.
@@ -622,7 +623,32 @@ namespace Jde::Markets
 			unique_lock l{ _protoSubscriptionMutex };
 			_protoSubscriptions.emplace( contractId, ProtoSubscription{sessionId, clientId, fnctn} );
 		}
-		AddSubscription( contractId, TickListSource{ESubscriptionSource::Proto, sessionId, fields} );
+		if( !AddSubscription(contractId, TickListSource{ESubscriptionSource::Proto, sessionId, fields}) )
+		{
+			if( auto pTick = Get( contractId ); pTick )
+			{
+				vector<Proto::Results::MessageUnion> messages;
+				auto f = pTick->SetFields();
+				for( uint i = 0; f.any() && i < f.size(); ++i )
+				{
+					if( !f[i] )
+						continue;
+					f.reset( i );
+					pTick->AddProto( (ETickType)i, messages );
+				}
+				if( messages.size() )
+				{
+					try
+					{
+						fnctn( messages, contractId );
+					}
+					catch( const Exception& /*e*/ )
+					{
+						CancelProto( sessionId, contractId );
+					}
+				}
+			}
+		}
 	}
 	void TickManager::TickWorker::Subscribe( const SubscriptionInfo& subscription )noexcept
 	{

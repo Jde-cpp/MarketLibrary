@@ -10,6 +10,7 @@ namespace Jde::Markets
 	{
 		virtual bool UpdateAccountValue( sv key, sv val, sv currency, sv accountName )noexcept=0;
 		virtual bool PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept=0;
+		virtual void AccountDownloadEnd( sv accountName )noexcept=0;
 	};
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
 	{
@@ -113,7 +114,6 @@ namespace Jde::Markets
 		ELogLevel _logLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 		sp<TickManager::TickWorker> _pTickWorker;
-		flat_map<string, flat_map<Handle,sp<IAccountUpdateHandler>>> _accountUpdateCallbacks; static uint _accountUpdateHandle; flat_map<string,flat_map<string,tuple<string,string>>> _accountUpdateCache; flat_map<string,flat_map<ContractPK,Proto::Results::PortfolioUpdate>> _accountPortfolioUpdates; shared_mutex _accountUpdateCallbackMutex;
-		friend TickManager::TickWorker;
+		flat_map<string, flat_map<Handle,sp<IAccountUpdateHandler>>> _accountUpdateCallbacks; static uint _accountUpdateHandle; flat_map<string,flat_map<string,tuple<string,string>>> _accountUpdateCache; flat_map<string,flat_map<ContractPK,Proto::Results::PortfolioUpdate>> _accountPortfolioUpdates; shared_mutex _accountUpdateCallbackMutex;		friend TickManager::TickWorker;
 	};
 }

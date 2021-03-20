@@ -89,7 +89,7 @@ namespace Jde::Markets
 		LOG( _logLevel, "WrapperLog::accountDownloadEnd( {} )"sv, accountName);
 		shared_lock l{ _accountUpdateCallbackMutex };
 		if( auto p  = _accountUpdateCallbacks.find(accountName); p!=_accountUpdateCallbacks.end() )
-			std::for_each( p->second.begin(), p->second.end(), [&](auto& x){ x.second->UpdateAccountValue({}, {}, {}, accountName); } );
+			std::for_each( p->second.begin(), p->second.end(), [&](auto& x){ x.second->AccountDownloadEnd(accountName); } );
 	}
 
 	void WrapperLog::updatePortfolio( const ::Contract& contract, double position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, const std::string& accountNumber )noexcept
@@ -231,25 +231,36 @@ namespace Jde::Markets
 	}
 	void WrapperLog::completedOrdersEnd()noexcept{LOG( _logLevel, "WrapperLog::completedOrdersEnd()"sv); }
 	Handle WrapperLog::_accountUpdateHandle{0};
+	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 	tuple<uint,bool> WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
+		_pUpdateLock = &l;
 		var handle = ++_accountUpdateHandle;
 		auto& handleCallbacks = _accountUpdateCallbacks.try_emplace( string{account} ).first->second;
 		handleCallbacks.emplace( handle, callback );
 		var newCall = handleCallbacks.size()==1;
+		if( var p  = _accountPortfolioUpdates.find( string{account} ); p!=_accountPortfolioUpdates.end() )
+		{
+			for( var& contractUpdate : p->second )
+				callback->PortfolioUpdate( contractUpdate.second );
+		}
 		if( var p=_accountUpdateCache.find(string{account}); !newCall && p!=_accountUpdateCache.end() )
 		{
 			for( var& [key,values] : p->second )
 				callback->UpdateAccountValue( key, get<0>(values), get<1>(values), account );
+			//callback->UpdateAccountValue( {}, {}, {}, account );
+			callback->AccountDownloadEnd( account );
 		}
+
+		_pUpdateLock = nullptr;
 		return make_tuple( handle, newCall );
 	}
 
 	bool WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept
 	{
 		bool cancel = true;
-		unique_lock l{ _accountUpdateCallbackMutex };
+		var pLock = _pUpdateLock ? unique_ptr<unique_lock<shared_mutex>>{} : make_unique<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
 		if( auto p  = _accountUpdateCallbacks.find(string{account}); p!=_accountUpdateCallbacks.end() )
 		{
 			if( handle )

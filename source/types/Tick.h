@@ -64,9 +64,10 @@ namespace Jde::Markets
 		bool SetDouble( ETickType type, double value )noexcept;
 		bool SetOptionComputation( ETickType type, OptionComputation&& v )noexcept;
 		bool FieldEqual( const Tick& other, ETickType tick )const noexcept;
-		bool IsSet( ETickType type )const noexcept{ return SetFields[type]; }
+		bool IsSet( ETickType type )const noexcept{ return _setFields[type]; }
 		bool HasRatios()const noexcept;
 		void AddNews( News&& news )noexcept;
+		Fields SetFields()const noexcept{ return _setFields; }
 		std::map<str,double> Ratios()const noexcept;
 		Proto::Results::MessageUnion ToProto( ETickType type )const noexcept;
 		void AddProto( ETickType type, std::vector<Proto::Results::MessageUnion>& messages )const noexcept;
@@ -166,7 +167,7 @@ namespace Jde::Markets
 		uint SHORTABLE_SHARES;
 		int NOT_SET;
 	private:
-		Fields SetFields;
+		Fields _setFields;
 		TVariant Variant( ETickType type )const noexcept;
 		friend OptionTests;
 	};

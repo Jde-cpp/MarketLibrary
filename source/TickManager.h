@@ -110,7 +110,7 @@ namespace Jde::Markets
 			struct TickListSource{ ESubscriptionSource Source; uint Id; flat_set<ETickList> Ticks; };
 			void RemoveTwsSubscription( ESubscriptionSource source, uint id, ContractPK contractId )noexcept;
 			flat_set<ETickList> GetSubscribedTicks( ContractPK id )const noexcept;
-			void AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock={} )noexcept;
+			bool AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock={} )noexcept;
 			flat_multimap<TimePoint,tuple<ESubscriptionSource, uint, ContractPK>> _delays; std::shared_mutex _delayMutex;
 			flat_multimap<ContractPK,TickListSource> _twsSubscriptions; std::mutex _twsSubscriptionMutex;
 

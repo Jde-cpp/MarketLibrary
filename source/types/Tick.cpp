@@ -27,7 +27,7 @@ namespace Jde::Markets
 			set = false;
 		}
 		if( set )
-			SetFields.set( type );
+			_setFields.set( type );
 		return set;
 	}
 	bool Tick::SetInt( ETickType type, int value )noexcept
@@ -70,7 +70,7 @@ namespace Jde::Markets
 			set = false;
 		}
 		if( set )
-			SetFields.set( type );
+			_setFields.set( type );
 		return set;
 	}
 	bool Tick::SetPrice( ETickType type, double value/*, const TickAttrib& attribs*/ )noexcept
@@ -101,7 +101,7 @@ namespace Jde::Markets
 			set = SetDouble( type, value );
 		}
 		if( set )
-			SetFields.set( type );
+			_setFields.set( type );
 		return set;
 	}
 	bool Tick::SetDouble( ETickType type, double value )noexcept
@@ -151,7 +151,7 @@ namespace Jde::Markets
 			set = false;
 		}
 		if( set )
-			SetFields.set( type );
+			_setFields.set( type );
 		return set;
 	}
 
@@ -169,7 +169,7 @@ namespace Jde::Markets
 			set = false;
 		}
 		if( set )
-			SetFields.set( type );
+			_setFields.set( type );
 		return set;
 	}
 	using Proto::Results::TickPrice;
@@ -309,7 +309,7 @@ namespace Jde::Markets
 	Tick::TVariant Tick::Variant( ETickType type )const noexcept
 	{
 		TVariant result{nullptr};
-		if( !SetFields[type] )
+		if( !_setFields[type] )
 			return result;
 
 		switch( type )
@@ -421,7 +421,7 @@ namespace Jde::Markets
 
 	bool Tick::HasRatios()const noexcept
 	{
-		return SetFields[ETickType::FUNDAMENTAL_RATIOS] /*&& SetFields[ETickType::IB_DIVIDENDS]*/;
+		return _setFields[ETickType::FUNDAMENTAL_RATIOS] /*&& SetFields[ETickType::IB_DIVIDENDS]*/;
 	}
 
 	map<string,double> Tick::Ratios()const noexcept

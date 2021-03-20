@@ -13,8 +13,8 @@ namespace Jde::Markets
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
 	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
 	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
-	{//TODO call to TwsClient::CreateInstance
-		DBG0( "TwsClientSync::CreateInstance"sv );
+	{
+		//DBG( "TwsClientSync::CreateInstance"sv );
 		_pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
 		pInstance = static_pointer_cast<TwsClientSync>( _pInstance );
 		TwsProcessor::CreateInstance( pInstance, pReaderSignal );
