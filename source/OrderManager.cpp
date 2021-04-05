@@ -103,7 +103,7 @@ namespace OrderManager
 
 	void OrderWorker::Process()noexcept
 	{
-		OrderId id;
+		::OrderId id;
 		optional<Cache> pUpdate;
 		{
 			unique_lock l{_incomingMutex};
