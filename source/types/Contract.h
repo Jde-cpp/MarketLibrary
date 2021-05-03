@@ -96,7 +96,7 @@ namespace Jde::Markets
 		sp<::Contract> ToTws()const noexcept;
 		sp<Proto::Contract> ToProto( bool stupidPointer=false )const noexcept;
 		ContractPK Id{0};
-		str Symbol;
+		string Symbol;
 		SecurityType SecType{SecurityType::Stock};//"STK", "OPT"
 		DayIndex Expiration{0};
 		double Strike{0.0};
@@ -105,15 +105,15 @@ namespace Jde::Markets
 		Exchanges Exchange{ Exchanges::Smart };
 		Exchanges PrimaryExchange{Exchanges::Smart}; // pick an actual (ie non-aggregate) exchange that the contract trades on.  DO NOT SET TO SMART.
 		Proto::Currencies Currency{Proto::Currencies::NoCurrency};
-		str LocalSymbol;
-		str TradingClass;
+		string LocalSymbol;
+		string TradingClass;
 		bool IncludeExpired{false};
-		str SecIdType;		// CUSIP;SEDOL;ISIN;RIC
-		str SecId;
-		str ComboLegsDescrip; // received in open order 14 and up for all combos
+		string SecIdType;		// CUSIP;SEDOL;ISIN;RIC
+		string SecId;
+		string ComboLegsDescrip; // received in open order 14 and up for all combos
 		std::shared_ptr<std::vector<ComboLegPtr_>> ComboLegsPtr;
 		DeltaNeutralContract DeltaNeutral;
-		str Name;
+		string Name;
 		uint Flags{0};
 		TimePoint IssueDate{ TimePoint::max() };
 		ContractPK UnderlyingId{0};
@@ -124,7 +124,7 @@ namespace Jde::Markets
 		PositionAmount RoundShares( PositionAmount amount, PositionAmount roundAmount )const noexcept;
 		//sp<DateTime> ExpirationTime()const noexcept;
 		Amount RoundDownToMinTick( Amount price )const noexcept;
-		static DayIndex ToDay( const str& str )noexcept;
+		static DayIndex ToDay( str str )noexcept;
 		sp<std::vector<Proto::Results::ContractHours>> TradingHoursPtr;//TODO a const vector.
 		sp<std::vector<Proto::Results::ContractHours>> LiquidHoursPtr;
 

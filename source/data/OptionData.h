@@ -1,7 +1,7 @@
 #pragma once
 #include "../TypeDefs.h"
 #include "../Exports.h"
-#include "../../../Framework/source/SmartPointer.h"
+#include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/Settings.h"
 #pragma warning( disable : 4244 )
 #include "../types/proto/OptionOI.pb.h"

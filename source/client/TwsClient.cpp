@@ -133,7 +133,7 @@ namespace Jde::Markets
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
 	}
 
-	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
+	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol, sv futFopExchange, sv underlyingSecType )noexcept
 	{
 		LOG( _logLevel, "({})reqSecDefOptParams( '{}', '{}', '{}', {} )"sv, tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
@@ -148,7 +148,7 @@ namespace Jde::Markets
 		LOG( _logLevel, "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )"sv, tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
 	}
-	void TwsClient::reqFundamentalData( TickerId tickerId, const ::Contract &contract, string_view reportType )noexcept
+	void TwsClient::reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept
 	{
 		LOG( _logLevel, "({})reqFundamentalData( '{}', '{}' )"sv, tickerId, contract.conId, reportType );
 		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
@@ -179,7 +179,7 @@ namespace Jde::Markets
 
 		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, (int)totalResults, nullptr );
 	}
-	void TwsClient::reqNewsArticle( TickerId requestId, const string& providerCode, const string& articleId )noexcept
+	void TwsClient::reqNewsArticle( TickerId requestId, str providerCode, str articleId )noexcept
 	{
 		LOG( _logLevel, "({})reqNewsArticle( '{}', '{}' )"sv, requestId, providerCode, articleId );
 		EClientSocket::reqNewsArticle( requestId, providerCode, articleId, nullptr );

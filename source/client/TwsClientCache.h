@@ -19,9 +19,9 @@ namespace Jde::Markets
 		//static TwsClientCache& Instance()noexcept;//{ ASSERT(_pInstance); return *_pInstance;}
 		TwsClientCache( const TwsConnectionSettings& settings, shared_ptr<WrapperCache> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		shared_ptr<WrapperCache> Wrapper()noexcept;
-		static ::Contract ToContract( string_view symbol, DayIndex dayIndex, Proto::SecurityRight isCall, double strike=0 )noexcept;
+		static ::Contract ToContract( sv symbol, DayIndex dayIndex, Proto::SecurityRight isCall, double strike=0 )noexcept;
 		void ReqContractDetails( TickerId reqId, const ::Contract& contract )noexcept;
-		void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept;
+		void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, sv symbol )noexcept;
 		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex current, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false);
 		void RequestNewsProviders()noexcept;
 		void reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept;

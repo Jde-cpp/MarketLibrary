@@ -4,6 +4,7 @@ syntax = "proto3";
 package Jde.Markets.Proto.Results;
 import "ib.proto";
 import "watch.proto";
+import "edgar.proto";
 
 message MessageValue
 {
@@ -92,24 +93,25 @@ message ContractDetail
 	string	market_rule_ids=23;
 	string	real_expiration_date=24;
 	string	last_trade_time=25;
+	string 	stock_type=26;
 
-	repeated TagValue sec_id_list=26;
+	repeated TagValue sec_id_list=27;
 
-	string	cusip=27;
-	string	ratings=28;
-	string	desc_append=29;
-	string	bond_type=30;
-	string	coupon_type=31;
-	bool		callable=32;
-	bool		putable=33;
-	double	coupon=34;
-	bool		convertible=35;
-	string	maturity=36;
-	string	issueDate=37;
-	string	next_option_date=38;
-	string	next_option_type=39;
-	bool		next_option_partial=40;
-	string	notes=41;
+	string	cusip=28;
+	string	ratings=29;
+	string	desc_append=30;
+	string	bond_type=31;
+	string	coupon_type=32;
+	bool		callable=33;
+	bool		putable=34;
+	double	coupon=35;
+	bool		convertible=36;
+	string	maturity=37;
+	string	issueDate=38;
+	string	next_option_date=39;
+	string	next_option_type=40;
+	bool		next_option_partial=41;
+	string	notes=42;
 };
 
 message ContractDetailsResult
@@ -415,6 +417,9 @@ message MessageUnion
 		Statistics statistics=32;
 		OptionCalculation option_calculation=33;
 		Custom custom=34;
+
+		Jde.Markets.Edgar.Proto.Investors investors=35;
+		Jde.Markets.Edgar.Proto.Filings filings=36;
 	}
 }
 message Transmission

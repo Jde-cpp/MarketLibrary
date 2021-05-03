@@ -19,7 +19,7 @@ namespace Jde::Markets
 	{
 		return std::dynamic_pointer_cast<WrapperCache>(_pWrapper);
 	}
-	::Contract TwsClientCache::ToContract( string_view symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
+	::Contract TwsClientCache::ToContract( sv symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
 	{
 		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
 		if( dayIndex>0 )
@@ -50,7 +50,7 @@ namespace Jde::Markets
 			TwsClient::reqContractDetails( reqId, contract );
 		}
 	}
-	void TwsClientCache::ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, string_view symbol )noexcept
+	void TwsClientCache::ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, sv symbol )noexcept
 	{
 		auto cacheId = format( "OptParams.{}", underlyingConId );
 		if( var pData = Cache::Get<Proto::Results::OptionExchanges>(cacheId); pData )

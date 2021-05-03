@@ -556,7 +556,7 @@ namespace Jde::Markets
 		if( !pLock )
 			pLock = make_shared<unique_lock<mutex>>( _twsSubscriptionMutex );
 		auto requestTicks = GetSubscribedTicks( contractId );
-		for_each( source.Ticks.begin(), source.Ticks.end(), [&newTicks, &requestTicks](auto x){newTicks+=requestTicks.emplace(x).second;} );
+		std::for_each( source.Ticks.begin(), source.Ticks.end(), [&newTicks, &requestTicks](auto x){newTicks+=requestTicks.emplace(x).second;} );
 		DBG("({})Adding _twsSubscription {}."sv, source.Id, source.Source );
 		_twsSubscriptions.emplace( contractId, source );
 		pLock = nullptr;

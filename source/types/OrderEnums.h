@@ -13,12 +13,12 @@ namespace Jde
 	// };
 namespace Markets
 {
-	constexpr std::array<std::string_view,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
-	inline std::string_view ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return StringUtilities::FromEnum( EOrderTypeStrings, orderType ); }
-	inline Proto::EOrderType ToOrderType( string_view value )noexcept{ return StringUtilities::ToEnum( EOrderTypeStrings, value, Proto::EOrderType::Limit ); }
+	constexpr std::array<sv,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
+	inline sv ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return StringUtilities::FromEnum( EOrderTypeStrings, orderType ); }
+	inline Proto::EOrderType ToOrderType( sv value )noexcept{ return StringUtilities::ToEnum( EOrderTypeStrings, value, Proto::EOrderType::Limit ); }
 
-	constexpr std::array<std::string_view,7> ETifStrings={ "DAY", "GTC", "IOC", "GTD", "OPG", "FOK", "DTC" };
-	constexpr std::array<std::string_view,9> EOrderStatusStrings={ "PendingSubmit","PendingCancel","PreSubmitted","Submitted","ApiCancelled","Cancelled","Filled","Inactive","UnknownStatus" };
+	constexpr std::array<sv,7> ETifStrings={ "DAY", "GTC", "IOC", "GTD", "OPG", "FOK", "DTC" };
+	constexpr std::array<sv,9> EOrderStatusStrings={ "PendingSubmit","PendingCancel","PreSubmitted","Submitted","ApiCancelled","Cancelled","Filled","Inactive","UnknownStatus" };
 
 	enum class EAction : uint8
 	{
@@ -27,20 +27,20 @@ namespace Markets
 				Short=2*/
 				//BUY/SELL/SSHORT
 	};
-	constexpr std::string_view EActionStrings[]={ "BUY", "SELL" /*"SSHORT"*/ };
-	constexpr std::string_view ToActionString( EAction action ){ return EActionStrings[(uint)action]; }
+	constexpr sv EActionStrings[]={ "BUY", "SELL" /*"SSHORT"*/ };
+	constexpr sv ToActionString( EAction action ){ return EActionStrings[(uint)action]; }
 
 	inline EOrderStatus operator& (EOrderStatus a, EOrderStatus b){ return (EOrderStatus)( (uint8)a & (uint8)b ); }
 	inline bool operator!( EOrderStatus a ){ return a==EOrderStatus::None; }
 	inline bool IsComplete( EOrderStatus a ){ return a==EOrderStatus::Filled || a==EOrderStatus::Cancelled; }
-	inline std::string_view ToString( EOrderStatus order )noexcept;
-	inline EOrderStatus ToOrderStatus( string_view statusText )noexcept;
+	inline sv ToString( EOrderStatus order )noexcept;
+	inline EOrderStatus ToOrderStatus( sv statusText )noexcept;
 	inline std::ostream& operator<<( std::ostream& os, const EOrderStatus& status )noexcept{ os << ToString(status); return os; }
 // 	JDE_TWS_EXPORT std::string ToString( const ETickType display )noexcept;
 }
-	inline std::string_view Markets::ToString( EOrderStatus orderStatus )noexcept
+	inline sv Markets::ToString( EOrderStatus orderStatus )noexcept
 	{
-		std::string_view result = "None";
+		sv result = "None";
 		switch( orderStatus )
 		{
 			case EOrderStatus::PendingSubmit: result = "PendingSubmit"; break;
@@ -56,7 +56,7 @@ namespace Markets
 		}
 		return result;
 	}
-	inline EOrderStatus Markets::ToOrderStatus( string_view statusText )noexcept
+	inline EOrderStatus Markets::ToOrderStatus( sv statusText )noexcept
 	{
 		EOrderStatus orderStatus = EOrderStatus::None;
 		if( statusText=="PendingSubmit" ) orderStatus = EOrderStatus::PendingSubmit;

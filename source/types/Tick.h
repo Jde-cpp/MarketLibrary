@@ -13,7 +13,6 @@ namespace Jde::Markets
 {
 	class OptionTests;
 	typedef long ContractPK;
-	typedef std::string str;
 	template<class T> using sp = std::shared_ptr<T>;
 	template<class T> using up = std::unique_ptr<T>;
 
@@ -42,23 +41,23 @@ namespace Jde::Markets
 	{
 		std::unique_ptr<Proto::Results::TickNews> ToProto( ContractPK contractId )const noexcept;
 		const time_t TimeStamp;
-		const str ProviderCode;
-		const str ArticleId;
-		const str Headline;
-		const str ExtraData;
+		const string ProviderCode;
+		const string ArticleId;
+		const string Headline;
+		const string ExtraData;
 	};
 
 	struct JDE_MARKETS_EXPORT Tick
 	{
 		typedef std::bitset<91> Fields;//ETickType::NOT_SET+1
-		typedef std::variant<nullptr_t,uint,int,double,time_t,str,OptionComputation,sp<Vector<News>>> TVariant;
+		typedef std::variant<nullptr_t,uint,int,double,time_t,string,OptionComputation,sp<Vector<News>>> TVariant;
 		Tick()=default;//TODO try to remove
 		//Tick( Tick&& )=default;
 		//Tick( const Tick& )=default;
 		Tick( ContractPK id ):ContractId{id}{}
 		Tick( ContractPK id, TickerId tickId ):ContractId{id},TwsRequestId{tickId}{};
 
-		bool SetString( ETickType type, const str& value )noexcept;
+		bool SetString( ETickType type, str value )noexcept;
 		bool SetInt( ETickType type, int value )noexcept;
 		bool SetPrice( ETickType type, double value/*, const ::TickAttrib& attribs*/ )noexcept;
 		bool SetDouble( ETickType type, double value )noexcept;
@@ -68,7 +67,7 @@ namespace Jde::Markets
 		bool HasRatios()const noexcept;
 		void AddNews( News&& news )noexcept;
 		Fields SetFields()const noexcept{ return _setFields; }
-		std::map<str,double> Ratios()const noexcept;
+		std::map<string,double> Ratios()const noexcept;
 		Proto::Results::MessageUnion ToProto( ETickType type )const noexcept;
 		void AddProto( ETickType type, std::vector<Proto::Results::MessageUnion>& messages )const noexcept;
 
@@ -107,8 +106,8 @@ namespace Jde::Markets
 		uint OPTION_CALL_VOLUME;
 		uint OPTION_PUT_VOLUME;
 		double INDEX_FUTURE_PREMIUM;
-		str BidExchange;
-		str AskExchange;
+		string BidExchange;
+		string AskExchange;
 		uint AUCTION_VOLUME;
 		double AUCTION_PRICE;
 		double AUCTION_IMBALANCE;
@@ -122,8 +121,8 @@ namespace Jde::Markets
 		double CLOSE_EFP_COMPUTATION;
 		time_t LastTimestamp;
 		double SHORTABLE;
-		str RatioString;
-		str RT_VOLUME;
+		string RatioString;
+		string RT_VOLUME;
 		double Halted;
 		double BID_YIELD;
 		double ASK_YIELD;
@@ -134,7 +133,7 @@ namespace Jde::Markets
 		uint VOLUME_RATE;
 		double LAST_RTH_TRADE;
 		double RT_HISTORICAL_VOL;
-		str DividendString;
+		string DividendString;
 		double BOND_FACTOR_MULTIPLIER;
 		double REGULATORY_IMBALANCE;
 		sp<Vector<News>> NewsPtr;
@@ -159,7 +158,7 @@ namespace Jde::Markets
 		double DELAYED_ASK_OPTION_COMPUTATION;
 		double DELAYED_LAST_OPTION_COMPUTATION;
 		double DELAYED_MODEL_OPTION_COMPUTATION;
-		str LastExchange;
+		string LastExchange;
 		time_t LAST_REG_TIME;
 		uint FUTURES_OPEN_INTEREST;
 		uint AVG_OPT_VOLUME;

@@ -7,6 +7,7 @@
 #pragma warning( default : 4244 )
 #include "../../../XZ/source/XZ.h"
 #include "../../../Framework/source/collections/Collections.h"
+#include "../../../Framework/source/io/ProtoUtilities.h"
 #include "../../../Framework/source/io/File.h"
 
 #define var const auto
@@ -22,7 +23,7 @@ namespace Jde::Markets
 	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/StringUtilities::ToLower(string{ToString(contract.PrimaryExchange)})/StringUtilities::Replace(contract.Symbol, " ", "_"); }
 
-	sp<Proto::BarFile> BarData::Load( const fs::path& path )noexcept(false)
+	sp<Proto::BarFile> BarData::Load( path path )noexcept(false)
 	{
 		var pBytes = IO::Zip::XZ::Read( path );
 		auto pFile = pBytes ? make_shared<Proto::BarFile>() : sp<Proto::BarFile>();
@@ -41,7 +42,7 @@ namespace Jde::Markets
 		return pFile;
 	}
 
-	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const fs::path& path, string_view symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 
@@ -77,7 +78,7 @@ namespace Jde::Markets
 		}
 		return pResults;
 	}
-	tuple<DayIndex,DayIndex> ExtractTimeframe( const fs::path& path, TimePoint earliestDate, uint8 yearsToKeep=3 )
+	tuple<DayIndex,DayIndex> ExtractTimeframe( path path, TimePoint earliestDate, uint8 yearsToKeep=3 )
 	{
 		static uint16 currentYear=DateTime().Year();
 		var [year,month,day] = IO::FileUtilities::ExtractDate( path );
@@ -89,7 +90,7 @@ namespace Jde::Markets
 		return make_tuple( DaysSinceEpoch(start), DaysSinceEpoch(end) );
 	}
 
-	void BarData::ForEachFile( const Contract& contract, const function<void(const fs::path&,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, string_view prefix )noexcept//fnctn better not throw
+	void BarData::ForEachFile( const Contract& contract, const function<void(path,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, sv prefix )noexcept//fnctn better not throw
 	{
 		var root = BarData::Path( contract );
 		if( !fs::exists(root) )
@@ -135,7 +136,7 @@ namespace Jde::Markets
 	{
 		//var root = BarData::Path( contract );
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
-		auto fnctn = [&]( const fs::path& path, DayIndex, DayIndex )
+		auto fnctn = [&]( path path, DayIndex, DayIndex )
 		{
 			var pFileValues = Load( path, contract.Symbol );
 			for( var& [day,pBars] : *pFileValues )
@@ -167,7 +168,7 @@ namespace Jde::Markets
 
 	void BarData::ApplySplit( const Contract& contract, uint multiplier )noexcept
 	{
-		auto fnctn = [&]( const fs::path& path, DayIndex, DayIndex )
+		auto fnctn = [&]( path path, DayIndex, DayIndex )
 		{
 			var pExisting = Load( path );//BarFile
 			Proto::BarFile newFile;
@@ -186,9 +187,7 @@ namespace Jde::Markets
 					pNew->set_volume( bar.volume() );
 				}
 			}
-			string output;
-			newFile.SerializeToString( &output );
-			IO::Zip::XZ::Write( path, output );
+			IO::Zip::XZ::Write( path, IO::Proto::ToString(newFile) );
 		};
 		ForEachFile( contract, fnctn, 0, CurrentTradingDay() );
 	}
@@ -198,7 +197,7 @@ namespace Jde::Markets
 		const DateTime now{ CurrentTradingDay(Clock::now()) };
 		auto getFileName = [&now]( const DateTime& itemDate )->string
 		{
-			var year = max( now.Year()-3, itemDate.Year() );
+			var year = std::max( now.Year()-3, itemDate.Year() );
 			var month = now.Year()==itemDate.Year() ? itemDate.Month() : 0;
 			auto day = month==0 || now.Month()!=itemDate.Month() ? 0 : itemDate.Day();
 			return IO::FileUtilities::DateFileName( year, month, day );
@@ -225,7 +224,7 @@ namespace Jde::Markets
 			var barPath = Path( contract );
 			set<DayIndex> existingDays;
 			set<string> combinedFiles;
-			auto addExisting = [&,&proto2=proto]( const fs::path& path, DayIndex _=0, DayIndex _2=0)noexcept
+			auto addExisting = [&,&proto2=proto]( path path, DayIndex _=0, DayIndex _2=0)noexcept
 			{
 				combinedFiles.emplace( path.string() );
 				var pExisting = Load( path, contract.Symbol, pPartials );
@@ -272,8 +271,6 @@ namespace Jde::Markets
 					}
 				}
 			}
-			string output;
-			proto.SerializeToString( &output );
 			string completeFileName = fileName+(complete ? "" : "_partial")+".dat.xz";
 			try
 			{
@@ -282,8 +279,8 @@ namespace Jde::Markets
 					fs::create_directories( barPath );
 					DBG( "Created directory '{}'"sv, barPath.string() );
 				}
-				const fs::path tempPath{ barPath/("~"+completeFileName) };
-				IO::Zip::XZ::Write( tempPath, output );
+				fs::path tempPath{ barPath/("~"+completeFileName) };
+				IO::Zip::XZ::Write( tempPath, IO::Proto::ToString(proto) );
 				const fs::path path{ barPath/completeFileName };
 				fs::rename( tempPath, path );
 				for( var& combinedFile : combinedFiles )
@@ -301,12 +298,12 @@ namespace Jde::Markets
 		}
 	}
 
-	flat_set<DayIndex> BarData::FindExisting( const Contract& contract, DayIndex start2, DayIndex end2, string_view prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	flat_set<DayIndex> BarData::FindExisting( const Contract& contract, DayIndex start2, DayIndex end2, sv prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		flat_set<DayIndex> existing;
 		list<fs::path> consolodate;
 		const DateTime today{ DateTime::Today() };
-		auto fnctn = [&]( const fs::path& path, DayIndex fileStart, DayIndex fileEnd )
+		auto fnctn = [&]( path path, DayIndex fileStart, DayIndex fileEnd )
 		{
 			if( StringUtilities::EndsWith(path.stem().stem().string(), "_partial") /*|| (end2==18269 && path.stem().stem().string()=="2019")*/  )
 			{

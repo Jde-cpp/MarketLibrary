@@ -5,6 +5,9 @@ set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../Framework/cmake )
 include(SetUpConfigurations)
 #Custom######################################################
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
+#add_definitions( -DJDE_EDGAR )
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DJDE_EDGAR")
+
 #############################################################
 add_library( Jde.Markets SHARED TwsProcessor.cpp OrderManager.cpp TickManager.cpp
 	client/TwsClient.cpp client/TwsClientSync.cpp client/TwsClientCache.cpp

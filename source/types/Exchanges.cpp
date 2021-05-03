@@ -10,14 +10,14 @@ namespace Jde
 	using Markets::Exchanges;
 	using Markets::ExchangeStrings;
 
-	string_view Markets::ToString( Exchanges x )noexcept
+	sv Markets::ToString( Exchanges x )noexcept
 	{
 		var found = x>=0 && x<ExchangeStrings.size();
 		if( !found )
 			DBG( "could not find exchange value='{}'"sv, x );
 		return found ? ExchangeStrings[x] : "";
 	}
-	Exchanges Markets::ToExchange( string_view name )noexcept
+	Exchanges Markets::ToExchange( sv name )noexcept
 	{
 		auto p = ExchangeStrings.end();
 		if( name.length()>0 )

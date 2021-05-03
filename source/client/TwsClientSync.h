@@ -29,13 +29,17 @@ namespace Jde::Markets
 		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
 
-		Future<::ContractDetails> ReqContractDetails( string_view symbol )noexcept;
-		Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept;
+		Future<::ContractDetails> ReqContractDetails( sv symbol )noexcept;
+		static Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept{ auto p=_pSyncInstance; if( p ) return p->ReqContractDetailsInst(id);
+			std::promise<VectorPtr<::ContractDetails>> promise;
+			promise.set_value( make_shared<vector<::ContractDetails>>() );
+			return promise.get_future();
+		}
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
-		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false);
-		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept;
-		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept override;
-		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept;
+		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false);
+		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
+		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
+		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept;
 		Future<NewsProvider> RequestNewsProviders()noexcept;
 		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
 		//std::future<sp<map<string,double>>> ReqRatios( const ::Contract &contract )noexcept;
@@ -46,6 +50,8 @@ namespace Jde::Markets
 		static bool IsConnected()noexcept;
 		void ReqIds()noexcept;
 	private:
+		Future<::ContractDetails> ReqContractDetailsInst( ContractPK id )noexcept;
+
 		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
 		void OnHeadTimestamp( TickerId reqId, TimePoint t );
 		shared_ptr<WrapperSync> Wrapper()noexcept;
@@ -56,5 +62,6 @@ namespace Jde::Markets
 		UnorderedMapValue<TickerId,TimePoint> _headTimestamps;
 
 		Collections::UnorderedMap<TickerId,list<::Bar>> _historicalData;
+		static sp<TwsClientSync> _pSyncInstance;
 	};
 }

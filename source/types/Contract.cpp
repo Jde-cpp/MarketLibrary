@@ -26,7 +26,7 @@ namespace Jde::Markets
 		TradingClass{ other.tradingClass }
 	{}
 
-	DayIndex Contract::ToDay( const string& str )noexcept
+	DayIndex Contract::ToDay( str str )noexcept
 	{
 		DayIndex value = 0;
 		if( str.size()==8 )
@@ -123,7 +123,7 @@ namespace Jde::Markets
 
 		return pProto;
 	}
-	Contract::Contract( ContractPK id, Proto::Currencies currency, string_view localSymbol, uint32 multiplier, string_view name, Exchanges exchange, string_view symbol, string_view tradingClass, TimePoint issueDate )noexcept:
+	Contract::Contract( ContractPK id, Proto::Currencies currency, sv localSymbol, uint32 multiplier, sv name, Exchanges exchange, sv symbol, sv tradingClass, TimePoint issueDate )noexcept:
 		Id{id},
 		Symbol{symbol},
 		Multiplier{multiplier},
@@ -134,7 +134,7 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
-	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept;
+	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( sv timeZoneId, str hours )noexcept;
 	Contract::Contract( const ::ContractDetails& details )noexcept:
 		Contract{ details.contract }
 	{
@@ -148,7 +148,7 @@ namespace Jde::Markets
 	operator=( const Contract& contract );
 */
 
-	Contract::Contract(ContractPK id, string_view symbol )noexcept:
+	Contract::Contract(ContractPK id, sv symbol )noexcept:
 		Id(id),
 		Symbol(symbol)
 	{}
@@ -206,7 +206,7 @@ namespace Jde::Markets
 
 	string Contract::Display()const noexcept
 	{
-		return SecType==SecurityType::Option 
+		return SecType==SecurityType::Option
 			? format("{} - {}@{}", Symbol, Chrono::DateDisplay(Expiration), Strike )
 			: Symbol;
 	}
@@ -299,7 +299,7 @@ namespace Jde::Markets
 		const Contract Xom{ 13977, Proto::Currencies::UsDollar, "XOM", 0, "EXXON MOBIL", Exchanges::Nyse, "XOM", "XOM", DateTime(2004,1,23,14,30,00).GetTimePoint() };
 	}
 #pragma region SecurityRight
-	SecurityRight ToSecurityRight( string_view inputName )noexcept
+	SecurityRight ToSecurityRight( sv inputName )noexcept
 	{
 		CIString name{inputName};
 		auto securityRight = SecurityRight::None;
@@ -312,9 +312,9 @@ namespace Jde::Markets
 
 		return securityRight;
 	}
-	string_view ToString( SecurityRight right )noexcept
+	sv ToString( SecurityRight right )noexcept
 	{
-		string_view result = ""sv;
+		sv result = ""sv;
 		if( right==SecurityRight::Call )
 			result = "CALL"sv;
 		else if( right==SecurityRight::Put )
@@ -324,7 +324,7 @@ namespace Jde::Markets
 	}
 #pragma endregion
 #pragma region SecurityType
-	SecurityType ToSecurityType( string_view inputName )noexcept
+	SecurityType ToSecurityType( sv inputName )noexcept
 	{
 		CIString name{ inputName };
 		SecurityType type = SecurityType::Unknown;
@@ -341,13 +341,13 @@ namespace Jde::Markets
 
 		return type;
 	}
-	constexpr std::array<std::string_view,12> SecurityTypes = {"None","STK","MutualFund","Etf","Future","Commodity","Bag","Cash","Fop","IND","OPT","WAR"};
-	string_view ToString( SecurityType type )noexcept
+	constexpr std::array<sv,12> SecurityTypes = {"None","STK","MutualFund","Etf","Future","Commodity","Bag","Cash","Fop","IND","OPT","WAR"};
+	sv ToString( SecurityType type )noexcept
 	{
 		return SecurityTypes[ type<(int)SecurityTypes.size() ? type : 0];
 	}
 #pragma endregion
-	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, string_view symbol )noexcept
+	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, sv symbol )noexcept
 	{
 		ContractPtr_ pContract;
 		for( var& pIdContract : contracts )
@@ -361,15 +361,15 @@ namespace Jde::Markets
 		return pContract;
 	}
 
-	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( string_view timeZoneId, const string& hours )noexcept
+	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( sv timeZoneId, str hours )noexcept
 	{
 //		return make_shared<vector<Proto::Results::ContractHours>>();
 		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
 		if( auto pValue = Cache::Get<vector<Proto::Results::ContractHours>>(cacheId); pValue )
 			return pValue;
-		auto parseTimeframe = [timeZoneId]( const string& timeFrame )noexcept(false)
+		auto parseTimeframe = [timeZoneId]( str timeFrame )noexcept(false)
 		{
-			auto parseDateTime = [timeZoneId]( const string& value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
+			auto parseDateTime = [timeZoneId]( str value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
 			{
 				var dateTime = StringUtilities::Split( value, ':' );
 				var& date = dateTime[0];
@@ -434,6 +434,7 @@ namespace Jde::Markets
 		proto.set_market_rule_ids( details.marketRuleIds );
 		proto.set_real_expiration_date( details.realExpirationDate );
 		proto.set_last_trade_time( details.lastTradeTime );
+		proto.set_stock_type( details.stockType );
 		if( details.secIdList )
 		{
 			for( var& pTagValue : *details.secIdList )

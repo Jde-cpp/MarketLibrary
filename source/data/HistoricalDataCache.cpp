@@ -25,9 +25,9 @@ namespace Jde::Markets
 		virtual VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept=0;
 
 		virtual EBarSize Size()const noexcept=0;
-		virtual string_view CacheIdPrefix()const noexcept=0;
+		virtual sv CacheIdPrefix()const noexcept=0;
 		string CacheId( ContractPK contractId, EDisplay display )const noexcept{ return format("{}.{}.{}", CacheIdPrefix(), contractId, display); }
-		static string CacheId( string_view prefix, ContractPK contractId, EDisplay display )noexcept{ return format("{}.{}.{}", prefix, contractId, display); }
+		static string CacheId( sv prefix, ContractPK contractId, EDisplay display )noexcept{ return format("{}.{}.{}", prefix, contractId, display); }
 	};
 	struct SubDataCache : DataCache
 	{
@@ -43,8 +43,8 @@ namespace Jde::Markets
 		static void Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, DayIndex end, DayIndex subDayCount )noexcept;
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
 	protected:
-		string_view CacheIdPrefix()const noexcept override{ return Prefix; }
-		constexpr static string_view Prefix = "HistoricalDataCacheOption";
+		sv CacheIdPrefix()const noexcept override{ return Prefix; }
+		constexpr static sv Prefix = "HistoricalDataCacheOption";
 		EBarSize Size()const noexcept override{ return EBarSize::Hour; }
 	};
 
@@ -53,8 +53,8 @@ namespace Jde::Markets
 		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept;
 
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
-		string_view CacheIdPrefix()const noexcept override{ return Prefix; }
-		constexpr static string_view Prefix = "HistoricalDataCache";
+		sv CacheIdPrefix()const noexcept override{ return Prefix; }
+		constexpr static sv Prefix = "HistoricalDataCache";
 
 		EBarSize Size()const noexcept override{ return EBarSize::Minute; }
 	};
@@ -66,8 +66,8 @@ namespace Jde::Markets
 		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept override;
 
 		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
-		string_view CacheIdPrefix()const noexcept override{ return Prefix; }
-		constexpr static string_view Prefix = "HistoricalDataCacheDay";
+		sv CacheIdPrefix()const noexcept override{ return Prefix; }
+		constexpr static sv Prefix = "HistoricalDataCacheDay";
 
 		EBarSize Size()const noexcept override{ return EBarSize::Day; }
 		void Push( const flat_map<DayIndex,::Bar>& dayBars, bool rth )noexcept;
@@ -131,7 +131,7 @@ namespace Jde::Markets
 				if( !pBars )
 				{
 					pBars = make_shared<map<DayIndex,VectorPtr<BarPtr>>>();
-					for_each( days.begin(), days.end(), [pBars](var day){pBars->emplace(day, VectorPtr<BarPtr>{});} );
+					std::for_each( days.begin(), days.end(), [pBars](var day){pBars->emplace(day, VectorPtr<BarPtr>{});} );
 				}
 				map<DayIndex,vector<BarPtr>> bars;
 				for( auto [day,pSticks] : additional )

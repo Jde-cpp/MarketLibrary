@@ -319,6 +319,8 @@ enum ERequests
 	EditWatchList						= -6;
 	GoogleLogin							= -7;
 	Query									= -8;
+	Filings								= -9;
+	Investors							= -10;
 
 	MarketData             			= 1;
 	CancelMarketData              = 2;

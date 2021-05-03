@@ -9,20 +9,20 @@ namespace Jde::Markets
 {
 	using namespace Chrono;
 	using EBarSize=Proto::Requests::BarSize;
-	sp<TwsClientSync> pInstance;
-	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(pInstance); return *pInstance; }
-	bool TwsClientSync::IsConnected()noexcept{ return pInstance && pInstance->isConnected(); }
+	sp<TwsClientSync> TwsClientSync::_pSyncInstance;
+	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(_pSyncInstance); return *_pSyncInstance; }
+	bool TwsClientSync::IsConnected()noexcept{ auto p = _pSyncInstance; return p && p->isConnected(); }
 	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		//DBG( "TwsClientSync::CreateInstance"sv );
 		_pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
-		pInstance = static_pointer_cast<TwsClientSync>( _pInstance );
-		TwsProcessor::CreateInstance( pInstance, pReaderSignal );
+		_pSyncInstance = static_pointer_cast<TwsClientSync>( _pInstance );
+		TwsProcessor::CreateInstance( _pSyncInstance, pReaderSignal );
 		while( !_pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
 
-		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, pInstance->_port, clientId );
-		return pInstance;
+		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pSyncInstance->_port, clientId );
+		return _pSyncInstance;
 	//	pInstance->ReqIds();
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
@@ -167,7 +167,7 @@ namespace Jde::Markets
 		_conditionVariables.erase( reqId );
 		return pResults ? pResults : make_shared<list<::Bar>>();*/
 	//}
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol )noexcept
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
 	{
 		::Contract contract;
 		contract.symbol = symbol;
@@ -177,7 +177,7 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( string_view symbol, DayIndex dayIndex, SecurityRight right )noexcept
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol, DayIndex dayIndex, SecurityRight right )noexcept
 	{
 		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
 		if( dayIndex>0 )
@@ -189,7 +189,7 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}*/
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( ContractPK id )noexcept//TODO find out why return multiple?
+	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetailsInst( ContractPK id )noexcept//TODO find out why return multiple?
 	{
 		ASSERT( id!=0 );
 		::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
@@ -211,7 +211,7 @@ namespace Jde::Markets
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
 	}
-	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, string_view symbol )noexcept(false)
+	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false)
 	{
 		auto pParams = ReqSecDefOptParams( underlyingConId, symbol ).get();
 		for( auto i = 0; i<pParams->exchanges_size(); ++i )
@@ -221,14 +221,14 @@ namespace Jde::Markets
 		}
 		THROW( Exception("Could not find Smart options for '{}'", symbol) );
 	}
-	std::future<sp<Proto::Results::OptionExchanges>> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, string_view symbol )noexcept
+	std::future<sp<Proto::Results::OptionExchanges>> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.SecDefOptParamsPromise( reqId );
 		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
 		return future;
 	}
-/*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol, string_view futFopExchange, string_view underlyingSecType )noexcept
+/*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol, sv futFopExchange, sv underlyingSecType )noexcept
 	{
 		auto future = _wrapper.SecDefOptParamsPromise( tickerId );
 		//if( !set )
@@ -253,7 +253,7 @@ namespace Jde::Markets
 		}
 	}
 */
-	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, string_view reportType )noexcept
+	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.FundamentalDataPromise( reqId, 5s );

@@ -51,13 +51,13 @@ namespace Jde::Markets
 		void cancelPositions()noexcept{ LOG( _logLevel, "cancelPositions()"sv ); EClientSocket::cancelPositions(); }
 		void reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept;
 		void reqManagedAccts()noexcept{ LOG( _logLevel, "reqManagedAccts()"sv ); EClientSocket::reqManagedAccts(); }
-		virtual void reqSecDefOptParams( TickerId tickerId, int underlyingConId, string_view underlyingSymbol=""sv, string_view futFopExchange="", string_view underlyingSecType="STK" )noexcept;
+		virtual void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept;
 		void reqContractDetails( int reqId, const ::Contract& contract )noexcept;
 		void reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
-		void reqFundamentalData( TickerId tickerId, const ::Contract &contract, string_view reportType )noexcept;
+		void reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept;
 		void reqNewsProviders()noexcept;	static constexpr uint32 ReqNewsProvidersLogId = 159697286;
 
-		void reqNewsArticle( TickerId requestId, const string& providerCode, const string& articleId )noexcept;
+		void reqNewsArticle( TickerId requestId, str providerCode, str articleId )noexcept;
 		void reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept;
 
 		void reqCurrentTime()noexcept;

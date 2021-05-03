@@ -1,11 +1,13 @@
 #pragma once
+
+#define JDE_EDGAR
 #ifdef JDE_EXPORT_MARKETS
-	#ifdef _MSC_VER 
+	#ifdef _MSC_VER
 		#define JDE_MARKETS_EXPORT __declspec( dllexport )
 	#else
 		#define JDE_MARKETS_EXPORT __attribute__((visibility("default")))
 	#endif
-#else 
+#else
 	#ifdef _MSC_VER
 		#define JDE_MARKETS_EXPORT __declspec( dllimport )
 		#if NDEBUG

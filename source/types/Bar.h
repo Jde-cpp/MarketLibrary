@@ -8,7 +8,7 @@ struct Bar;
 
 namespace Jde::Markets
 {
-	JDE_MARKETS_EXPORT time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormat={} )noexcept;
+	JDE_MARKETS_EXPORT time_t ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept;
 	JDE_MARKETS_EXPORT string ToIBDate( TimePoint time )noexcept;
 	using EBarSize=Proto::Requests::BarSize;
 	struct JDE_MARKETS_EXPORT BarSize
@@ -17,8 +17,8 @@ namespace Jde::Markets
 
 		static Duration BarDuration( const BarSize::Enum barSize )noexcept;
 		static uint16 BarsPerDay( const BarSize::Enum barSize )noexcept;
-		static string_view ToString(const BarSize::Enum barSize )noexcept(false);
-		static string_view TryToString(const BarSize::Enum barSize )noexcept;
+		static sv ToString(const BarSize::Enum barSize )noexcept(false);
+		static sv TryToString(const BarSize::Enum barSize )noexcept;
 	};
 
 	namespace Proto{ class MinuteBar; }
@@ -40,9 +40,9 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT TwsDisplay
 	{
 		using Enum=Proto::Requests::Display;
-		static constexpr array<string_view,9> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
-		static string_view ToString( const TwsDisplay::Enum display )noexcept(false);
-		static TwsDisplay::Enum FromString( string_view stringValue )noexcept(false);
+		static constexpr array<sv,9> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
+		static sv ToString( const TwsDisplay::Enum display )noexcept(false);
+		static TwsDisplay::Enum FromString( sv stringValue )noexcept(false);
 	};
 	std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value );
 }

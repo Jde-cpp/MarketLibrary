@@ -62,7 +62,7 @@ namespace Jde::Markets
 		randomizePrice = proto.randomize_price();
 
 		if( proto.volatility() && !isnan(proto.volatility()) ) volatility = proto.volatility();
-		if( proto.volatility_type() ) 
+		if( proto.volatility_type() )
 		{
 			WARN( "volatilityType={}"sv, proto.volatility_type() );
 			volatilityType = proto.volatility_type();// 1=daily, 2=annual
@@ -182,7 +182,7 @@ namespace Jde::Markets
 	}
 	Proto::EOrderType MyOrder::OrderType()const noexcept
 	{
-		return StringUtilities::ToEnum<Proto::EOrderType,std::array<std::string_view,22>>( EOrderTypeStrings, orderType, Proto::EOrderType::Limit );
+		return StringUtilities::ToEnum<Proto::EOrderType,std::array<sv,22>>( EOrderTypeStrings, orderType, Proto::EOrderType::Limit );
 	}
 	void MyOrder::OrderType( Proto::EOrderType value )noexcept
 	{
@@ -216,7 +216,7 @@ namespace Jde::Markets
 	{
 		auto p = new Proto::Results::OrderState{};
 		p->set_status( state.status );
-		constexpr string_view NotSet = "1.7976931348623157E308";
+		constexpr sv NotSet = "1.7976931348623157E308";
 		p->set_init_margin_before( state.initMarginBefore==NotSet ? "" : state.initMarginBefore );
 		p->set_maint_margin_before( state.maintMarginBefore==NotSet ? "" : state.maintMarginBefore );
 		p->set_equity_with_loan_before( state.equityWithLoanBefore==NotSet ? "" : state.equityWithLoanBefore );

@@ -32,7 +32,7 @@ namespace Jde::Markets
 		}
 	}
 
-	Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( string_view exchangeString, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( sv exchangeString, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		auto exchange = ToExchange( exchangeString );
 		if( exchange==Exchanges::Smart && CIString{ "SMART"sv }!=exchangeString )

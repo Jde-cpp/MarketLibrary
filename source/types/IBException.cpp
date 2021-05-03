@@ -3,13 +3,13 @@
 
 namespace Jde::Markets
 {
-	IBException::IBException( string_view message, int errorCode, long reqId, string_view function, string_view file, long line )noexcept:
+	IBException::IBException( sv message, int errorCode, long reqId, sv function, sv file, long line )noexcept:
 		Exception( ELogLevel::Debug, message, function, file, static_cast<uint>(line) ),
 		ErrorCode( errorCode ),
 		RequestId( reqId )
 	{}
 
-	void IBException::Log( string_view pszAdditionalInformation, ELogLevel level )const noexcept
+	void IBException::Log( sv pszAdditionalInformation, ELogLevel level )const noexcept
 	{
 		string additionalInformation = pszAdditionalInformation.size() ? format("[{}]", pszAdditionalInformation)  : "";
 

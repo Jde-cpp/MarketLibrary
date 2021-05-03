@@ -7,10 +7,10 @@
 
 #define var const auto
 
-namespace Jde::Markets
+namespace Jde
 {
-	using EBarSize=Proto::Requests::BarSize;
-	time_t ConvertIBDate( const string& time, const optional<bool>& ymdFormatOptional )noexcept
+	using EBarSize=Markets::Proto::Requests::BarSize;
+	time_t Markets::ConvertIBDate( str time, optional<bool> ymdFormatOptional )noexcept
 	{
 		var ymdFormat = ymdFormatOptional.value_or( time.size()==8 );
 		ASSERT( (ymdFormat && time.size()==8) || time.size()==10 );
@@ -18,7 +18,7 @@ namespace Jde::Markets
 			? DateTime( (uint16)stoi(time.substr(0,4)), (uint8)stoi(time.substr(4,2)), (uint8)stoi(time.substr(6,2)) ).TimeT()
 			: stoi(time);
 	}
-	string ToIBDate( TimePoint timePoint )noexcept
+	string Markets::ToIBDate( TimePoint timePoint )noexcept
 	{
 		const DateTime time{ timePoint };
 		return time.Hour()==0 && time.Minute()==0 && time.Second()==0
@@ -26,17 +26,19 @@ namespace Jde::Markets
 			: std::to_string( time.TimeT() );
 			//: fmt::format( "{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second() );
 	}
-
-	string_view BarSize::TryToString(const BarSize::Enum barSize )noexcept
+}
+namespace Jde::Markets
+{
+	sv BarSize::TryToString(const BarSize::Enum barSize )noexcept
 	{
-		string_view value = "1 hour";
+		auto value = "1 hour"sv;
 		Try( [barSize, &value](){ value = ToString(barSize);} );
 		return value;
 	}
 
-	string_view BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
+	sv BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
 	{
-		string_view result = "";
+		sv result = "";
 		switch( barSize )
 		{
 		case EBarSize::Second:
@@ -133,10 +135,11 @@ namespace Jde::Markets
 		}
 		return duration;
 	}
+	using namespace std::chrono;
 	uint16 BarSize::BarsPerDay( const BarSize::Enum barSize )noexcept
 	{
-		constexpr auto perDay = chrono::minutes( (6*60+30) ).count();
-		var duration = chrono::duration_cast<chrono::minutes>( BarSize::BarDuration(barSize) ).count();
+		constexpr auto perDay = minutes( (6*60+30) ).count();
+		var duration = duration_cast<minutes>( BarSize::BarDuration(barSize) ).count();
 		return duration > perDay
 			? 1
 			: perDay/duration + (perDay%duration ? 1 : 0);
@@ -172,14 +175,14 @@ namespace Jde::Markets
 	}
 
 
-	string_view TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
+	sv TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
 	{
 		//static_assert( display<sizeof(StringValues) );
 		if( static_cast<uint>(display)>=sizeof(StringValues) )
 			THROW( Exception(fmt::format("Unknown TwsDisplay {}", display).c_str()) );
 		return StringValues[display];
 	}
-	TwsDisplay::Enum TwsDisplay::FromString( string_view stringValue )noexcept(false)
+	TwsDisplay::Enum TwsDisplay::FromString( sv stringValue )noexcept(false)
 	{
 		size_t index=0;
 		for( ;index<sizeof(StringValues); ++index )
