@@ -9,6 +9,7 @@
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/ProtoUtilities.h"
 #include "../../../Framework/source/io/File.h"
+#include "../../../Framework/source/StringUtilities.h"
 
 #define var const auto
 #define _client TwsClientSync::Instance()

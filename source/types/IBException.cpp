@@ -1,5 +1,5 @@
 #include "IBException.h"
-
+#include "../../Framework/source/log/Logging.h"
 
 namespace Jde::Markets
 {
@@ -12,7 +12,6 @@ namespace Jde::Markets
 	void IBException::Log( sv pszAdditionalInformation, ELogLevel level )const noexcept
 	{
 		string additionalInformation = pszAdditionalInformation.size() ? format("[{}]", pszAdditionalInformation)  : "";
-
-		GetDefaultLogger()->log( (spdlog::level::level_enum)level, "{{{}}}[{}] {}{} - ({}){}({})", RequestId, ErrorCode, additionalInformation, what(), _functionName, _fileName, _line );
+		LOG( level, "{{{}}}[{}] {}{} - ({}){}({})"sv, RequestId, ErrorCode, additionalInformation, what(), _functionName, _fileName, _line );
 	}
 }

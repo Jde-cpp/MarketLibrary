@@ -172,5 +172,8 @@
     <ClCompile Include="types\proto\watch.pb.cc">
       <Filter>Source Files\types\proto</Filter>
     </ClCompile>
+    <ClCompile Include="types\proto\edgar.pb.cc">
+      <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

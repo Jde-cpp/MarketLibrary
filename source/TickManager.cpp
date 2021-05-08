@@ -1,7 +1,9 @@
 #include "TickManager.h"
 #include "client/TwsClientSync.h"
 #include "../../Framework/source/collections/Vector.h"
+#include "../../Framework/source/StringUtilities.h"
 #include "types/IBException.h"
+
 
 #define WorkerPtr if( auto p=TickWorker::Instance(); p ) p
 #define TwsClientPtr if( _pTwsClient ) _pTwsClient
@@ -50,7 +52,7 @@ namespace Jde::Markets
 	void TickManager::Awaitable::await_suspend( TickManager::Awaitable::base::Handle h )noexcept
 	{
 		base::await_suspend( h );
-		ASSERT( Tick.ContractId );
+		//ASSERT( Tick.ContractId );
 		_pPromise = &h.promise();
 		if( auto p=TickWorker::Instance(); p )
 			p->Subscribe( TickWorker::SubscriptionInfo{ {h, _hClient}, *this} );

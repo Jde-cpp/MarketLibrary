@@ -2,6 +2,8 @@
 #include "Contract.h"
 #include "proto/results.pb.h"
 #include "../../../Framework/source/JdeAssert.h"
+#include "../../../Framework/source/StringUtilities.h"
+#include "../../../Framework/source/log/Logging.h"
 #define var const auto
 
 namespace Jde

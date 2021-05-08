@@ -3,7 +3,7 @@
 #pragma warning( disable : 4244 )
 #include "proto/results.pb.h"
 #pragma warning( default : 4244 )
-
+#include "../../../Framework/source/StringUtilities.h"
 #include "../../../Framework/source/collections/Vector.h"
 
 #define var const auto

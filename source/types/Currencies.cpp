@@ -2,6 +2,7 @@
 #pragma warning( disable : 4244 )
 #include "proto/ib.pb.h"
 #pragma warning( default : 4244 )
+#include "../../Framework/source/log/Logging.h"
 
 #define var const auto
 namespace Jde
