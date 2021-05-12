@@ -1,9 +1,9 @@
-#include "../Exports.h"
+#include <jde/markets/Exports.h>
 #include "WrapperLog.h"
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
 #include "../../../Framework/source/collections/UnorderedMap.h"
-#include "../types/proto/results.pb.h"
-#include "../TypeDefs.h"
+#include <jde/markets/types/proto/results.pb.h>
+#include <jde/markets/TypeDefs.h>
 namespace Jde::Markets
 {
 	//

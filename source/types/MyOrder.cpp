@@ -1,7 +1,7 @@
-#include "MyOrder.h"
+#include <jde/markets/types/MyOrder.h>
 #include "OrderEnums.h"
 //#include "proto/requests.pb.h"
-//#include "proto/results.pb.h"
+
 
 #define var const auto
 namespace Jde::Markets
@@ -173,7 +173,7 @@ namespace Jde::Markets
 	}
 	Proto::ETimeInForce MyOrder::TimeInForce()const noexcept
 	{
-		return StringUtilities::ToEnum( ETifStrings, tif, Proto::ETimeInForce::DayTif );
+		return Str::ToEnum( ETifStrings, tif, Proto::ETimeInForce::DayTif );
 	}
 
 	void MyOrder::TimeInForce( Proto::ETimeInForce value )noexcept
@@ -182,7 +182,7 @@ namespace Jde::Markets
 	}
 	Proto::EOrderType MyOrder::OrderType()const noexcept
 	{
-		return StringUtilities::ToEnum<Proto::EOrderType,std::array<sv,22>>( EOrderTypeStrings, orderType, Proto::EOrderType::Limit );
+		return Str::ToEnum<Proto::EOrderType,std::array<sv,22>>( EOrderTypeStrings, orderType, Proto::EOrderType::Limit );
 	}
 	void MyOrder::OrderType( Proto::EOrderType value )noexcept
 	{

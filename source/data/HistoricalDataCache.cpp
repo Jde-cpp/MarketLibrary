@@ -2,7 +2,7 @@
 #include <bar.h>
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "../data/BarData.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/math/MathUtilities.h"

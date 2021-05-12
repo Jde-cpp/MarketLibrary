@@ -1,9 +1,9 @@
 #pragma once
-#include "../Exports.h"
-#include "../TypeDefs.h"
+#include <jde/markets/Exports.h>
+#include <jde/markets/TypeDefs.h>
 #pragma warning( disable : 4244 )
-#include "proto/ib.pb.h"
-#include "proto/results.pb.h"
+#include <jde/markets/types/proto/ib.pb.h>
+#include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
 namespace Jde::Markets
 {

@@ -1,5 +1,5 @@
 #include "IBException.h"
-#include "../../Framework/source/log/Logging.h"
+#include <jde/Log.h>
 
 namespace Jde::Markets
 {

@@ -3,7 +3,7 @@
 #include "../client/TwsClientSync.h"
 #include "../../../Framework/source/Settings.h"
 #include "../../../Framework/source/collections/Collections.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "../types/IBException.h"
 
 #define var const auto
@@ -332,14 +332,14 @@ namespace Jde::Markets
 		var handled = _ratioData.Contains( tickerId );
 		if( handled )
 		{
-			var values = StringUtilities::Split( value, ';' );
+			var values = Str::Split( value, ';' );
 			for( var& subValue : values )
 			{
 				if( subValue.size()==0 )
 					continue;
 				if( tickType==TickType::IB_DIVIDENDS )
 				{
-					var dividendValues = StringUtilities::Split( subValue );
+					var dividendValues = Str::Split( subValue );
 					if( subValue==",,," )
 					{
 						AddRatioTick( tickerId, "DIV_PAST_YEAR", 0.0 );
@@ -366,7 +366,7 @@ namespace Jde::Markets
 				}
 				else
 				{
-					var pair = StringUtilities::Split( subValue, '=' );
+					var pair = Str::Split( subValue, '=' );
 					if( pair.size()!=2 || pair[0]=="CURRENCY" )
 						continue;
 					try

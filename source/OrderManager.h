@@ -7,10 +7,10 @@
 #include "../../Framework/source/threading/Worker.h"
 #include "../../Framework/source/coroutine/CoWorker.h"
 #include "../../Framework/source/coroutine/Awaitable.h"
-#include "../../Framework/source/coroutine/Task.h"
-#include "types/MyOrder.h"
-#include "types/Contract.h"
-#include "Exports.h"
+#include <jde/coroutine/Task.h>
+#include <jde/markets/types/MyOrder.h>
+#include <jde/markets/types/Contract.h>
+#include <jde/markets/Exports.h>
 
 
 namespace Jde::Markets{ struct TwsClientSync; }

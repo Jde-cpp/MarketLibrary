@@ -2,7 +2,7 @@
 #include "../TwsProcessor.h"
 #include "../wrapper/WrapperLog.h"
 #include "../types/Bar.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "../OrderManager.h"
 #include "../../../Framework/source/Cache.h"
 
@@ -161,7 +161,7 @@ namespace Jde::Markets
 
 	void TwsClient::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept
 	{
-		var providers = StringUtilities::AddSeparators( providerCodes, "+"sv );
+		var providers = Str::AddSeparators( providerCodes, "+"sv );
 		auto toIBTime = []( TimePoint t )
 		{
 			string result;

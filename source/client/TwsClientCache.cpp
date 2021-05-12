@@ -2,8 +2,8 @@
 //#include <ranges>
 #include "../data/HistoricalDataCache.h"
 #include "../wrapper/WrapperCache.h"
-#include "../types/Contract.h"
-#include "../types/proto/results.pb.h"
+#include <jde/markets/types/Contract.h>
+#include <jde/markets/types/proto/results.pb.h>
 
 #include "../../../Framework/source/Cache.h"
 
@@ -182,7 +182,7 @@ namespace Jde::Markets
 	//tws is very slow
 	void TwsClientCache::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept
 	{
-		var cacheId = format( "{}.{}.{}.{}.{}", conId, StringUtilities::AddCommas(providerCodes), totalResults, Clock::to_time_t(start), Clock::to_time_t(end) );
+		var cacheId = format( "{}.{}.{}.{}.{}", conId, Str::AddCommas(providerCodes), totalResults, Clock::to_time_t(start), Clock::to_time_t(end) );
 		var pData = Cache::Get<Proto::Results::HistoricalNewsCollection>( cacheId );
 		if( pData )
 		{

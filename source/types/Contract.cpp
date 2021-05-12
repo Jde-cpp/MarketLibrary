@@ -1,7 +1,7 @@
-#include "Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "Currencies.h"
 #pragma warning( disable : 4244 )
-#include "proto/results.pb.h"
+#include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
 #include "../types/Exchanges.h"
 #include "../../../Framework/source/Cache.h"
@@ -371,7 +371,7 @@ namespace Jde::Markets
 		{
 			auto parseDateTime = [timeZoneId]( str value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
 			{
-				var dateTime = StringUtilities::Split( value, ':' );
+				var dateTime = Str::Split( value, ':' );
 				var& date = dateTime[0];
 				if( date.size()!=8 || dateTime.size()!=2 )
 					THROW( Exception("Could not parse parseDateTime '{}'.", value) );
@@ -387,7 +387,7 @@ namespace Jde::Markets
 				var localTime = DateTime( year, month, day, hour, minute ).GetTimePoint();
 				return Clock::to_time_t( localTime-Timezone::TryGetGmtOffset(timeZoneId, localTime) );
 			};
-			var startEnd = StringUtilities::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
+			var startEnd = Str::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
 			var start = parseDateTime( startEnd[0] );
 			if( startEnd.size()>2 )
 				THROW( Exception("Could not parse parseTimeframe '{}'.", timeFrame) );
@@ -396,7 +396,7 @@ namespace Jde::Markets
 			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end( (int)end );
 			return hours;
 		};
-		var tradingHours = StringUtilities::Split( hours, ';' );
+		var tradingHours = Str::Split( hours, ';' );
 		auto pHours = make_shared<vector<Proto::Results::ContractHours>>();
 		for( auto day : tradingHours )
 			Try( [&](){ pHours->push_back(parseTimeframe(day)); } );

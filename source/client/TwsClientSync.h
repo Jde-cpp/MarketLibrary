@@ -4,9 +4,9 @@
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
 #include "../../../Framework/source/collections/UnorderedMap.h"
 #include "TwsClientCache.h"
-#include "../Exports.h"
-#include "../types/Contract.h"
-#include "../types/proto/results.pb.h"
+#include <jde/markets/Exports.h>
+#include <jde/markets/types/Contract.h>
+#include <jde/markets/types/proto/results.pb.h>
 
 struct EReaderSignal;
 struct NewsProvider;

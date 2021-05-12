@@ -1,4 +1,4 @@
-
+#include <jde/TypeDefs.h>
 #ifdef _MSC_VER
 	#include <WinSock2.h>
 	#define TWSAPIDLLEXP __declspec( dllimport )
@@ -9,9 +9,9 @@
 #endif
 //#ifndef __INTELLISENSE__
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/fmt/ostr.h>
+//#include <spdlog/spdlog.h>
+//#include <spdlog/sinks/basic_file_sink.h>
+//#include <spdlog/fmt/ostr.h>
 //#endif
 
 /*
@@ -47,17 +47,13 @@
 #include <CommissionReport.h>
 
 */
-#include "../../Framework/source/TypeDefs.h"
 /*
-#include "../../Framework/source/JdeAssert.h"
 //#include "Collections.h"
-#include "../../Framework/source/application/Application.h"
 #include "../../Framework/source/threading/InterruptibleThread.h"
 */
 #include "../../Framework/source/DateTime.h"
 //#include "../../Framework/source/Stopwatch.h"
 
-//#include "../../Framework/source/StringUtilities.h"
 /*
 #include "../../Framework/source/threading/Thread.h"
 #include "../../Framework/source/threading/InterruptibleThread.h"

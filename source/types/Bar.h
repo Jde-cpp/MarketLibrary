@@ -1,8 +1,8 @@
 #pragma once
-#include "../TypeDefs.h"
-#include "../Exports.h"
+#include <jde/markets/TypeDefs.h>
+#include <jde/markets/Exports.h>
 #pragma warning( disable : 4244 )
-#include "./proto/requests.pb.h"
+#include <jde/markets/types/proto/requests.pb.h>
 #pragma warning( default : 4244 )
 struct Bar;
 

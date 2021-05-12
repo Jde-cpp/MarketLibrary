@@ -1,8 +1,8 @@
 #include "Currencies.h"
 #pragma warning( disable : 4244 )
-#include "proto/ib.pb.h"
+#include <jde/markets/types/proto/ib.pb.h>
 #pragma warning( default : 4244 )
-#include "../../Framework/source/log/Logging.h"
+#include <jde/Log.h>
 
 #define var const auto
 namespace Jde

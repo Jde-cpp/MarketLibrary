@@ -6,17 +6,17 @@
 #include "../../Framework/source/threading/Worker.h"
 #include "../../Framework/source/coroutine/Awaitable.h"
 #include "../../Framework/source/coroutine/Coroutine.h"
-#include "../../Framework/source/coroutine/Task.h"
+#include <jde/coroutine/Task.h>
 #include "../../Framework/source/coroutine/CoWorker.h"
 #include "../../Framework/source/collections/Map.h"
 #include "../../Framework/source/collections/UnorderedSet.h"
 #include "../../Framework/source/collections/UnorderedMapValue.h"
-#include "Exports.h"
+#include <jde/Markets/Exports.h>
 #pragma warning( disable : 4244 )
-#include "types/proto/requests.pb.h"
-#include "types/proto/results.pb.h"
+#include <jde/markets/types/proto/requests.pb.h>
+#include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
-#include "types/Tick.h"
+#include <jde/markets/types/Tick.h>
 
 namespace Jde::Markets
 {

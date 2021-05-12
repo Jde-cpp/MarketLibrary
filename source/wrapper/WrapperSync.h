@@ -1,11 +1,11 @@
 #pragma once
 #include "../../../Framework/source/collections/Queue.h"
 #include "../../../Framework/source/threading/Thread.h"
-#include "../Exports.h"
+#include <jde/markets/Exports.h>
 #include "WrapperCache.h"
 #include <Contract.h>
 #include "WrapperPromise.h"
-#include "../types/proto/results.pb.h"
+#include <jde/markets/types/proto/results.pb.h>
 
 namespace Jde::Settings{ struct Container; }
 struct EReaderSignal;

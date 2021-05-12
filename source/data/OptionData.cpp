@@ -1,13 +1,13 @@
 #include "./OptionData.h"
 #include "BarData.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 
 #pragma warning( disable : 4244 )
-#include "../types/proto/results.pb.h"
+#include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
 
 #include "../types/Exchanges.h"
-#include "../../../Framework/source/io/File.h"
+#include <jde/io/File.h>
 #include "../../../Framework/source/db/Database.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../XZ/source/XZ.h"
@@ -265,7 +265,7 @@ namespace Jde::Markets
 	fs::path OptionDir( const Contract& contract )
 	{
 		const string exchangeString{ ToString(contract.PrimaryExchange) };
-		return BarData::Path()/StringUtilities::ToLower(exchangeString)/StringUtilities::ToUpper(contract.Symbol)/"options";
+		return BarData::Path()/Str::ToLower(exchangeString)/Str::ToUpper(contract.Symbol)/"options";
 	}
 
 	fs::path OptionData::OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept

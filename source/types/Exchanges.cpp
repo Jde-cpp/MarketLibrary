@@ -1,9 +1,9 @@
 #include "Exchanges.h"
-#include "Contract.h"
-#include "proto/results.pb.h"
-#include "../../../Framework/source/JdeAssert.h"
-#include "../../../Framework/source/StringUtilities.h"
-#include "../../../Framework/source/log/Logging.h"
+#include <jde/Assert.h>
+#include <jde/Str.h>
+#include <jde/Log.h>
+#include <jde/markets/types/proto/results.pb.h>
+#include <jde/markets/types/Contract.h>
 #define var const auto
 
 namespace Jde

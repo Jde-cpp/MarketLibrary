@@ -1,10 +1,10 @@
 #pragma once
-#include "../TypeDefs.h"
-#include "../Exports.h"
+#include <jde/markets/TypeDefs.h>
+#include <jde/markets/Exports.h>
 //#include "../types/proto/bar.pb.h"
 #include "boost/container/flat_set.hpp"
 #include "../../../Framework/source/Settings.h"
-#include "../../../Framework/source/io/File.h"
+#include <jde/io/File.h>
 
 struct Bar;
 namespace Jde::Markets

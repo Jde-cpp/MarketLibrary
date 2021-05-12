@@ -1,11 +1,11 @@
 #pragma once
 #include <EClientSocket.h>
-#include "../Exports.h"
+#include <jde/markets/Exports.h>
 #include "../types/TwsConnectionSettings.h"
 #pragma warning( disable : 4244 )
-#include "../types/proto/requests.pb.h"
+#include <jde/markets/types/proto/requests.pb.h>
 #pragma warning( default : 4244 )
-#include "../TypeDefs.h"
+#include <jde/markets/TypeDefs.h>
 #include "../TickManager.h"
 
 struct EReaderSignal;

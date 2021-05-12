@@ -1,9 +1,9 @@
-#include "Tick.h"
-#include "../Exports.h"
+#include <jde/markets/types/Tick.h>
+#include <jde/Exports.h>
 #pragma warning( disable : 4244 )
-#include "proto/results.pb.h"
+#include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
-#include "../../../Framework/source/StringUtilities.h"
+#include <jde/Str.h>
 #include "../../../Framework/source/collections/Vector.h"
 
 #define var const auto
@@ -18,7 +18,7 @@ namespace Jde::Markets
 		case ETickType::AskExchange: AskExchange = value; break;
 		//case ETickType::NewsTick: NewsTick = value; break;
 		case ETickType::LastExchange: LastExchange = value; break;
-		case ETickType::LastTimestamp: LastTimestamp = StringUtilities::TryTo<time_t>( value ).value_or( 0 ); break;
+		case ETickType::LastTimestamp: LastTimestamp = Str::TryTo<time_t>( value ).value_or( 0 ); break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
 		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		case ETickType::IB_DIVIDENDS: DividendString = value; break;
@@ -428,10 +428,10 @@ namespace Jde::Markets
 	{
 		map<string,double> values;
 		{
-			var dividendSplit = StringUtilities::Split( DividendString, ';' );
+			var dividendSplit = Str::Split( DividendString, ';' );
 			for( var& subValue : dividendSplit )
 			{
-				var dividendValues = StringUtilities::Split( subValue );
+				var dividendValues = Str::Split( subValue );
 				if( subValue==",,," )
 				{
 					values.emplace( "DIV_PAST_YEAR", 0.0 );
@@ -458,12 +458,12 @@ namespace Jde::Markets
 			}
 		}
 		{
-			var split = StringUtilities::Split( RatioString, ';' );
+			var split = Str::Split( RatioString, ';' );
 			for( var& subValue : split )
 			{
 				if( subValue.size()==0 )
 					continue;
-				var pair = StringUtilities::Split( subValue, '=' );
+				var pair = Str::Split( subValue, '=' );
 				if( pair.size()!=2 || pair[0]=="CURRENCY" )
 					continue;
 				try

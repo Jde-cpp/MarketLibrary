@@ -1,9 +1,9 @@
 #pragma once
-#include "../TypeDefs.h"
-#include "../Exports.h"
+#include <jde/markets/TypeDefs.h>
+#include <jde/markets/Exports.h>
 #include "../types/Exchanges.h"
 #pragma warning( disable : 4244 )
-#include "../types/proto/requests.pb.h"
+#include <jde/markets/types/proto/requests.pb.h>
 #pragma warning( default : 4244 )
 #include "../../../Framework/source/math/MathUtilities.h"
 

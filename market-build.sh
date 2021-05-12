@@ -1,19 +1,20 @@
 clean=${1:-0};
-fetch=${2:-1};
+shouldFetch=${2:-1};
 buildFramework=${3:-1};
-
+source source-build.sh;
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-echo market-build.sh clean=$clean fetch=$fetch buildFramework=$buildFramework
+echo market-build.sh clean=$clean shouldFetch=$shouldFetch buildFramework=$buildFramework
 
 if [ $buildFramework -eq 1 ]; then
- 	$scriptDir/../Framework/framework-build.sh $clean $fetch
+ 	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
 else
-	#echo source $scriptDir/../Framework/source-build.sh;
-	source $scriptDir/../Framework/source-build.sh;
+	#echo market-build says sourceBuild=\'$sourceBuild\';
+	if [[ -z $sourceBuild ]]; then source source-build.sh; fi;
 	toBashDir $REPO_DIR REPO_BASH
 	findExecutable protoc.exe $REPO_BASH/protobuf/cmake/build/sln/Release;
 fi;
+
 function xzBuildLib
 {
 	previousDir=`pwd`;
@@ -29,8 +30,8 @@ function xzBuildLib
 			rm liblzma.exports;
 			rm liblzma.def;
 			rm liblzma.exp;
-		else
-			echo already exists:  $dir/bin_x86-64/liblzma.lib;
+		#else
+			#echo already exists:  $dir/bin_x86-64/liblzma.lib;
 		fi;
 	else
 		echo Not found:  $dir.
@@ -38,12 +39,29 @@ function xzBuildLib
 	cd $previousDir;
 }
 xzBuildLib
+echo `pwd`;
 fetchBuild XZ 0
 
 function protocBuild()
 {
+	publicDir=$2;
 	if [ ! -f $1.pb.cc ]; then
-		protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. $1.proto;
+		if [ $publicDir -eq 1 ]; then
+			prevDir=`pwd`;
+			workDir=$baseDir/$jdeRoot/Public/jde/markets/types/proto;
+			cd $workDir;
+		fi;
+		cmd="protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. $1.proto";
+		$cmd;
+		if [ $? -ne 0 ]; then
+			echo `pwd`;
+			echo $cmd;
+			exit 1;
+		fi;
+		if [ $publicDir -eq 1 ]; then
+			cd $prevDir;
+			mv $workDir/$1.pb.cc .;
+		fi;
 	fi;
 }
 
@@ -57,10 +75,12 @@ function marketLibraryProtoc
 	protocBuild watch;
 	protocBuild requests;
 	protocBuild results;
+	#sed -i 's/class Fundamentals_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT Fundamentals_ValuesEntry_DoNotUse/' results.pb.h
+	#sed -i 's/class StringMap_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT StringMap_ValuesEntry_DoNotUse/' results.pb.h
 	protocBuild ib;
 	protocBuild OptionOI;
 	protocBuild bar;
-	protocBuild edgar;
+	protocBuild edgar 1;
 	cd ../..;
 	twsDir=/c/TWS\ API/source/CppClient/client;
 	if [ -d  "$twsDir" ]; then
@@ -70,12 +90,14 @@ function marketLibraryProtoc
 			cd "$twsDir"
 			mklink TwsSocketClient64.vcxproj $sourceDir
 			cd $sourceDir;
-		else
-			echo Found \"$twsDir/TwsSocketClient64.vcxproj\";
+		#else
+			#echo Found \"$twsDir/TwsSocketClient64.vcxproj\";
 		fi;
 	 	prevDir=`pwd`;
+		echo cd "$twsDir";
 	 	cd "$twsDir";
-	 	buildWindows TwsSocketClient64;
+		#echo buildWindows TwsSocketClient64;
+	 	buildWindows TwsSocketClient64 TwsSocketClient64.dll;
 	 	cd $prevDir;
 		moveToDir .bin;
 		moveToDir debug;
@@ -90,6 +112,6 @@ function marketLibraryProtoc
 		echo Not Found:  \"c:\\TWS API\"
 	fi;
 }
-#fetchDefault MarketLibrary 0; 
+fetchDefault MarketLibrary 0; 
 marketLibraryProtoc;
-build MarketLibrary;
+build MarketLibrary 0 Jde.Markets.dll;

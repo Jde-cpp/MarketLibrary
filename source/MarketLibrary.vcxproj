@@ -66,12 +66,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;PROTOBUF_USE_DLLS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Public</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/MP /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -83,9 +83,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>TwsSocketClient64.lib;Onecore.lib;libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);../../Public/stage/$(ConfigurationName)</AdditionalLibraryDirectories>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -95,12 +99,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;PROTOBUF_USE_DLLS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>../../Framework/source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Public</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/MP /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -113,8 +117,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>TwsSocketClient64.lib;Onecore.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir);../../Public/stage/$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Windows\source\dllmain.cpp" />
@@ -156,8 +164,12 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="types\proto\edgar.pb.cc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4068;4251;4275;4297;4703;5105;4996;4025;4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4703;5105;4996;4025;4244</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="types\proto\OptionOI.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4068;4251;4275;4297;4703;5105;4996;4025;4244</DisableSpecificWarnings>
@@ -178,6 +190,8 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4244;4996</DisableSpecificWarnings>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="types\proto\results.pb.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -188,6 +202,8 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4068;4251;4275;4297;4244;4267;4996</DisableSpecificWarnings>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="types\Contract.cpp" />
     <ClCompile Include="types\Exchanges.cpp" />
@@ -200,6 +216,8 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="types\proto\watch.pb.cc">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D JDE_MARKETS_EXPORT="__declspec( dllexport )" %(AdditionalOptions)</AdditionalOptions>
@@ -210,6 +228,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Public;../../Public/jde/markets/types/proto</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="types\Tick.cpp" />
     <ClCompile Include="types\TwsConnectionSettings.cpp" />
@@ -218,6 +238,10 @@
     <ClCompile Include="wrapper\WrapperSync.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\edgar.pb.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\requests.pb.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\results.pb.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\watch.pb.h" />
     <ClInclude Include="Exports.h" />
     <ClInclude Include="TwsClient.h" />
     <ClInclude Include="TwsProcessor.h" />
@@ -228,9 +252,6 @@
     <ClInclude Include="types\Exchanges.h" />
     <ClInclude Include="types\IBException.h" />
     <ClInclude Include="types\MyOrder.h" />
-    <ClInclude Include="types\proto\ib.pb.h" />
-    <ClInclude Include="types\proto\requests.pb.h" />
-    <ClInclude Include="types\proto\results.pb.h" />
     <ClInclude Include="types\Tick.h" />
     <ClInclude Include="types\TwsConnectionSettings.h" />
     <ClInclude Include="types\WrapperLog.h" />

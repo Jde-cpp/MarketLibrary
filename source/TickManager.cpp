@@ -1,7 +1,7 @@
 #include "TickManager.h"
 #include "client/TwsClientSync.h"
 #include "../../Framework/source/collections/Vector.h"
-#include "../../Framework/source/StringUtilities.h"
+#include <jde/Str.h>
 #include "types/IBException.h"
 
 
@@ -468,7 +468,7 @@ namespace Jde::Markets
 				if( newRequestId )
 				{
 					::Contract contract; contract.conId = contractId; contract.exchange = "SMART";
-					_pTwsClient->reqMktData( newRequestId, contract, StringUtilities::AddCommas(currentTicks), false, false, {} );
+					_pTwsClient->reqMktData( newRequestId, contract, Str::AddCommas(currentTicks), false, false, {} );
 				}
 			}
 		}
@@ -582,7 +582,7 @@ namespace Jde::Markets
 
 
 			::Contract contract;  contract.conId = contractId; contract.exchange = "SMART";
-			_pTwsClient->reqMktData( reqId, contract, StringUtilities::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
+			_pTwsClient->reqMktData( reqId, contract, Str::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		}
 		return newTicks;
 	}

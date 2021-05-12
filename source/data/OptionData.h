@@ -1,6 +1,6 @@
 #pragma once
-#include "../TypeDefs.h"
-#include "../Exports.h"
+#include <jde/markets/TypeDefs.h>
+#include <jde/markets/Exports.h>
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/Settings.h"
 #pragma warning( disable : 4244 )

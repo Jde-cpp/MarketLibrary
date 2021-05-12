@@ -1,6 +1,6 @@
 #include "WrapperCache.h"
 #include "../types/Exchanges.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/collections/Collections.h"
 

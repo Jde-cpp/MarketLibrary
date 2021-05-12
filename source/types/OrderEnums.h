@@ -1,7 +1,7 @@
 #pragma once
-#include "proto/ib.pb.h"
-#include "proto/results.pb.h"
-#include "../../../Framework/source/StringUtilities.h"
+#include <jde/markets/types/proto/ib.pb.h>
+#include <jde/markets/types/proto/results.pb.h>
+#include <jde/Str.h>
 
 namespace Jde
 {
@@ -14,8 +14,8 @@ namespace Jde
 namespace Markets
 {
 	constexpr std::array<sv,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
-	inline sv ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return StringUtilities::FromEnum( EOrderTypeStrings, orderType ); }
-	inline Proto::EOrderType ToOrderType( sv value )noexcept{ return StringUtilities::ToEnum( EOrderTypeStrings, value, Proto::EOrderType::Limit ); }
+	inline sv ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return Str::FromEnum( EOrderTypeStrings, orderType ); }
+	inline Proto::EOrderType ToOrderType( sv value )noexcept{ return Str::ToEnum( EOrderTypeStrings, value, Proto::EOrderType::Limit ); }
 
 	constexpr std::array<sv,7> ETifStrings={ "DAY", "GTC", "IOC", "GTD", "OPG", "FOK", "DTC" };
 	constexpr std::array<sv,9> EOrderStatusStrings={ "PendingSubmit","PendingCancel","PreSubmitted","Submitted","ApiCancelled","Cancelled","Filled","Inactive","UnknownStatus" };

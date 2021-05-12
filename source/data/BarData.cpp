@@ -1,15 +1,15 @@
 #include "BarData.h"
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
-#include "../types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )
 #include "../../../XZ/source/XZ.h"
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/ProtoUtilities.h"
-#include "../../../Framework/source/io/File.h"
-#include "../../../Framework/source/StringUtilities.h"
+#include <jde/io/File.h>
+#include <jde/Str.h>
 
 #define var const auto
 #define _client TwsClientSync::Instance()
@@ -22,7 +22,7 @@ namespace Jde::Markets
 		var path = Settings::Global().Get<fs::path>( "barPath" );
 		return path.empty() ? IApplication::Instance().ApplicationDataFolder()/"securities" : path;
 	}
-	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/StringUtilities::ToLower(string{ToString(contract.PrimaryExchange)})/StringUtilities::Replace(contract.Symbol, " ", "_"); }
+	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/Str::ToLower(string{ToString(contract.PrimaryExchange)})/Str::Replace(contract.Symbol, " ", "_"); }
 
 	sp<Proto::BarFile> BarData::Load( path path )noexcept(false)
 	{
@@ -306,7 +306,7 @@ namespace Jde::Markets
 		const DateTime today{ DateTime::Today() };
 		auto fnctn = [&]( path path, DayIndex fileStart, DayIndex fileEnd )
 		{
-			if( StringUtilities::EndsWith(path.stem().stem().string(), "_partial") /*|| (end2==18269 && path.stem().stem().string()=="2019")*/  )
+			if( Str::EndsWith(path.stem().stem().string(), "_partial") /*|| (end2==18269 && path.stem().stem().string()=="2019")*/  )
 			{
 				var pExisting = pPartials ? Jde::Find( *pPartials, path.string() ) : nullptr;
 				auto pPartial = pExisting ? pExisting : BarData::Load( path );

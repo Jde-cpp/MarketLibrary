@@ -1,10 +1,10 @@
 #pragma once
-#include "../Exports.h"
+#include <jde/markets/Exports.h>
 #include <future>
 #include "TwsClient.h"
 #include "../types/Bar.h"
 #include "../types/Exchanges.h"
-#include "../types/proto/requests.pb.h"
+#include <jde/markets/types/proto/requests.pb.h>
 
 //struct EReaderSignal;
 

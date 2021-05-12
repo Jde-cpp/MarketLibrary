@@ -3,9 +3,9 @@
 #pragma warning( disable : 4244 )
 #include "./proto/bar.pb.h"
 #pragma warning( default : 4244 )
-#include "../../../Framework/source/JdeAssert.h"
-#include "../../Framework/source/log/Logging.h"
-#include "../../Framework/source/Exception.h"
+#include <jde/Assert.h>
+#include <jde/Log.h>
+#include <jde/Exception.h>
 
 #define var const auto
 
