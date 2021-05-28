@@ -10,7 +10,7 @@ if [[ -z $sourceBuild ]]; then source $scriptDir/../Framework/source-build.sh; f
 if [ $buildFramework -eq 1 ]; then
  	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
 else
-	findExecutable protoc.exe $REPO_BASH/protobuf/cmake/build/sln/Release;
+	findProtoc
 fi;
 
 function xzBuildLib
@@ -66,7 +66,7 @@ function protocBuild()
 
 function marketLibraryProtoc
 {
-	findExecutable protoc.exe $stage/release;
+	findProtoc
 	echo marketLibraryProtoc;
 	cd types/proto;
 	if [ $clean -eq 1 ]; then
@@ -95,14 +95,14 @@ function marketLibraryProtoc
 			mklink TwsSocketClient64.vcxproj $sourceDir
 			cd $sourceDir;
 		fi;
-		if [ ! -f  $stage/release/TwsSocketClient64.dll ]; then
+		if [ ! -f  $stage/release/TwsSocketClient.dll ]; then
 			prevDir=`pwd`;
 			cd "$twsDir";
-			buildWindows TwsSocketClient64 TwsSocketClient64.dll;
+			buildWindows TwsSocketClient64 TwsSocketClient.dll;
 			cd $stage/debug;
-			mklink TwsSocketClient64.lib "$twsDir/.bin/debug"; mklink TwsSocketClient64.dll "$twsDir/.bin/debug";
+			mklink TwsSocketClient.lib "$twsDir/.bin/debug"; mklink TwsSocketClient.dll "$twsDir/.bin/debug";
 			cd $stage/release;
-			mklink TwsSocketClient64.lib "$twsDir/.bin/release"; mklink TwsSocketClient64.dll "$twsDir/.bin/release";
+			mklink TwsSocketClient.lib "$twsDir/.bin/release"; mklink TwsSocketClient.dll "$twsDir/.bin/release";
 			cd $prevDir;
 		fi;
 	else
