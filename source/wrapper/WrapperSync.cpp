@@ -37,9 +37,9 @@ namespace Jde::Markets
 			fnctn( time );
 		_currentTimeCallbacks.clear();
 	}
-	bool WrapperSync::error2( int id, int errorCode, const std::string& errorString )noexcept
+	bool WrapperSync::error2( int id, int errorCode, str errorString )noexcept
 	{
-		bool handled = WrapperLog::error2( id, errorCode, errorString );
+		bool handled = WrapperCo::error2( id, errorCode, errorString );
 		if( handled )
 			return true;
 		if( errorCode==502 )
@@ -109,7 +109,7 @@ namespace Jde::Markets
 		unique_lock l{_currentTimeCallbacksMutex};
 		_currentTimeCallbacks.push_front( fnctn );
 	}
-	void WrapperSync::fundamentalData( TickerId reqId, const std::string& data )noexcept
+	void WrapperSync::fundamentalData( TickerId reqId, str data )noexcept
 	{
 		_fundamentalData.Push( reqId, make_shared<string>(data) );
 	}
@@ -131,11 +131,13 @@ namespace Jde::Markets
 	}
 	void WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
 	{
+		if( WrapperCo::_contractSingleHandles.Has(reqId) ) return WrapperCo::contractDetails( reqId, contractDetails );
 		WrapperCache::contractDetails( reqId, contractDetails );
 		_detailsData.Push( reqId, contractDetails );
 	}
 	void WrapperSync::contractDetailsEnd( int reqId )noexcept
 	{
+		if( WrapperCo::_contractSingleHandles.Has(reqId) ) return WrapperCo::contractDetailsEnd( reqId );
 		WrapperCache::contractDetailsEnd( reqId );
 		_detailsData.End( reqId );
 	}
@@ -149,7 +151,7 @@ namespace Jde::Markets
 		_positionsPtr = make_shared<vector<Proto::Results::Position>>();
 		return _positionPromisePtr->get_future();
 	}
-	void WrapperSync::position( const std::string& account, const ::Contract& contract, double position, double avgCost )noexcept
+	void WrapperSync::position( str account, const ::Contract& contract, double position, double avgCost )noexcept
 	{
 		if( _positionsPtr )
 		{
@@ -187,12 +189,12 @@ namespace Jde::Markets
 		return _detailsData.Promise( reqId, 5s );
 	}
 
-	void WrapperSync::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	void WrapperSync::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		securityDefinitionOptionalParameterSync( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
 
-	bool WrapperSync::securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	bool WrapperSync::securityDefinitionOptionalParameterSync( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		WrapperCache::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		var captured = _optionFutures.Contains( reqId );
@@ -252,11 +254,11 @@ namespace Jde::Markets
 			_historicalData.Push( reqId, bar );
 		return captured;
 	}
-	void WrapperSync::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
+	void WrapperSync::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
 	{
 		historicalDataEndSync( reqId, startDateStr, endDateStr );
 	}
-	bool WrapperSync::historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
+	bool WrapperSync::historicalDataEndSync( int reqId, str startDateStr, str endDateStr )noexcept
 	{
 		WrapperCache::historicalDataEnd( reqId, startDateStr, endDateStr );
 		var captured = _historicalData.Contains( reqId );
@@ -264,11 +266,12 @@ namespace Jde::Markets
 			_historicalData.End( reqId );
 		return captured;
 	}
-	void WrapperSync::newsProviders( const vector<NewsProvider>& newsProviders )noexcept
+/*	void WrapperSync::newsProviders( const vector<NewsProvider>& newsProviders )noexcept
 	{
 		WrapperCache::newsProviders( newsProviders );
 		_newsProviderData.End( make_shared<vector<NewsProvider>>(newsProviders) );
 	}
+*/
 /*	void WrapperSync::newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept
 	{
 	}*/
@@ -294,7 +297,7 @@ namespace Jde::Markets
 		//_openOrderEnds.ForEach( fnctn );
 	}
 
-	void WrapperSync::headTimestamp( int reqId, const std::string& headTimestamp )noexcept
+	void WrapperSync::headTimestamp( int reqId, str headTimestamp )noexcept
 	{
 		WrapperLog::headTimestamp( reqId, headTimestamp );
 		lock_guard l{ _headTimestampMutex };
@@ -326,7 +329,7 @@ namespace Jde::Markets
 			AddRatioTick( tickerId, std::to_string(field), size );
 		return handled;
 	}
-	bool WrapperSync::TickString( TickerId tickerId, TickType tickType, const std::string& value )noexcept
+	bool WrapperSync::TickString( TickerId tickerId, TickType tickType, str value )noexcept
 	{
 		WrapperLog::tickString( tickerId, tickType, value );
 		var handled = _ratioData.Contains( tickerId );

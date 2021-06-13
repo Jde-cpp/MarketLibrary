@@ -1,5 +1,5 @@
 #include <jde/markets/Exports.h>
-#include "WrapperLog.h"
+#include "WrapperCo.h"
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
 #include "../../../Framework/source/collections/UnorderedMap.h"
 #include <jde/markets/types/proto/results.pb.h>
@@ -7,7 +7,7 @@
 namespace Jde::Markets
 {
 	//
-	struct JDE_MARKETS_EXPORT WrapperCache : public WrapperLog
+	struct JDE_MARKETS_EXPORT WrapperCache : public WrapperCo
 	{
 		void AddCacheId( ReqId reqId, str cacheId ){ if( cacheId.size() ) _cacheIds.emplace(reqId, cacheId); }//reqContractDetails.OPT.CALL.20230120.330.0.SPY
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
@@ -19,7 +19,7 @@ namespace Jde::Markets
 		static Proto::Results::ExchangeContracts ToOptionParam( sv exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
 		//Proto::Results::OptionParams securityDefinitionOptionalParameterSync( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const flat_set<std::string>& expirations, const flat_set<double>& strikes )noexcept;
 		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
-		void newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept override;
+		//void newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept override;
 	private:
 		UnorderedMapValue<ReqId,string> _cacheIds;
 		unordered_map<ReqId,sp<vector<::ContractDetails>>> _details;  mutable shared_mutex _detailsMutex;

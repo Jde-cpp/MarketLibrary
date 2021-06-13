@@ -19,14 +19,14 @@ namespace Jde::Markets
 	}
 	void WrapperCache::contractDetailsEnd( int reqId )noexcept
 	{
-		var cacheId = _cacheIds.Find( reqId, string{} );
-		if( cacheId.size() )
+		var pCacheId = _cacheIds.Find( reqId );
+		if( pCacheId )
 		{
 			WrapperLog::contractDetailsEnd( reqId );
 			unique_lock l{_detailsMutex};
 			var pDetails = _details.find( reqId );
 			var pResults = pDetails==_details.end() ? sp<vector<::ContractDetails>>{} : pDetails->second;
-			Cache::Set( cacheId, pResults );
+			Cache::Set( *pCacheId, pResults );
 			_details.erase( reqId );
 			_cacheIds.erase( reqId );
 		}
@@ -48,8 +48,8 @@ namespace Jde::Markets
 
 	void WrapperCache::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
-		var cacheId = _cacheIds.Find( reqId, string{} );
-		if( cacheId.size() )
+		var pCacheId = _cacheIds.Find( reqId );
+		if( pCacheId )
 		{
 			WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 			DBG( "Caching {}"sv, exchange );
@@ -59,13 +59,13 @@ namespace Jde::Markets
 
 	void WrapperCache::securityDefinitionOptionalParameterEnd( int reqId )noexcept
 	{
-		var cacheId = _cacheIds.Find( reqId, string{} );
-		if( cacheId.size() )
+		var pCacheId = _cacheIds.Find( reqId );
+		if( pCacheId )
 		{
 			WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
 			var pParams = _optionParams.find( reqId );
 			auto pResults = pParams==_optionParams.end() ? make_unique<Proto::Results::OptionExchanges>() : move( pParams->second );
-			Cache::Set( cacheId, sp<Proto::Results::OptionExchanges>(pResults.release()) );
+			Cache::Set( *pCacheId, sp<Proto::Results::OptionExchanges>(pResults.release()) );
 			_optionParams.erase( reqId );
 			_cacheIds.erase( reqId );
 		}
@@ -93,7 +93,7 @@ namespace Jde::Markets
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
 	}
 
-	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept
+/*	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept
 	{
 		WrapperLog::newsProviders( newsProviders );
 
@@ -101,5 +101,5 @@ namespace Jde::Markets
 		for( var& provider : newsProviders )
 			(*pResults->mutable_values())[provider.providerCode] = provider.providerName;
 		Cache::Set( "RequestProviders", pResults );
-	}
+	}*/
 }

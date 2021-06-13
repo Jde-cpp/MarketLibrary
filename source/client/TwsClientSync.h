@@ -40,7 +40,7 @@ namespace Jde::Markets
 		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept;
-		Future<NewsProvider> RequestNewsProviders()noexcept;
+		//Future<NewsProvider> RequestNewsProviders()noexcept;
 		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
 		//std::future<sp<map<string,double>>> ReqRatios( const ::Contract &contract )noexcept;
 

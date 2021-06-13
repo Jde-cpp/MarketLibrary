@@ -12,7 +12,7 @@ namespace Jde::Markets
 {
 	using namespace Chrono;
 	TwsClientCache::TwsClientCache( const TwsConnectionSettings& settings, shared_ptr<WrapperCache> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
-		TwsClient( settings, wrapper, pReaderSignal, clientId )
+		TwsClientCo( settings, wrapper, pReaderSignal, clientId )
 	{}
 
 	shared_ptr<WrapperCache> TwsClientCache::Wrapper()noexcept
@@ -76,7 +76,7 @@ namespace Jde::Markets
 			TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
 		}
 	}
-	void TwsClientCache::RequestNewsProviders()noexcept
+/*	void TwsClientCache::RequestNewsProviders()noexcept
 	{
 		auto cacheId = format( "RequestProviders" );
 		var pData = Cache::Get<Proto::Results::StringMap>( cacheId );
@@ -90,6 +90,7 @@ namespace Jde::Markets
 		else
 			TwsClient::reqNewsProviders();
 	}
+	*/
 	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
 		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
@@ -179,6 +180,7 @@ namespace Jde::Markets
 		}
 		Wrapper()->historicalDataEnd( reqId, minTime==now ? "" : ToIBDate(DateTime{minTime}), maxTime==0 ? "" : ToIBDate(DateTime{maxTime}) );
 	}
+/*
 	//tws is very slow
 	void TwsClientCache::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept
 	{
@@ -191,4 +193,5 @@ namespace Jde::Markets
 		else
 			TwsClient::reqHistoricalNews( requestId, conId, providerCodes, totalResults, start, end );
 	}
+	*/
 }

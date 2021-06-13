@@ -16,7 +16,7 @@ namespace Jde::Markets
 	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		if( _pInstance )
-			DBG0( "Creating new Instance of TwsClient, removing old."sv );
+			DBG( "Creating new Instance of TwsClient, removing old."sv );
 		_pInstance = sp<TwsClient>( new TwsClient(settings, wrapper, pReaderSignal, clientId) );
 		TwsProcessor::CreateInstance( _pInstance, pReaderSignal );
 		while( !_pInstance->isConnected() ) //Make sure thread is still alive, ie not shutting down.  while( !TwsProcessor::IsConnected() )
@@ -115,7 +115,7 @@ namespace Jde::Markets
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
-		LOGN( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
+		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
 		if( send )
 		{
 			ASSERT( durationStr!="0 D" );
@@ -155,7 +155,7 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqNewsProviders()noexcept
 	{
-		LOGN( _logLevel, "reqNewsProviders"sv, ReqNewsProvidersLogId );
+		LOG( _logLevel, "reqNewsProviders"sv, ReqNewsProvidersLogId );
 		EClientSocket::reqNewsProviders();
 	}
 
@@ -173,8 +173,8 @@ namespace Jde::Markets
 			return result;
 		};
 
-		var startString = toIBTime( start ); var endString = toIBTime( end );
-
+		var startString = toIBTime( start );
+		var endString = toIBTime( end );
 		LOG( _logLevel, "({})reqHistoricalNews( '{}', '{}', '{}', '{}', '{}' )"sv, requestId, conId, providers, startString, endString, totalResults );
 
 		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, (int)totalResults, nullptr );

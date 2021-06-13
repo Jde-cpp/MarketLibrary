@@ -142,7 +142,7 @@ namespace OrderManager
 				if( update.StatePtr )
 					v.StatePtr = update.StatePtr;
 				latest = v;
-				DBG0( log );
+				DBG( log );
 			}
 			else
 			{
@@ -156,7 +156,7 @@ namespace OrderManager
 			auto range = _subscriptions.equal_range( id );
 			for( auto p = range.first; p!=_subscriptions.end() && p->first==id; )
 			{
-				DBG0( "OrderManager have subscription."sv );
+				DBG( "OrderManager have subscription."sv );
 				auto& original = p->second.Params;
 				var orderChange = (!original.OrderPtr && latest.OrderPtr) || (original.OrderPtr && latest.OrderPtr && latest.OrderPtr->Changes( *original.OrderPtr, original.OrderFields)!=MyOrder::Fields::None );
 				var statusChange = orderChange || (!original.StatusPtr && latest.StatusPtr) || (original.StatusPtr && latest.StatusPtr && latest.StatusPtr->Changes( *original.StatusPtr, original.StatusFields)!=OrderStatus::Fields::None );
@@ -171,7 +171,7 @@ namespace OrderManager
 				}
 				else
 				{
-					DBG0( "OrderManager no changes."sv );
+					DBG( "OrderManager no changes."sv );
 					++p;
 				}
 			}
@@ -190,7 +190,7 @@ namespace OrderManager
 	{
 		std::call_once( _singleThread, []()
 		{
-			DBG0( "Creating OrderWroker"sv );
+			DBG( "Creating OrderWroker"sv );
 			OrderWorker::_pInstance = make_shared<OrderWorker>();
 			OrderWorker::_pInstance->Start();
 			_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );

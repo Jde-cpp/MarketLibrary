@@ -11,7 +11,7 @@
 #include "../../Framework/source/collections/Map.h"
 #include "../../Framework/source/collections/UnorderedSet.h"
 #include "../../Framework/source/collections/UnorderedMapValue.h"
-#include <jde/Markets/Exports.h>
+#include <jde/markets/Exports.h>
 #pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/requests.pb.h>
 #include <jde/markets/types/proto/results.pb.h>
@@ -44,9 +44,9 @@ namespace Jde::Markets
 			typedef coroutine_handle<PromiseType> Handle;
 			Awaitable( const TickParams& params, Coroutine::Handle& h )noexcept;
 			~Awaitable()=default;
-			bool await_ready()noexcept;
-			void await_suspend( base::Handle h )noexcept override;
-			TResult await_resume()noexcept
+			bool await_ready()noexcept override;
+			void await_suspend( base::THandle h )noexcept override;
+			TResult await_resume()noexcept override
 			{
 				base::AwaitResume();
 				//std::variant<Markets::Tick, std::exception_ptr> x{ TickParams::Tick };

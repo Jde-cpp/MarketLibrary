@@ -43,7 +43,7 @@ namespace Jde::Markets
 		void execDetails( int reqId, const ::Contract& contract, const Execution& execution)noexcept override;
 		void execDetailsEnd( int reqId)noexcept override;
 		void error( int id, int errorCode, const std::string& errorMsg )noexcept override;
-		bool error2( int id, int errorCode, const std::string& errorMsg )noexcept;
+		virtual bool error2( int id, int errorCode, const std::string& errorMsg )noexcept;
 		void updateMktDepth(TickerId id, int position, int operation, int side, double price, int size)noexcept override;
 		void updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int side, double price, int size, bool isSmartDepth)noexcept override;
 		void updateNewsBulletin(int msgId, int msgType, const std::string& newsMessage, const std::string& originExch)noexcept override;

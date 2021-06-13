@@ -36,16 +36,20 @@ constexpr auto ms = std::make_shared<T>;
 
 int main(int argc, char **argv)
 {
+#ifdef _MSC_VER
 	 _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
  //   _CrtSetBreakAlloc( 11626 );
 	::testing::InitGoogleTest( &argc, argv );
+#ifdef _MSC_VER
 	auto x = new char[]{"aaaaaaaaaaaaaaaaaaaaaaaaaa"};
+#endif
 	auto p = Jde::Markets::Startup( argc, argv );
 	auto result = EXIT_FAILURE;
 	if( p )
 	{
 		//::testing::GTEST_FLAG(filter) = "OrderManagerTests.Adhoc";
-		::testing::GTEST_FLAG(filter) = "HistoricalDataCacheTest.LoadOptions";//SaveToFile
+		::testing::GTEST_FLAG(filter) = "NewsTest.Providers";//SaveToFile
 	   result = RUN_ALL_TESTS();
 		p->Shutdown();
 		p = nullptr;

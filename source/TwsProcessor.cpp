@@ -9,7 +9,7 @@ namespace Jde::Markets
 	sp<TwsProcessor> TwsProcessor::_pInstance{nullptr};
 	void TwsProcessor::CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
-		DBG0( "TwsProcessor::CreateInstance"sv );
+		DBG( "TwsProcessor::CreateInstance"sv );
 		Stop();
 		_pInstance = sp<TwsProcessor>{ new TwsProcessor{pTwsClient, pReaderSignal} };
 	}
@@ -32,13 +32,13 @@ namespace Jde::Markets
 		DBG( "TwsProcessor::Stop _pInstance={}"sv, _pInstance!=nullptr );
 		if( _pInstance )
 		{
-			DBG0( "TwsProcessor::Stop - AddThread"sv );
+			DBG( "TwsProcessor::Stop - AddThread"sv );
 			IApplication::AddThread( _pInstance->_pThread );
 			_pInstance->_pThread->Interrupt();
 			if( TwsClient::HasInstance() )
 				TwsClient::Instance().reqCurrentTime();
 		}
-		DBG0( "Leaving TwsProcessor::Stop"sv );
+		DBG( "Leaving TwsProcessor::Stop"sv );
 	}
 	void TwsProcessor::ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{

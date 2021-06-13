@@ -27,19 +27,25 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 
 link_directories( ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
-add_executable(Tests.MarketLibrary main.cpp HistoricalDataCacheTest.cpp NewsTest.cpp TwsTests.cpp OrderManagerTests.cpp )
+add_executable(Tests.MarketLibrary main.cpp HistoricalDataCacheTest.cpp NewsTest.cpp OrderManagerTests.cpp )
+#TwsTests.cpp
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 #target_link_libraries(Tests.MarketLibrary c++abi)
+target_link_libraries(Tests.MarketLibrary Jde.Markets.Edgar)
 target_link_libraries(Tests.MarketLibrary Jde.Markets)
 target_link_libraries(Tests.MarketLibrary Jde)
 target_link_libraries(Tests.MarketLibrary Jde.XZ)
-target_link_libraries(Tests.MarketLibrary Jde.Tws)
-target_link_libraries(Tests.MarketLibrary Jde.Dts)
+target_link_libraries(Tests.MarketLibrary Jde.Ssl)
+#target_link_libraries(Tests.MarketLibrary Jde.Tws)
+#target_link_libraries(Tests.MarketLibrary Jde.Dts)
 target_link_libraries(Tests.MarketLibrary lzma)
 target_link_libraries(Tests.MarketLibrary Ib)
 target_link_libraries(Tests.MarketLibrary protobuf)
 target_link_libraries(Tests.MarketLibrary gtest_main)
+target_link_libraries(Tests.MarketLibrary crypto)
+target_link_libraries(Tests.MarketLibrary ssl)
+target_link_libraries(Tests.MarketLibrary boost_iostreams)
 target_link_libraries(Tests.MarketLibrary stdc++)
 target_link_libraries(Tests.MarketLibrary stdc++fs)
 
@@ -57,7 +63,7 @@ target_precompile_headers(Tests.MarketLibrary PRIVATE
 	<spdlog/fmt/ostr.h>
 	<nlohmann/json.hpp>
 
-	"../../Framework/source/TypeDefs.h"
+	<jde/TypeDefs.h>
 	"../../Framework/source/DateTime.h"
-	"../../MarketLibrary/source/TypeDefs.h"
+	<jde/markets/TypeDefs.h>
 )

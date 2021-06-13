@@ -47,7 +47,7 @@ namespace Jde::Markets
 		TwsClient::reqCurrentTime();
 		unique_lock l{mutex};
 		if( cv.wait_for( l, 5s )==std::cv_status::timeout )
-			WARN0N( "Timed out looking for current time" );
+			WARN( "Timed out looking for current time"sv );
 		return time;
 	}
 	void TwsClientSync::OnError( TickerId id, int errorCode, const std::string& errorMsg )
@@ -91,17 +91,17 @@ namespace Jde::Markets
 		unique_lock l{mutex};
 		TwsClient::reqHeadTimestamp( reqId, contract, whatToShow, 1, 2 );
 		if( pCV->wait_for(l, 30s)==std::cv_status::timeout )
-			WARN0( "Timed out looking for HeadTimestamp."sv );
+			WARN( "Timed out looking for HeadTimestamp."sv );
 		if( _errors.Find(reqId) )
 		{
 			auto pError = _errors.Find(reqId);
 			_errors.erase( reqId );
 			throw *pError;
 		}
-		var time = _headTimestamps.Find( reqId, TimePoint{} );
+		var time = _headTimestamps.Find( reqId );
 		_headTimestamps.erase( reqId );
 		_conditionVariables.erase( reqId );
-		return time;
+		return time.value_or( TimePoint{} );
 	}
 
 	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, DayIndex dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
@@ -269,13 +269,13 @@ namespace Jde::Markets
 		return future;
 	}
 */
-	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders()noexcept
+/*	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders()noexcept
 	{
 		auto future = _wrapper.NewsProviderPromise();
 		TwsClientCache::RequestNewsProviders();
 		return future;
 	}
-
+*/
 	std::future<VectorPtr<Proto::Results::Position>> TwsClientSync::RequestPositions()noexcept(false)//should throw if currently perpetual reqPositions.
 	{
 		auto future = _wrapper.PositionPromise();
@@ -288,7 +288,7 @@ namespace Jde::Markets
 		var future = _wrapper.ReqIdsPromise();
 		TwsClient::reqIds();
 		if( future.wait_for(10s)==std::future_status::timeout )
-			WARN0( "Timed out looking for reqIds."sv );
+			WARN( "Timed out looking for reqIds."sv );
 		else
 			SetRequestId( future.get() );
 	}

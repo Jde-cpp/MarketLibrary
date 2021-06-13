@@ -3,7 +3,7 @@
 #include "../../MarketLibrary/source/client/TwsClientSync.h"
 #include "../../MarketLibrary/source/data/BarData.h"
 #include "../../MarketLibrary/source/data/HistoricalDataCache.h"
-#include "../../MarketLibrary/source/types/Contract.h"
+#include <jde/markets/types/Contract.h>
 #include "../../MarketLibrary/source/types/Exchanges.h"
 #include <bar.h>
 
@@ -68,7 +68,7 @@ namespace Jde::Markets
 		var dates = BarData::FindExisting( Contracts::Aig, testFrom );
 		bool tested = false;
 		var start = IsOpen( contract ) ? PreviousTradingDay() : CurrentTradingDay();
-		var end = dates.size() ? *dates.begin() : start;
+		//var end = dates.size() ? *dates.begin() : start;
 		for( auto day = start; !tested && day>testFrom; day=PreviousTradingDay(day) )
 		{
 			var file = BarData::File( contract, day );
@@ -170,7 +170,7 @@ namespace Jde::Markets
 		ClearMemoryLog(); //2020-10-02T13:30:00, 2020-10-02T14:00:00Z
 		auto pCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true, true ).get();
 		for( auto bar : *pCache )
-			DBG0( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
+			DBG( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
 
 		ClearMemoryLog();

@@ -12,7 +12,6 @@ if [ $buildFramework -eq 1 ]; then
 else
 	findProtoc
 fi;
-
 function xzBuildLib
 {
 	previousDir=`pwd`;
@@ -37,10 +36,9 @@ function xzBuildLib
 	fi;
 	cd $previousDir;
 }
-xzBuildLib
-cd $REPO_DIR/jde;
+if windows; then xzBuildLib; fi;
+cd $scriptDir/..;
 fetchBuild XZ 0
-
 function protocBuild()
 {
 	publicDir=${2:-0};
@@ -60,6 +58,9 @@ function protocBuild()
 		if [ $publicDir -eq 1 ]; then
 			cd $prevDir;
 			mv $workDir/$1.pb.cc .;
+			if ! windows; then
+				ln -s $workDir/$1.pb.h .;
+			fi;
 		fi;
 	fi;
 }
@@ -78,35 +79,39 @@ function marketLibraryProtoc
 	protocBuild results 1;
 	pushd `pwd` > /dev/null;
 	cd $baseDir/$jdeRoot/Public/jde/markets/types/proto;
-	sed -i 's/class Fundamentals_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT Fundamentals_ValuesEntry_DoNotUse/' results.pb.h;
-	sed -i 's/class StringMap_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT StringMap_ValuesEntry_DoNotUse/' results.pb.h;
+	if windows; then
+		sed -i 's/class Fundamentals_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT Fundamentals_ValuesEntry_DoNotUse/' results.pb.h;
+		sed -i 's/class StringMap_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT StringMap_ValuesEntry_DoNotUse/' results.pb.h;
+	fi;
 	popd;
 	protocBuild ib 1;
 	protocBuild OptionOI;
 	protocBuild bar;
 	protocBuild edgar 1;
 	cd ../..;
-	twsDir=/c/TWS\ API/source/CppClient/client;
-	if [ -d  "$twsDir" ]; then
-		if [ ! -f "$twsDir/TwsSocketClient64.vcxproj" ]; then
-			cd ..;
-			sourceDir=`pwd`;
-			cd "$twsDir"
-			mklink TwsSocketClient64.vcxproj $sourceDir
-			cd $sourceDir;
+	if windows; then
+		twsDir=/c/TWS\ API/source/CppClient/client;
+		if [ -d  "$twsDir" ]; then
+			if [ ! -f "$twsDir/TwsSocketClient64.vcxproj" ]; then
+				cd ..;
+				sourceDir=`pwd`;
+				cd "$twsDir"
+				mklink TwsSocketClient64.vcxproj $sourceDir
+				cd $sourceDir;
+			fi;
+			if [ ! -f  $stage/release/TwsSocketClient.dll ]; then
+				prevDir=`pwd`;
+				cd "$twsDir";
+				buildWindows TwsSocketClient64 TwsSocketClient.dll;
+				cd $stage/debug;
+				mklink TwsSocketClient.lib "$twsDir/.bin/debug"; mklink TwsSocketClient.dll "$twsDir/.bin/debug";
+				cd $stage/release;
+				mklink TwsSocketClient.lib "$twsDir/.bin/release"; mklink TwsSocketClient.dll "$twsDir/.bin/release";
+				cd $prevDir;
+			fi;
+		else
+			echo Not Found:  \"c:\\TWS API\"
 		fi;
-		if [ ! -f  $stage/release/TwsSocketClient.dll ]; then
-			prevDir=`pwd`;
-			cd "$twsDir";
-			buildWindows TwsSocketClient64 TwsSocketClient.dll;
-			cd $stage/debug;
-			mklink TwsSocketClient.lib "$twsDir/.bin/debug"; mklink TwsSocketClient.dll "$twsDir/.bin/debug";
-			cd $stage/release;
-			mklink TwsSocketClient.lib "$twsDir/.bin/release"; mklink TwsSocketClient.dll "$twsDir/.bin/release";
-			cd $prevDir;
-		fi;
-	else
-		echo Not Found:  \"c:\\TWS API\"
 	fi;
 }
 fetchDefault MarketLibrary 0;

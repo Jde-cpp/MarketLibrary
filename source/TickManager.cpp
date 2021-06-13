@@ -49,7 +49,7 @@ namespace Jde::Markets
 		TickParams{ params }
 	{}
 
-	void TickManager::Awaitable::await_suspend( TickManager::Awaitable::base::Handle h )noexcept
+	void TickManager::Awaitable::await_suspend( TickManager::Awaitable::base::THandle h )noexcept
 	{
 		base::await_suspend( h );
 		//ASSERT( Tick.ContractId );
@@ -359,7 +359,7 @@ namespace Jde::Markets
 						}
 					}
 					else
-						DBG0( "!messages.size()"sv );
+						DBG( "!messages.size()"sv );
 				}
 			}
 			{//Ratio Subscriptions

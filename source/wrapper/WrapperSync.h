@@ -42,7 +42,7 @@ namespace Jde::Markets
 		map<ReqId,HeadTimestampCallback> _headTimestamp; mutable mutex _headTimestampMutex;
 		unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;
 		void error( int id, int errorCode, const std::string& errorString )noexcept override{error2( id, errorCode, errorString );};
-		bool error2( int id, int errorCode, const std::string& errorString )noexcept;
+		bool error2( int id, int errorCode, const std::string& errorString )noexcept override;
 		bool historicalDataSync( TickerId reqId, const ::Bar& bar )noexcept;
 		bool historicalDataEndSync( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept;
 
@@ -64,7 +64,7 @@ namespace Jde::Markets
 
 		//void reqId(int reqId, const std::string& startDateStr, const std::string& endDateStr)noexcept override;
 		void nextValidId( ::OrderId orderId)noexcept override;
-		void newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept override;
+		//void newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept override;
 //		void newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept;
 
 		void openOrderEnd()noexcept override;
