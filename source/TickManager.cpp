@@ -99,16 +99,6 @@ namespace Jde::Markets
 		_tickerContractMap.emplace( id, contractId );
 		_values.try_emplace( contractId, contractId, id );
 	}
-/*	void TickManager::TickWorker::RemoveRequest( TickerId id )noexcept
-	{
-		unique_lock l{ _valuesMutex };
-		if( auto p=_tickerContractMap.find( id ); p!=_tickerContractMap.end() )
-		{
-			_tickerContractMap.erase( p );
-			if( auto pValue=_values.find(p->second); pValue!=_values.end() )
-				pValue->second.TwsRequestId = 0;
-		}
-	}*/
 
 	bool TickManager::TickWorker::Test( Tick& clientTick, TickFields fields )noexcept
 	{
@@ -173,7 +163,7 @@ namespace Jde::Markets
 	{
 		Push( id, type, [type,v](Tick& tick){ tick.SetPrice(type, v/*, attribs*/);} );
 	}
-	void TickManager::TickWorker::Push( TickerId id, ETickType type, int v )noexcept
+	void TickManager::TickWorker::Push( TickerId id, ETickType type, long long v )noexcept
 	{
 		Push( id, type, [type,v](Tick& tick){ tick.SetInt(type, v);} );
 	}
@@ -423,13 +413,8 @@ namespace Jde::Markets
 		}
 		if( !outgoingTicks.size() )
 		{
-		/*	if( Clock::now()-LastOutgoing<WakeDuration )
-				std::this_thread::yield();
-			else */
-			{
 				std::unique_lock<std::mutex> ul( _mtx );
 				_cv.wait_for( ul, WakeDuration );
-			}
 		}
 	}
 	flat_set<ETickList> TickManager::TickWorker::GetSubscribedTicks( ContractPK id )const noexcept
@@ -485,7 +470,6 @@ namespace Jde::Markets
 			var contractId = p->first;
 			_subscriptions.erase( p );
 			l.unlock();
-			//DBG( "_delays.emplace[{}]={}"sv, h, contractId );
 			unique_lock l{ _delayMutex };
 			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, h, contractId) );
 		}

@@ -62,8 +62,8 @@ namespace Jde::Markets
 #pragma endregion
 	void WrapperLog::realtimeBar( TickerId reqId, long time, double open, double high, double low, double close, long volume, double wap, int count )noexcept{}
 	void WrapperLog::receiveFA(faDataType pFaDataType, const std::string& cxml)noexcept{ LOG( _logLevel, "WrapperLog::receiveFA( {}, {} )"sv, pFaDataType, cxml); }
-	void WrapperLog::tickByTickAllLast(int reqId, int tickType, time_t time, double price, int /*size*/, const TickAttribLast& /*attribs*/, const std::string& /*exchange*/, const std::string& /*specialConditions*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickAllLast( {}, {}, {}, {} )"sv, reqId, tickType, time, price);  }
-	void WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int /*bidSize*/, int /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )"sv, reqId, time, bidPrice, askPrice); }
+	void WrapperLog::tickByTickAllLast(int reqId, int tickType, time_t time, double price, long long /*size*/, const TickAttribLast& /*attribs*/, const std::string& /*exchange*/, const std::string& /*specialConditions*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickAllLast( {}, {}, {}, {} )"sv, reqId, tickType, time, price);  }
+	void WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, long long /*bidSize*/, long long /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )"sv, reqId, time, bidPrice, askPrice); }
 	void WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickMidPoint( {}, {}, {} )"sv, reqId, time, midPoint); }
 	void WrapperLog::tickReqParams( int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )"sv, tickerId, minTick, bboExchange, snapshotPermissions ); }
 	bool WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept
@@ -131,8 +131,8 @@ namespace Jde::Markets
 		_accountPortfolioUpdates[accountNumber][contract.conId]=update;
 	}
 	void WrapperLog::updateAccountTime(const std::string& timeStamp)noexcept{ LOG( ELogLevel::Trace, "WrapperLog::updateAccountTime( {} )"sv, timeStamp); }
-	void WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, int /*size*/)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepth( {}, {}, {}, {} )"sv, id, position, operation, side); }
-	void WrapperLog::updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int /*side*/, double /*price*/, int /*size*/, bool isSmartDepth)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepthL2( {}, {}, {}, {}, {} )"sv, id, position, marketMaker, operation, isSmartDepth); }
+	void WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, long long /*size*/)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepth( {}, {}, {}, {} )"sv, id, position, operation, side); }
+	void WrapperLog::updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int /*side*/, double /*price*/, long long /*size*/, bool isSmartDepth)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepthL2( {}, {}, {}, {}, {} )"sv, id, position, marketMaker, operation, isSmartDepth); }
 	void WrapperLog::updateNewsBulletin(int msgId, int msgType, const std::string& newsMessage, const std::string& originExch)noexcept{ LOG( _logLevel, "WrapperLog::updateNewsBulletin( {}, {}, {}, {} )"sv, msgId, msgType, newsMessage, originExch); }
 	void WrapperLog::scannerParameters(const std::string& xml)noexcept{ LOG( _logLevel, "WrapperLog::scannerDataEnd( {} )"sv, xml ); }
 	void WrapperLog::scannerData(int reqId, int rank, const ::ContractDetails& contractDetails, const std::string& distance, const std::string& /*benchmark*/, const std::string& /*projection*/, const std::string& /*legsStr*/)noexcept{ LOG( _logLevel, "WrapperLog::scannerData( {}, {}, {}, {} )"sv, reqId, rank, contractDetails.contract.conId, distance ); }
@@ -205,7 +205,7 @@ namespace Jde::Markets
 		LOG( _tickLevel, "({})WrapperLog::tickPrice( type='{}', price='{}' )"sv, t, type, v );
 		_pTickWorker->PushPrice( t, (ETickType)type, v );
 	}
-	void WrapperLog::tickSize( TickerId t, TickType type, int v )noexcept
+	void WrapperLog::tickSize( TickerId t, TickType type, long long v )noexcept
 	{
 		LOG( _tickLevel, "({})WrapperLog::tickSize( type='{}', size='{}' )"sv, t, type, v );
 		_pTickWorker->Push( t, (ETickType)type, v );
@@ -249,7 +249,6 @@ namespace Jde::Markets
 		{
 			for( var& [key,values] : p->second )
 				callback->UpdateAccountValue( key, get<0>(values), get<1>(values), account );
-			//callback->UpdateAccountValue( {}, {}, {}, account );
 			callback->AccountDownloadEnd( account );
 		}
 

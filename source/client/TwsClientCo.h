@@ -17,7 +17,6 @@ namespace Jde::Markets
 		sp<WrapperCo> WrapperPtr()noexcept;
 		sp<TwsClientCo> _pTws;
 	};
-	//template<class T>
 	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable<Task2>
 	{
 		using base=IAwaitable<Task2>;
@@ -38,8 +37,8 @@ namespace Jde::Markets
 	};
 	struct ContractAwaitable final : ITwsAwaitableImpl//<sp<Contract>>
 	{
-		using base = ITwsAwaitableImpl;//<sp<Contract>>;
-		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
+		using base = ITwsAwaitableImpl;
+		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f},_id{id}{}
 		bool await_ready()noexcept override;
 		void await_suspend( typename base::THandle h )noexcept override;
 		typename base::TResult await_resume()noexcept override;

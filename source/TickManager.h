@@ -49,13 +49,10 @@ namespace Jde::Markets
 			TResult await_resume()noexcept override
 			{
 				base::AwaitResume();
-				//std::variant<Markets::Tick, std::exception_ptr> x{ TickParams::Tick };
 				return _pPromise ? _pPromise->get_return_object().Result : TResult{TickParams::Tick};
 			}
 		private:
 			PromiseType* _pPromise{ nullptr };
-			//optional<Tick> _tick;
-			//void End( Awaitable::Handle h, const Tick* pTick )noexcept; std::once_flag _singleEnd;
 		};
 
 		typedef function<void(const vector<Proto::Results::MessageUnion>&, uint32_t)> ProtoFunction;
@@ -80,7 +77,7 @@ namespace Jde::Markets
 			void Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept;
 			void Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept;
 			JDE_MARKETS_EXPORT void PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept;
-			void Push( TickerId id, ETickType type, int v )noexcept;
+			void Push( TickerId id, ETickType type, long long v )noexcept;
 			void Push( TickerId id, ETickType type, const std::string& v )noexcept;
 			bool HandleError( int id, int errorCode, const std::string& errorString )noexcept;
 		private:

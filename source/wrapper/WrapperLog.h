@@ -16,15 +16,15 @@ namespace Jde::Markets
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
 		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib)noexcept override;
-		void tickSize( TickerId tickerId, TickType field, int size)noexcept override;
+		void tickSize( TickerId tickerId, TickType field, long long size)noexcept override;
 		void tickGeneric(TickerId tickerId, TickType tickType, double value)noexcept override;
 		void tickString(TickerId tickerId, TickType tickType, const std::string& value)noexcept override;
 		void tickEFP(TickerId tickerId, TickType tickType, double basisPoints, const std::string& formattedBasisPoints, double totalDividends, int holdDays, const std::string& futureLastTradeDate, double dividendImpact, double dividendsToLastTradeDate)noexcept override;
 		void tickNews(int tickerId, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData)noexcept override;
 		void tickSnapshotEnd( int reqId)noexcept override;
 		void tickReqParams(int tickerId, double minTick, const std::string& bboExchange, int snapshotPermissions)noexcept override;
-		void tickByTickAllLast(int reqId, int tickType, time_t time, double price, int size, const TickAttribLast& tickAttribLast, const std::string& exchange, const std::string& specialConditions)noexcept override;
-		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, int bidSize, int askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
+		void tickByTickAllLast(int reqId, int tickType, time_t time, double price, long long size, const TickAttribLast& tickAttribLast, const std::string& exchange, const std::string& specialConditions)noexcept override;
+		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, long long bidSize, long long askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
 		void tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept override;
 		void orderStatus( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice)noexcept override;
 		void openOrder( ::OrderId orderId, const ::Contract&, const ::Order&, const ::OrderState&)noexcept override;
@@ -44,8 +44,8 @@ namespace Jde::Markets
 		void execDetailsEnd( int reqId)noexcept override;
 		void error( int id, int errorCode, const std::string& errorMsg )noexcept override;
 		virtual bool error2( int id, int errorCode, const std::string& errorMsg )noexcept;
-		void updateMktDepth(TickerId id, int position, int operation, int side, double price, int size)noexcept override;
-		void updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int side, double price, int size, bool isSmartDepth)noexcept override;
+		void updateMktDepth(TickerId id, int position, int operation, int side, double price, long long size)noexcept override;
+		void updateMktDepthL2(TickerId id, int position, const std::string& marketMaker, int operation, int side, double price, long long size, bool isSmartDepth)noexcept override;
 		void updateNewsBulletin(int msgId, int msgType, const std::string& newsMessage, const std::string& originExch)noexcept override;
 		void managedAccounts( const std::string& accountsList)noexcept override;
 		void receiveFA(faDataType pFaDataType, const std::string& cxml)noexcept override;
@@ -100,7 +100,6 @@ namespace Jde::Markets
 		void orderBound(long long orderId, int apiClientId, int apiOrderId)noexcept override;
 		void completedOrder(const ::Contract& contract, const ::Order& order, const ::OrderState& orderState)noexcept override;
 		void completedOrdersEnd()noexcept override;
-		//TickerId tickerId, TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice
 		void tickOptionComputation(::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice)noexcept override;
 		void replaceFAEnd( int /*reqId*/, const std::string& /*text*/ )noexcept override{};
 

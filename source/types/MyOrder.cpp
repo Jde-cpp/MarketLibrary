@@ -144,9 +144,9 @@ namespace Jde::Markets
 
 		// SMART routing only
 		proto.set_discretionary_amt( discretionaryAmt );
-		proto.set_etrade_only( eTradeOnly );
-		proto.set_firm_quote_only( firmQuoteOnly );
-		proto.set_nbbo_price_cap( nbboPriceCap );
+		//proto.set_etrade_only( eTradeOnly );
+		//proto.set_firm_quote_only( firmQuoteOnly );
+		//proto.set_nbbo_price_cap( nbboPriceCap );
 		proto.set_opt_out_smart_routing( optOutSmartRouting );
 
 		proto.set_auction_strategy( auctionStrategy ); // AUCTION_MATCH, AUCTION_IMPROVEMENT, AUCTION_TRANSPARENT
