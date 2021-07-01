@@ -35,9 +35,9 @@ namespace Jde::Markets
 	α ContractAwaitable::await_resume()noexcept->typename ContractAwaitable::TResult
 	{
 		ContractAwaitable::TResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
-		if( _pPromise && result.Ptr )
+		if( _pPromise && result.HasValue() )
 		{
-			_pCache = std::static_pointer_cast<Jde::Markets::Contract>( result.Ptr );
+			_pCache = result.Get<Jde::Markets::Contract>();
 			Cache::Set<Contract>( CacheId(), _pCache );
 		}
 		return result;
@@ -58,8 +58,8 @@ namespace Jde::Markets
 	α NewsProviderAwaitable::await_resume()noexcept->typename NewsProviderAwaitable::TResult
 	{
 		NewsProviderAwaitable::TResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
-		if( _pPromise && result.Ptr )
-			Cache::Set<map<string,string>>( CacheId(), _pCache = std::static_pointer_cast<map<string,string>>(result.Ptr) );
+		if( _pPromise && result.HasValue() )
+			Cache::Set<map<string,string>>( CacheId(), _pCache = result.Get<map<string,string>>() );
 		return result;
 	}
 	α TwsClientCo::NewsProviders()noexcept->NewsProviderAwaitable{ return NewsProviderAwaitable{ [&]( sp<TwsClient> p )noexcept

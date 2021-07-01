@@ -17,7 +17,7 @@ namespace Jde::Markets
 			auto pHandle = handles.MoveOut( id );
 			if( pHandle )
 			{
-				pHandle->promise().get_return_object().Result = std::make_exception_ptr( IB_Exception(errorMsg, errorCode, id) );
+				pHandle->promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
 				Coroutine::CoroutinePool::Resume( move(*pHandle) );
 			}
 			return pHandle.has_value();
@@ -59,7 +59,7 @@ namespace Jde::Markets
 		if( pHandle )
 		{
 			auto& returnObject = pHandle->promise().get_return_object();
-			returnObject.Result = TaskResult( pCollection );
+			returnObject.SetResult( pCollection );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 		//_pWebSend->Push( reqId, [p=pCollection](MessageType& msg, ClientPK id){p->set_request_id( id ); msg.set_allocated_historical_news(p);} );
@@ -86,9 +86,10 @@ namespace Jde::Markets
 		if( pHandle )
 		{
 			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1"sv, reqId, contracts.size() );
-			returnObject.Result = contracts.size()==0
-				? TaskResult{ std::make_exception_ptr(IB_Exception("no contracts returned", -1, reqId)) }
-				: TaskResult{ contracts.front() };
+			if( contracts.size()==0 )
+				returnObject.SetResult( IB_Exception("no contracts returned", -1, reqId) );
+			else
+				returnObject.SetResult( contracts.front() );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 	}
@@ -99,7 +100,7 @@ namespace Jde::Markets
 		for_each( providers.begin(), providers.end(), [p](auto x){p->emplace(x.providerCode, x.providerName);} );
 		_newsProviderHandles.ForEach( [p](auto h)
 		{
-			h.promise().get_return_object().Result = TaskResult{ make_shared<map<string,string>>(*p) };
+			h.promise().get_return_object().SetResult( make_shared<map<string,string>>(*p) );
 			Coroutine::CoroutinePool::Resume( move(h) );
 		} );
 	}
@@ -110,7 +111,7 @@ namespace Jde::Markets
 		auto p = make_shared<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
 		p->set_value( articleText );
-		pHandle->promise().get_return_object().Result = TaskResult{ p };
+		pHandle->promise().get_return_object().SetResult( p );
 		Coroutine::CoroutinePool::Resume( move(*pHandle) );
 	}
 }
