@@ -1,15 +1,16 @@
 #include "BarData.h"
+#include <jde/io/File.h>
+#include <jde/Str.h>
+#include <jde/Assert.h>
+#include <jde/markets/types/Contract.h>
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
-#include <jde/markets/types/Contract.h>
 #pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )
 #include "../../../XZ/source/XZ.h"
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/ProtoUtilities.h"
-#include <jde/io/File.h>
-#include <jde/Str.h>
 
 #define var const auto
 #define _client TwsClientSync::Instance()

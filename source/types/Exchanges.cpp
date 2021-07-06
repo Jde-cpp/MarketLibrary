@@ -382,11 +382,6 @@ namespace Jde
 			|| ( day<17533 && std::binary_search(other.begin(), other.end(), day) );
 	}
 
-	TimePoint Markets::PreviousTradingDay( const TimePoint& time )noexcept
-	{
-		return FromDays(PreviousTradingDay(DaysSinceEpoch(time)) );
-	}
-
 	DayIndex Markets::PreviousTradingDay( DayIndex day )noexcept
 	{
 		auto previous = day ? day : Chrono::DaysSinceEpoch( Timezone::EasternTimeNow() );

@@ -26,8 +26,8 @@ namespace Jde::Markets
 
 		virtual EBarSize Size()const noexcept=0;
 		virtual sv CacheIdPrefix()const noexcept=0;
-		string CacheId( ContractPK contractId, EDisplay display )const noexcept{ return format("{}.{}.{}", CacheIdPrefix(), contractId, display); }
-		static string CacheId( sv prefix, ContractPK contractId, EDisplay display )noexcept{ return format("{}.{}.{}", prefix, contractId, display); }
+		string CacheId( ContractPK contractId, EDisplay display )const noexcept{ return format("{}.{}.{}", CacheIdPrefix(), contractId, (uint)display); }
+		static string CacheId( sv prefix, ContractPK contractId, EDisplay display )noexcept{ return format("{}.{}.{}", prefix, contractId, (uint)display); }
 	};
 	struct SubDataCache : DataCache
 	{
@@ -108,7 +108,7 @@ namespace Jde::Markets
 		auto load = [&]()
 		{
 			missingCount = days.size();
-			auto startEnd = pCache->Contains( days, useRth, barSize );//18523
+			auto startEnd = pCache->Contains( days, useRth, barSize );
 			if( startEnd.has_value() )
 			{
 				pBars = make_shared<map<DayIndex,VectorPtr<BarPtr>>>();
@@ -200,7 +200,7 @@ namespace Jde::Markets
 
 		vector<double> returns;
 		auto pEnd = bars.rbegin();
-		typedef decltype(pEnd) RIterator; //std::map<DayIndex,VectorPtr<sp<::Bar>>>::const_reverse_iterator RIterator;
+		typedef decltype(pEnd) RIterator;
 		const DayIndex diff = fullDays<6 ? TradingDay{pEnd->first, contract.Exchange}-(fullDays==0 ? 0 : fullDays-1) : pEnd->first-( fullDays-1 );
 		auto pForward = bars.lower_bound( diff );
 		RIterator pStart{ pForward==bars.end() ? pForward : std::next(pForward) };
@@ -209,7 +209,6 @@ namespace Jde::Markets
 			var index = minutes==0 ? pStart->second.size()-1 : minutes<=pStart->second.size() ? pStart->second.size()-minutes : std::numeric_limits<uint>::max();
 			var pStartBar = pStart->second.size() && index!=std::numeric_limits<uint>::max() ? &pStart->second[index] : nullptr;
 			var pEndBar = pEnd->second.size() ? &pEnd->second.back() : nullptr;
-			//DBG( "{},{},{},{}"sv, DateDisplay(FromDays(pStart->first)), DateDisplay(FromDays(pEnd->first)), pStartBar->open, pEndBar->close );
 			if( pStartBar && pEndBar )
 				returns.push_back( 1+(pEndBar->close-pStartBar->open)/pStartBar->open );
 		}
@@ -228,7 +227,6 @@ namespace Jde::Markets
 			shared_lock l1{ _rthMutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
 			var start = *days.begin();
 			var end = *days.rbegin();
-			//DBG( "_rth.size={}, key={}"sv, _rth.size(), _rth.size() ? _rth.begin()->first : 0 );
 			auto pBegin = _rth.lower_bound( start ), pEnd = _rth.lower_bound( end );
 			contains = pBegin!=_rth.end() || pEnd!=_rth.end();
 			if( contains && !useRth )
@@ -248,10 +246,9 @@ namespace Jde::Markets
 		auto& mutex = useRth ? _rthMutex : _extendedMutex;
 
 
-		shared_lock l1{ mutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };
+		shared_lock l1{ mutex };
 		var start = *days.begin();
 		var end = *days.rbegin();
-		//DBG( "cache.size={}, key={}"sv, cache.size(), cache.size() ? cache.begin()->first : 0 );
 		var pBegin = cache.lower_bound( start ), pEnd = cache.lower_bound( end );
 		var contains = pBegin!=cache.end() || pEnd!=cache.end();
 
@@ -260,7 +257,7 @@ namespace Jde::Markets
 	VectorPtr<BarPtr> SubDataCache::Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept
 	{
 		auto pResult = make_shared<vector<BarPtr>>();
-		shared_lock l1{_rthMutex}; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };//
+		shared_lock l1{_rthMutex};
 		var pRth = _rth.find(day);  if( pRth==_rth.end() ){ ERR("trying to add bars but does not contain {}"sv, DateDisplay(FromDays(day)) ); return pResult; }
 		var& rth = pRth->second;
 		vector<BarPtr>* pExtended; vector<BarPtr>::iterator ppExtendedBegin;
@@ -279,7 +276,7 @@ namespace Jde::Markets
 		}
 		for( var& pBar : rth )
 			pResult->push_back( pBar );
-		l1.unlock(); //_rthMutex.unlock();
+		l1.unlock();
 		if( !useRth )
 		{
 			shared_lock l1{_extendedMutex};
@@ -295,10 +292,8 @@ namespace Jde::Markets
 			auto ppBar = pResult->begin();
 			var duration = barSize==EBarSize::Day ? end-start : BarSize::BarDuration( barSize );  ASSERT( barSize<=EBarSize::Day );
 			var minuteCount = std::chrono::duration_cast<std::chrono::minutes>( duration ).count();
-//			DBG( "start={}, end={}, start+duration={}"sv, ToIsoString(start), ToIsoString(end), ToIsoString(start+duration) );
 			for( auto barStart = start, barEnd=Clock::from_time_t( (Clock::to_time_t(start)/60+minuteCount)/minuteCount*minuteCount*60 ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
 			{
-				//DBG( "start={}, end={}"sv, ToIsoString(barStart), ToIsoString(barEnd) );
 				::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
 				double sum = 0;
 				for( ;ppBar!=pResult->end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<barEnd; ++ppBar )
@@ -374,15 +369,14 @@ namespace Jde::Markets
 			rthBars.emplace( iDay, vector<BarPtr>{} );
 
 		auto pValues = static_pointer_cast<SubDataCache>( Cache::TryGet<OptionCache>(CacheId(contract.Id, display)) );
-		//if( rthBars.size() )
-			pValues->Push( rthBars, true );
+		pValues->Push( rthBars, true );
 	}
 
 	void SubDataCache::Push( const map<DayIndex,vector<BarPtr>>& dayBars, bool rth )noexcept
 	{
 		auto& cache = rth ? _rth : _extended ;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
-		unique_lock l{ mutex }; //MyLock l{mutex, extended ? "_extendedMutex" : "_rthMutex", "Push", __LINE__};
+		unique_lock l{ mutex };
 		for( var& [day,bars] : dayBars )
 		{
 			auto result = cache.emplace( day, bars );
@@ -404,10 +398,9 @@ namespace Jde::Markets
 	{
 		auto& cache = rth ? _rth : _extended;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
-		unique_lock l{ mutex }; //MyLock l{mutex, extended ? "_extendedMutex" : "_rthMutex", "Push", __LINE__};
+		unique_lock l{ mutex };
 		for( var& [day,bar] : dayBars )
 		{
-			//var value = vector<BarPtr>{ make_shared<::Bar>(bar) };
 			auto result = cache.emplace( day, bar );
 			if( !result.second )
 				result.first->second = bar;
@@ -417,7 +410,7 @@ namespace Jde::Markets
 	{
 		auto& cache = rth ? _rth : _extended;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
-		shared_lock l1{ mutex }; //MyLock l1{ _rthMutex, "_rthMutex", "Push", __LINE__ };//
+		shared_lock l1{ mutex };
 		auto pResult = make_shared<vector<BarPtr>>();
 		var p = cache.find( day );
 		if( p==cache.end() )

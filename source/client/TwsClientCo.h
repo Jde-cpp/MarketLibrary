@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/Exports.h>
 #include <jde/markets/types/Contract.h>
 #include <jde/coroutine/Task.h>
@@ -10,16 +10,16 @@ namespace Jde::Markets
 	using namespace Jde::Coroutine;
 	struct WrapperCo; struct TwsClientCo;
 
-	struct ITwsAwaitable
+	struct JDE_MARKETS_EXPORT ITwsAwaitable
 	{
 		ITwsAwaitable()noexcept;
 	protected:
 		sp<WrapperCo> WrapperPtr()noexcept;
 		sp<TwsClientCo> _pTws;
 	};
-	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable<Task2>
+	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable
 	{
-		using base=IAwaitable<Task2>;
+		using base=IAwaitable;
 		bool await_ready()noexcept override{ return !_pTws; }
 		void await_suspend( typename base::THandle h )noexcept override{ base::await_suspend( h ); _pPromise = &h.promise(); };
 		typename base::TResult await_resume()noexcept override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
@@ -27,7 +27,7 @@ namespace Jde::Markets
 		typename base::TPromise* _pPromise{ nullptr };
 	};
 
-	struct HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
+	struct JDE_MARKETS_EXPORT HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
 	{
 		HistoricalNewsAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		//bool await_ready()noexcept override;TODO cache results...
@@ -35,7 +35,7 @@ namespace Jde::Markets
 		private:
 			function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
-	struct ContractAwaitable final : ITwsAwaitableImpl//<sp<Contract>>
+	struct JDE_MARKETS_EXPORT ContractAwaitable final : ITwsAwaitableImpl//<sp<Contract>>
 	{
 		using base = ITwsAwaitableImpl;
 		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f},_id{id}{}
@@ -48,7 +48,7 @@ namespace Jde::Markets
 		sp<Contract> _pCache;
 		ContractPK _id;
 	};
-	struct NewsProviderAwaitable final : ITwsAwaitableImpl//<sp<map<string,string>>
+	struct JDE_MARKETS_EXPORT NewsProviderAwaitable final : ITwsAwaitableImpl//<sp<map<string,string>>
 	{
 		using base = ITwsAwaitableImpl;
 		NewsProviderAwaitable( function<void(sp<TwsClient>)> f )noexcept:_fnctn{f}{}
@@ -60,7 +60,7 @@ namespace Jde::Markets
 		function<void(sp<TwsClient>)> _fnctn;
 		sp<map<string,string>> _pCache;
 	};
-	struct NewsArticleAwaitable final : ITwsAwaitableImpl
+	struct JDE_MARKETS_EXPORT NewsArticleAwaitable final : ITwsAwaitableImpl
 	{
 		NewsArticleAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		void await_suspend( typename base::THandle h )noexcept override;

@@ -1,4 +1,4 @@
-#include "TwsClientCo.h"
+﻿#include "TwsClientCo.h"
 #include "../wrapper/WrapperCo.h"
 #include "../../../Framework/source/Cache.h"
 
@@ -13,7 +13,6 @@ namespace Jde::Markets
 		TwsClient( settings, wrapper, pReaderSignal, clientId )
 	{}
 	sp<WrapperCo> TwsClientCo::WrapperPtr()noexcept{ return dynamic_pointer_cast<WrapperCo>( _pWrapper ); }
-	//TickerId TwsClientCo::AddParam(  coroutine_handle<>&& h )noexcept{ var id = RequestId(); WrapperPtr()->_newsCalls.MoveIn( id, move(h) ); return id; }
 	/*****************************************************************************************************/
 	void HistoricalNewsAwaitable::await_suspend( typename base::THandle h )noexcept
 	{

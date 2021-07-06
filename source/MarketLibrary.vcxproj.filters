@@ -33,6 +33,9 @@
     <Filter Include="Source Files\data">
       <UniqueIdentifier>{aded487f-aed6-4b49-baeb-93518dd10168}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\client">
+      <UniqueIdentifier>{3ea9f97b-6a96-4215-990b-857a47b59a0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exports.h">
@@ -62,9 +65,6 @@
     <ClInclude Include="TypeDefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TwsClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WrapperLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,6 +88,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Public\jde\markets\types\proto\watch.pb.h">
       <Filter>Header Files\types\proto</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TwsClient.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TwsClientCache.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TwsClientCo.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="client\TwsClientSync.h">
+      <Filter>Header Files\client</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +189,12 @@
     </ClCompile>
     <ClCompile Include="types\proto\edgar.pb.cc">
       <Filter>Source Files\types\proto</Filter>
+    </ClCompile>
+    <ClCompile Include="client\TwsClientCo.cpp">
+      <Filter>Source Files\client</Filter>
+    </ClCompile>
+    <ClCompile Include="wrapper\WrapperCo.cpp">
+      <Filter>Source Files\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

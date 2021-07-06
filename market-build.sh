@@ -2,13 +2,12 @@
 clean=${1:-0};
 shouldFetch=${2:-1};
 buildFramework=${3:-1};
-#source source-build.sh;
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 stage=$REPO_DIR/jde/Public/stage
 echo market-build.sh clean=$clean shouldFetch=$shouldFetch buildFramework=$buildFramework
 if [[ -z $sourceBuild ]]; then source $scriptDir/../Framework/source-build.sh; fi;
 if [ $buildFramework -eq 1 ]; then
- 	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
+ 	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch $buildBoost; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
 else
 	findProtoc
 fi;
@@ -27,8 +26,6 @@ function xzBuildLib
 			rm liblzma.exports;
 			rm liblzma.def;
 			rm liblzma.exp;
-		#else
-			#echo already exists:  $dir/bin_x86-64/liblzma.lib;
 		fi;
 	else
 		echo Not found:  $dir.
@@ -71,8 +68,8 @@ function marketLibraryProtoc
 	echo marketLibraryProtoc;
 	cd types/proto;
 	if [ $clean -eq 1 ]; then
-		rm *.pb.cc
-		rm *.pb.h
+		rm *.pb.cc > /dev/null;
+		rm *.pb.h > /dev/null;
 	fi;
 	protocBuild watch 1;
 	protocBuild requests 1;
@@ -92,6 +89,7 @@ function marketLibraryProtoc
 	if windows; then
 		twsDir=/c/TWS\ API/source/CppClient/client;
 		if [ -d  "$twsDir" ]; then
+			echo Found:  \"c:\\TWS API\"
 			if [ ! -f "$twsDir/TwsSocketClient64.vcxproj" ]; then
 				cd ..;
 				sourceDir=`pwd`;

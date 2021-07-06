@@ -128,6 +128,7 @@
     <ClCompile Include="..\..\Windows\source\dllmain.cpp" />
     <ClCompile Include="client\TwsClient.cpp" />
     <ClCompile Include="client\TwsClientCache.cpp" />
+    <ClCompile Include="client\TwsClientCo.cpp" />
     <ClCompile Include="client\TwsClientSync.cpp" />
     <ClCompile Include="data\BarData.cpp" />
     <ClCompile Include="data\HistoricalDataCache.cpp" />
@@ -234,6 +235,7 @@
     <ClCompile Include="types\Tick.cpp" />
     <ClCompile Include="types\TwsConnectionSettings.cpp" />
     <ClCompile Include="wrapper\WrapperCache.cpp" />
+    <ClCompile Include="wrapper\WrapperCo.cpp" />
     <ClCompile Include="wrapper\WrapperLog.cpp" />
     <ClCompile Include="wrapper\WrapperSync.cpp" />
   </ItemGroup>
@@ -242,8 +244,11 @@
     <ClInclude Include="..\..\Public\jde\markets\types\proto\requests.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\results.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\watch.pb.h" />
+    <ClInclude Include="client\TwsClient.h" />
+    <ClInclude Include="client\TwsClientCache.h" />
+    <ClInclude Include="client\TwsClientCo.h" />
+    <ClInclude Include="client\TwsClientSync.h" />
     <ClInclude Include="Exports.h" />
-    <ClInclude Include="TwsClient.h" />
     <ClInclude Include="TwsProcessor.h" />
     <ClInclude Include="TypeDefs.h" />
     <ClInclude Include="types\Bar.h" />

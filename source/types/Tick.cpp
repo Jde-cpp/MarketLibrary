@@ -16,7 +16,6 @@ namespace Jde::Markets
 		{
 		case ETickType::BidExchange: BidExchange = value; break;
 		case ETickType::AskExchange: AskExchange = value; break;
-		//case ETickType::NewsTick: NewsTick = value; break;
 		case ETickType::LastExchange: LastExchange = value; break;
 		case ETickType::LastTimestamp: LastTimestamp = Str::TryTo<time_t>( value ).value_or( 0 ); break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
@@ -30,7 +29,7 @@ namespace Jde::Markets
 			_setFields.set( type );
 		return set;
 	}
-	bool Tick::SetInt( ETickType type, int value )noexcept
+	bool Tick::SetInt( ETickType type, _int value )noexcept
 	{
 		bool set{ true };
 		switch( type )
@@ -109,8 +108,6 @@ namespace Jde::Markets
 		bool set{ true };
 		switch( type )
 		{
-		//case ETickType::OptionHistoricalVol: OptionHistoricalVol = value; break;
-		//case ETickType::OptionImpliedVol: OptionImpliedVol = value; break;
 		case ETickType::OPTION_BID_EXCH: OPTION_BID_EXCH = value; break;
 		case ETickType::OPTION_ASK_EXCH: OPTION_ASK_EXCH = value; break;
 		case ETickType::INDEX_FUTURE_PREMIUM: INDEX_FUTURE_PREMIUM = value; break;
@@ -280,7 +277,6 @@ namespace Jde::Markets
 		case ETickType::NewsTick:
 			ERR( "ETickType::NewsTick ToProto not implemented"sv );
 			break;
-//#define OPTION(x) if( x ) option(*x); else CRITICAL0( "do not have value for '#x'"sv )
 		case ETickType::BID_OPTION_COMPUTATION: option( BID_OPTION_COMPUTATION ); break;
 		case ETickType::ASK_OPTION_COMPUTATION: option( ASK_OPTION_COMPUTATION ); break;
 		case ETickType::LAST_OPTION_COMPUTATION: option( LAST_OPTION_COMPUTATION ); break;
@@ -421,7 +417,7 @@ namespace Jde::Markets
 
 	bool Tick::HasRatios()const noexcept
 	{
-		return _setFields[ETickType::FUNDAMENTAL_RATIOS] /*&& SetFields[ETickType::IB_DIVIDENDS]*/;
+		return _setFields[ETickType::FUNDAMENTAL_RATIOS];
 	}
 
 	map<string,double> Tick::Ratios()const noexcept
