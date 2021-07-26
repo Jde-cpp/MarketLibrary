@@ -1,5 +1,12 @@
 #pragma once
+#ifdef _MSC_VER
+	#pragma push_macro("assert")
+	#undef assert
+	#include <platformspecific.h>
+	#pragma pop_macro("assert")
+#endif
 #include <EClientSocket.h>
+
 #include <jde/markets/Exports.h>
 #include "../types/TwsConnectionSettings.h"
 #pragma warning( disable : 4244 )
@@ -17,9 +24,7 @@ namespace ibapi
 
 namespace Jde::Markets
 {
-	//typedef uint Handle;
 	struct IAccountUpdateHandler;
-	//namespace Private{  TickWorker; }
 	struct TwsProcessor; struct TwsConnectionSettings; struct WrapperLog; struct Contract; class ClientConnection;
 
 	struct JDE_MARKETS_EXPORT TwsClient : private EClientSocket
@@ -38,7 +43,6 @@ namespace Jde::Markets
 		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG(_logLevel, "({})cancelPositionsMulti()"sv, reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		void cancelRealTimeBars( TickerId reqId )noexcept{ LOG(_logLevel, "({})cancelRealTimeBars()"sv, reqId); EClientSocket::cancelRealTimeBars(reqId); }
 		void reqIds( int _=1 )noexcept{ LOG(_logLevel, "reqIds()"sv); EClientSocket::reqIds(_); }
-		//void reqAccountUpdates( bool subscribe, sv acctCode )noexcept;
 		Handle RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept;
 		static void CancelAccountUpdates( sv acctCode, Handle handle )noexcept;
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
@@ -81,4 +85,3 @@ namespace Jde::Markets
 		friend ClientConnection;
 	};
 }
-

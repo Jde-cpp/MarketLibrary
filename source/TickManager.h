@@ -20,8 +20,8 @@
 
 namespace Jde::Markets
 {
-	struct TwsClient;
-	class EventManagerTests; class OptionTests;
+	using namespace Coroutine;
+	struct TwsClient; class EventManagerTests; class OptionTests;
 
 	using boost::container::flat_map;
 	using boost::container::flat_set;
@@ -35,39 +35,39 @@ namespace Jde::Markets
 			Markets::Tick Tick;
 		};
 
-		struct JDE_MARKETS_EXPORT Awaitable final : Coroutine::CancelAwaitable<Coroutine::TaskError<Tick>>, TickParams
+		struct JDE_MARKETS_EXPORT Awaitable final : CancelAwaitable<Task2>, TickParams
 		{
-			typedef Coroutine::TaskError<Markets::Tick> TTask;
-			typedef TTask::TResult TResult;
-			typedef Coroutine::CancelAwaitable<TTask> base;
-			typedef TTask::promise_type PromiseType;
-			typedef coroutine_handle<PromiseType> Handle;
-			Awaitable( const TickParams& params, Coroutine::Handle& h )noexcept;
+			//typedef TaskError<Markets::Tick> TTask;
+			typedef Task2::TResult TResult;
+			typedef CancelAwaitable<Task2> base;
+			typedef Task2::promise_type PromiseType;
+			//typedef coroutine_handle<Task2::promise_type> Handle;
+			Awaitable( const TickParams& params, Handle& h )noexcept;
 			~Awaitable()=default;
 			bool await_ready()noexcept override;
-			void await_suspend( base::THandle h )noexcept override;
+			void await_suspend( std::coroutine_handle<Task2::promise_type> h )noexcept override;
 			TResult await_resume()noexcept override
 			{
 				base::AwaitResume();
-				return _pPromise ? _pPromise->get_return_object().Result : TResult{TickParams::Tick};
+				return _pPromise ? _pPromise->get_return_object().GetResult() : TResult{ make_shared<Markets::Tick>(TickParams::Tick ) };
 			}
 		private:
-			PromiseType* _pPromise{ nullptr };
+			Task2::promise_type* _pPromise{ nullptr };
 		};
 
 		typedef function<void(const vector<Proto::Results::MessageUnion>&, uint32_t)> ProtoFunction;
 		static void CalcImpliedVolatility( uint32 sessionId, uint32 clientId,  const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept;
 		static void CalculateOptionPrice(  uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept;
-		static void Cancel( Coroutine::Handle h )noexcept;
-		static auto Subscribe( const TickParams& params, Coroutine::Handle& h )noexcept{ return Awaitable{params, h}; }
+		static void Cancel( Handle h )noexcept;
+		static auto Subscribe( const TickParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
 		static void Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept;
 		static void CancelProto( uint sessionId, uint clientId, ContractPK contractId )noexcept;
 		static std::future<Tick> Ratios( const ContractPK contractId )noexcept;
 
 
-		struct TickWorker final: Coroutine::TCoWorker<TickWorker,Awaitable>
+		struct TickWorker final: TCoWorker<TickWorker,Awaitable>
 		{
-			typedef Coroutine::TCoWorker<TickWorker,Awaitable> base;
+			typedef TCoWorker<TickWorker,Awaitable> base;
 			typedef Tick::Fields TickFields;
 			struct SubscriptionInfo : base::Handles<>{ TickManager::TickParams Params; };
 			static sp<TickWorker> CreateInstance( sp<TwsClient> _pParent )noexcept;
@@ -82,7 +82,7 @@ namespace Jde::Markets
 			bool HandleError( int id, int errorCode, const std::string& errorString )noexcept;
 		private:
 			void Process()noexcept override;
-			void Cancel( Coroutine::Handle h )noexcept;
+			void Cancel( Handle h )noexcept;
 			void CancelProto( uint hClient, ContractPK contractId, unique_lock<mutex>* pLock=nullptr )noexcept;
 			void Subscribe( const SubscriptionInfo& params )noexcept;
 			void AddOutgoingField( ContractPK id, ETickType t )noexcept;

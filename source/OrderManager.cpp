@@ -39,10 +39,10 @@ namespace OrderManager
 		CombinedParams{ params }
 	{}
 
-	void Awaitable::await_suspend( Awaitable::Handle h )noexcept
+	void Awaitable::await_suspend( coroutine_handle<Task2::promise_type> h )noexcept
 	{
 		_pPromise = &h.promise();
-		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{ {h, _hClient}, *this} );
+		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{{h, _hClient}, *this} );
 	}
 
 	void OrderWorker::Cancel( Coroutine::Handle h )noexcept
@@ -165,7 +165,7 @@ namespace OrderManager
 				{
 					DBG( "OrderManager changes. {} {}"sv, _subscriptions.size(), Threading::GetThreadId() );
 					auto& h = p->second.HCoroutine;
-					h.promise().get_return_object().Result = latest;
+					h.promise().get_return_object().SetResult( make_shared<Cache>(latest) );
 					Coroutine::CoroutinePool::Resume( move(h) );
 					p = _subscriptions.erase( p );
 				}

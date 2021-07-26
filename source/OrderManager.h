@@ -17,6 +17,7 @@ namespace Jde::Markets{ struct TwsClientSync; }
 
 namespace Jde::Markets::OrderManager
 {
+	using namespace Coroutine;
 	struct OrderParams /*~final*/
 	{
 		sp<const MyOrder> OrderPtr;
@@ -49,39 +50,39 @@ namespace Jde::Markets::OrderManager
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
-	struct JDE_MARKETS_EXPORT Awaitable final : Coroutine::CancelAwaitable<Coroutine::Task<Cache>>, CombinedParams
+	struct JDE_MARKETS_EXPORT Awaitable final : CancelAwaitable<Task2>, CombinedParams
 	{
-		typedef Coroutine::CancelAwaitable<Coroutine::Task<Cache>> base;
-		typedef Coroutine::Task<Cache>::promise_type PromiseType;
-		typedef coroutine_handle<PromiseType> Handle;
-		Awaitable( const CombinedParams& params, Coroutine::Handle& h )noexcept;
+		typedef CancelAwaitable<Task2> base;
+		typedef Task2::promise_type PromiseType;
+		//typedef coroutine_handle<PromiseType> Handle;
+		Awaitable( const CombinedParams& params, Handle& h )noexcept;
 		~Awaitable()=default;
 		bool await_ready()noexcept{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
-		void await_suspend( Awaitable::Handle h )noexcept;
-		Cache await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().Result : Cache{}; }
+		void await_suspend( coroutine_handle<Task2::promise_type> h )noexcept;
+		Task2::TResult await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().GetResult() : Task2::TResult{}; }
 	private:
 		PromiseType* _pPromise{nullptr};
 		void End( Awaitable::Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
 	};
 
-	JDE_MARKETS_EXPORT void Cancel( Coroutine::Handle h )noexcept;
-	inline auto Subscribe( const CombinedParams& params, Coroutine::Handle& h )noexcept{ return Awaitable{params, h}; }
+	JDE_MARKETS_EXPORT void Cancel( Handle h )noexcept;
+	inline auto Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
 	JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 	void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
 	JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 	void Push( const ::Order& order, const ::Contract& contract )noexcept;
 
 
-	struct OrderWorker final: Coroutine::TCoWorker<OrderWorker,Awaitable>
+	struct OrderWorker final: TCoWorker<OrderWorker,Awaitable>
 	{
-		typedef Coroutine::TCoWorker<OrderWorker,Awaitable> base;
+		typedef TCoWorker<OrderWorker,Awaitable> base;
 		struct SubscriptionInfo : base::Handles<>{ CombinedParams Params; };
 		OrderWorker():base{"OrderWorker"}{};
 	private:
 		static sp<OrderWorker> Instance()noexcept;
 		void Process()noexcept override;
 		optional<Cache> Latest( ::OrderId orderId )noexcept;
-		void Cancel( Coroutine::Handle h )noexcept;
+		void Cancel( Handle h )noexcept;
 		void Subscribe( const SubscriptionInfo& params )noexcept;
 		void Push( sp<const OrderStatus> status )noexcept;
 		void Push( sp<const MyOrder> order, const ::Contract& contract, sp<const OrderState> state={} )noexcept;
@@ -92,7 +93,7 @@ namespace Jde::Markets::OrderManager
 		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
-		friend JDE_MARKETS_EXPORT void Cancel( Coroutine::Handle h )noexcept;
+		friend JDE_MARKETS_EXPORT void Cancel( Handle h )noexcept;
 		friend JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 		friend void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
 		friend JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;

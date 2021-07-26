@@ -49,7 +49,7 @@ namespace Jde::Markets
 		TickParams{ params }
 	{}
 
-	void TickManager::Awaitable::await_suspend( TickManager::Awaitable::base::THandle h )noexcept
+	void TickManager::Awaitable::await_suspend( std::coroutine_handle<Task2::promise_type> h )noexcept
 	{
 		base::await_suspend( h );
 		//ASSERT( Tick.ContractId );
@@ -245,7 +245,7 @@ namespace Jde::Markets
 					{
 						auto h = p->second.HCoroutine;
 						auto& returnObject = h.promise().get_return_object();
-						returnObject.Result = IBExceptionPtr;
+						returnObject.SetResult( IBExceptionPtr );
 						Coroutine::CoroutinePool::Resume( move(h) );
 					}
 				}
@@ -308,7 +308,7 @@ namespace Jde::Markets
 							_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, hClient, contractId) );
 						}
 						auto& returnObject = h.promise().get_return_object();
-						returnObject.Result = tick;
+						returnObject.SetResult( make_shared<Tick>(tick) );
 						DBG( "({})TickManager - Calling resume()."sv, hClient );
 						Coroutine::CoroutinePool::Resume( move(h)/*, move(p->second.ThreadParam)*/ );
 						p = _subscriptions.erase( p );

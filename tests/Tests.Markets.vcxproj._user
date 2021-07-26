@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <IncludePath>C:\TWS API\source\CppClient\client;$(REPO_DIR)\protobuf\src;$(REPO_DIR)\spdlog\include;$(BOOST_DIR);$(REPO_DIR)\fmt\include;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <LibraryPath>../../Public/stage/debug;$(REPO_DIR)\protobuf\cmake\build\debug;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+</Project>

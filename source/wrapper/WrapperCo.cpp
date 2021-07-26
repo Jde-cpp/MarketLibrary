@@ -62,7 +62,6 @@ namespace Jde::Markets
 			returnObject.SetResult( pCollection );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
-		//_pWebSend->Push( reqId, [p=pCollection](MessageType& msg, ClientPK id){p->set_request_id( id ); msg.set_allocated_historical_news(p);} );
 	}
 
 	void WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
@@ -85,7 +84,7 @@ namespace Jde::Markets
 		auto pHandle = _contractSingleHandles.MoveOut( reqId );
 		if( pHandle )
 		{
-			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1"sv, reqId, contracts.size() );
+			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1", reqId, contracts.size() );
 			if( contracts.size()==0 )
 				returnObject.SetResult( IB_Exception("no contracts returned", -1, reqId) );
 			else
@@ -107,7 +106,7 @@ namespace Jde::Markets
 
 	void WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept
 	{
-		auto pHandle = _newsArticleHandles.MoveOut( reqId ); RETURN_IF( !pHandle, "({})Could not get co-handle"sv, reqId );
+		auto pHandle = _newsArticleHandles.MoveOut( reqId ); RETURN_IF( !pHandle, "({})Could not get co-handle", reqId );
 		auto p = make_shared<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
 		p->set_value( articleText );

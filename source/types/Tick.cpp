@@ -72,6 +72,13 @@ namespace Jde::Markets
 			_setFields.set( type );
 		return set;
 	}
+	void Tick::SetPrices( double bidSize, double bid, double askSize, double ask )noexcept
+	{
+		BidSize = bidSize; _setFields.set( ETickType::BidSize );
+		Bid = bid; _setFields.set( ETickType::BidPrice );
+		AskSize = askSize; _setFields.set( ETickType::AskSize );
+		Ask = ask; _setFields.set( ETickType::AskPrice );
+	}
 	bool Tick::SetPrice( ETickType type, double value/*, const TickAttrib& attribs*/ )noexcept
 	{
 		bool set{ true };

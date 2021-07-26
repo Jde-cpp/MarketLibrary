@@ -1,4 +1,10 @@
 #pragma once
+#ifdef _MSC_VER
+	#pragma push_macro("assert")
+	#undef assert
+	#include <platformspecific.h>
+	#pragma pop_macro("assert")
+#endif
 #include <EWrapper.h>
 #include <jde/markets/Exports.h>
 #include "../../../Framework/source/collections/UnorderedSet.h"
