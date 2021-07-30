@@ -73,10 +73,9 @@ namespace Jde::Markets
 
 	sp<TickManager::TickWorker> TickManager::TickWorker::CreateInstance( sp<TwsClient> _pParent )noexcept
 	{
-		auto p = make_shared<TickManager::TickWorker>( _pParent );
-		p->Start();
-		_pInstance = p;
-		return p;
+		auto p = _pInstance = make_shared<TickManager::TickWorker>( _pParent );
+		_pInstance->Start();
+		return dynamic_pointer_cast<TickManager::TickWorker>( p );
 	}
 
 	optional<Tick> TickManager::TickWorker::Get( ContractPK contractId )const noexcept
