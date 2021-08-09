@@ -8,6 +8,12 @@
 #include "../../../Framework/source/Cache.h"
 
 #define var const auto
+#ifdef _MSC_VER//linker error
+	#define TIME _time64
+#else
+	#define TIME time
+#endif
+
 namespace Jde::Markets
 {
 	using namespace Chrono;
@@ -98,7 +104,7 @@ namespace Jde::Markets
 			VectorPtr<::Bar> pBars;
 			if( !lastTime )
 				pBars = ReqHistoricalDataSync( contract, end, subDayCount, barSize, display, useRth, false ).get();
-			else if( time(nullptr)-lastTime>barSize )
+			else if( TIME(nullptr)-lastTime>barSize )
 				pBars = ReqHistoricalDataSync( contract, lastTime, barSize, display, useRth ).get();
 			if( pBars )
 			{
@@ -165,7 +171,7 @@ namespace Jde::Markets
 			addBars( endDay, dayCount, *pData );
 		}
 
-		var now = time( nullptr ); time_t minTime=now, maxTime=0;
+		var now = TIME( nullptr ); time_t minTime=now, maxTime=0;
 		for( var& dayBars : *pData )
 		{
 			if( !dayBars.second )//not sure why this is happening.

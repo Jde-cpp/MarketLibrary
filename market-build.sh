@@ -18,7 +18,7 @@ function xzBuildLib
 	if [ -d $dir ]; then
 		cd $dir/bin_x86-64;
 		if [ ! -f liblzma.lib ]; then
-			$binDir=`pwd`;
+			binDir=`pwd`;
 			cd $baseDir/$jdeRoot/Public/stage/release;
 			mklink liblzma.dll $binDir;
 			cd ../debug;

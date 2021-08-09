@@ -270,4 +270,12 @@ namespace Jde::Markets
 		}
 		return cancel;
 	}
+	void WrapperLog::wshMetaData( int reqId, const std::string& dataJson )noexcept
+	{
+		LOG( _logLevel, "WrapperLog::wshMetaData( {}, {} )"sv, reqId, dataJson );
+	}
+	void WrapperLog::wshEventData( int reqId, const std::string& dataJson )noexcept
+	{
+		LOG( _logLevel, "WrapperLog::wshEventData( {}, {} )"sv, reqId, dataJson );
+	}
 }
