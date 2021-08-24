@@ -3,6 +3,7 @@
 #include <jde/markets/types/Contract.h>
 #include <jde/coroutine/Task.h>
 #include "../../../Framework/source/coroutine/Awaitable.h"
+#include "../types/Bar.h"
 #include "TwsClient.h"
 
 namespace Jde::Markets
@@ -68,12 +69,43 @@ namespace Jde::Markets
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
 
+	struct JDE_MARKETS_EXPORT HistoricalDataAwaitable final : ITwsAwaitableImpl//sp<vector<::Bar>>
+	{
+		using base = ITwsAwaitableImpl;
+		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
+		//HistoricalDataAwaitable( sp<Contract> pContract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, 0, 0, barSize, display, useRth, start }{}
+		bool await_ready()noexcept override;
+		void await_suspend( HCoroutine h )noexcept override;
+		TaskResult await_resume()noexcept override;
+		α AddTws( ibapi::OrderId reqId, const vector<::Bar>& bars )->void;
+	private:
+		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
+			_contractPtr{pContract}, _end{end}, _dayCount{dayCount}, _start{start}, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
+		{}
+		α AsyncFetch( HCoroutine h )noexcept->Task2;
+		bool SetData(bool force=false)noexcept;
+		sp<Contract> _contractPtr;
+		DayIndex _end;
+		DayIndex _dayCount;
+		time_t _start;
+		Proto::Requests::BarSize _barSize;
+		TwsDisplay::Enum _display;
+		const bool _useRth;
+		sp<vector<::Bar>> _dataPtr;
+		flat_map<DayIndex,VectorPtr<sp<::Bar>>> _cache;
+		HCoroutine _hCoroutine;
+		vector<ibapi::OrderId> _twsRequests;
+		friend WrapperCo;
+	};
+
+
 	struct JDE_MARKETS_EXPORT TwsClientCo : public TwsClient
 	{
 		TwsClientCo( const TwsConnectionSettings& settings, shared_ptr<WrapperCo> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		TickerId AddParam( coroutine_handle<>&& h )noexcept;
 		sp<WrapperCo> WrapperPtr()noexcept;
 
+		Ω HistoricalData( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept{ return HistoricalDataAwaitable{pContract, end, dayCount, barSize, display, useRth}; }
 		Ω HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept->HistoricalNewsAwaitable;
 		Ω ContractDetails( ContractPK conId )noexcept->ContractAwaitable;
 		Ω NewsProviders()noexcept->NewsProviderAwaitable;

@@ -54,25 +54,6 @@ namespace Jde::Markets
 		if( _requestId<id )
 			_requestId = id;
 	}
-/*	void TwsClient::reqAccountUpdates( bool subscribe, sv acctCode )noexcept
-	{
-		LOG( _logLevel, "reqAccountUpdates( '{}', '{}' )"sv, subscribe, acctCode );
-		var p = TwsClient::_pInstance;
-		if( p )
-			p->reqAccountUpdates( subscribe, string{acctCode} );
-/ *		unique_lock l{ _accountUpdateMutex };
-		var haveSubscription = _accountUpdates.contains( string{acctCode} );
-		if( !haveSubscription && subscribe )
-		{
-			WrapperLogPtr()->ClearAccountUpdates();
-			_accountUpdates.emplace( acctCode );
-		}
-		else if( !haveSubscription && subscribe )
-		{
-			WrapperLogPtr()->ClearAccountUpdates();
-			_accountUpdates.emplace( acctCode );
-		}		EClientSocket::reqAccountUpdates( subscribe, string{acctCode} );
-	}*/
 
 	uint TwsClient::RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> callback )noexcept
 	{
@@ -110,12 +91,10 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
-		//if( contract.symbol=="BGGSQ" )
-		//	Cache::Set<uint>( format("breakpoint.{}",contract.symbol), make_shared<uint>(reqId) );
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
-		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}"sv, ReqHistoricalDataLogId, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
+		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}"sv, reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
 		if( send )
 		{
 			ASSERT( durationStr!="0 D" );
@@ -206,11 +185,6 @@ namespace Jde::Markets
 		LOG( _logLevel, "({})reqRealTimeBars( {}, {}, {} )"sv, id, contract.conId, barSize, whatToShow, useRTH );
 		EClientSocket::reqRealTimeBars( id, contract, barSize, whatToShow, useRTH, realTimeBarsOptions );
 	}
-/*	void TwsClient::reqMktData( TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions ) noexcept
-	{
-		LOG( _logLevel, "({})reqMktData( {}, {}, {} )"sv, id, contract.conId, genericTicks, snapshot );
-		EClientSocket::reqMktData( id, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
-	}*/
 	void TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );

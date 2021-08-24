@@ -12,11 +12,13 @@ namespace Jde::Markets
 	{
 		bool error2( int id, int errorCode, str errorMsg )noexcept override;
 		void error( int id, int errorCode, str errorMsg )noexcept override;
-		//using base=WrapperSync;
-		//void AddParam( TickerId id, coroutine_handle<>&& h )noexcept{ _params.emplace( id, move(h) ); }
-
 		void historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept override;
 		void historicalNewsEnd( int requestId, bool hasMore )noexcept override;
+
+		void historicalData( TickerId reqId, const ::Bar& bar )noexcept override{ HistoricalData(reqId, bar); }
+		void historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept override{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
+		bool HistoricalData( TickerId reqId, const ::Bar& bar )noexcept;
+		bool HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept;
 
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
@@ -28,6 +30,9 @@ namespace Jde::Markets
 		flat_map<int,sp<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HistoricalNewsAwaitable::THandle> _newsHandles;
 		UnorderedSet<NewsProviderAwaitable::THandle> _newsProviderHandles;
 		UnorderedMapValue<int,NewsArticleAwaitable::THandle> _newsArticleHandles;
-		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable;
+		UnorderedMapValue<int,HistoricalDataAwaitable*> _historical;
+		flat_map<TickerId,vector<::Bar>> _historicalData;
+
+		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoricalDataAwaitable;
 	};
 }

@@ -22,14 +22,23 @@ namespace Jde::Markets
 			}
 			return pHandle.has_value();
 		};
-		return r(_contractSingleHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		bool handled = r(_contractSingleHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		if( !handled && _historical.Has(id) )
+		{
+			auto handle = (*_historical.Find(id))->_hCoroutine;
+			handle.promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
+			_historical.erase( id );
+			_historicalData.erase( id );
+			Coroutine::CoroutinePool::Resume( move(handle) );
+		}
+		return handled;
 	}
 	void WrapperCo::error( int id, int errorCode, str errorMsg )noexcept
 	{
 		error2( id, errorCode, errorMsg );
 	}
 
-	bool error2( int id, int errorCode, const std::string& errorMsg )noexcept;
+	bool error2( int id, int errorCode, str errorMsg )noexcept;
 
 	void WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )noexcept
 	{
@@ -113,4 +122,28 @@ namespace Jde::Markets
 		pHandle->promise().get_return_object().SetResult( p );
 		Coroutine::CoroutinePool::Resume( move(*pHandle) );
 	}
+
+	bool WrapperCo::HistoricalData( TickerId reqId, const ::Bar& bar )noexcept
+	{
+		WrapperLog::historicalData( reqId, bar );
+		bool has = _historical.Has( reqId );
+		if( has )
+			_historicalData.try_emplace( reqId ).first->second.push_back( bar );
+		return has;
+	}
+	bool WrapperCo::HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
+	{
+		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
+		auto ppAwaitable = _historical.Find( reqId );
+		if( !ppAwaitable.has_value() )
+			return false;
+		auto pData = _historicalData.find( reqId );
+		(*ppAwaitable)->AddTws( reqId, pData==_historicalData.end() ? vector<::Bar>{} : move(pData->second) );//
+
+		_historical.erase( reqId );
+		if( pData!=_historicalData.end() )
+			_historicalData.erase( pData );
+		return true;
+	}
+
 }

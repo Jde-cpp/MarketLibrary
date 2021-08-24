@@ -49,7 +49,7 @@ namespace Jde::Markets
 		TickParams{ params }
 	{}
 
-	void TickManager::Awaitable::await_suspend( std::coroutine_handle<Task2::promise_type> h )noexcept
+	void TickManager::Awaitable::await_suspend( coroutine_handle<Task2::promise_type> h )noexcept
 	{
 		base::await_suspend( h );
 		//ASSERT( Tick.ContractId );

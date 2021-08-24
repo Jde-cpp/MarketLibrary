@@ -119,6 +119,7 @@ namespace Jde::Markets
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;
 		ELogLevel _logLevel{ ELogLevel::Debug };
+		ELogLevel _historicalLevel{ ELogLevel::Debug };
 		ELogLevel _tickLevel{ ELogLevel::Trace };
 		sp<TickManager::TickWorker> _pTickWorker;
 		flat_map<string, flat_map<Handle,sp<IAccountUpdateHandler>>> _accountUpdateCallbacks; static uint _accountUpdateHandle; flat_map<string,flat_map<string,tuple<string,string>>> _accountUpdateCache; flat_map<string,flat_map<ContractPK,Proto::Results::PortfolioUpdate>> _accountPortfolioUpdates; shared_mutex _accountUpdateCallbackMutex;		friend TickManager::TickWorker;

@@ -45,8 +45,6 @@ namespace Jde::Markets::OrderManager
 		sp<const OrderState> StatePtr;
 	};
 
-	//using std::experimental::coroutine_handle;
-	//using std::experimental::suspend_never;
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
@@ -54,7 +52,6 @@ namespace Jde::Markets::OrderManager
 	{
 		typedef CancelAwaitable<Task2> base;
 		typedef Task2::promise_type PromiseType;
-		//typedef coroutine_handle<PromiseType> Handle;
 		Awaitable( const CombinedParams& params, Handle& h )noexcept;
 		~Awaitable()=default;
 		bool await_ready()noexcept{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
@@ -62,7 +59,7 @@ namespace Jde::Markets::OrderManager
 		Task2::TResult await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().GetResult() : Task2::TResult{}; }
 	private:
 		PromiseType* _pPromise{nullptr};
-		void End( Awaitable::Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
+		void End( Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
 	};
 
 	JDE_MARKETS_EXPORT void Cancel( Handle h )noexcept;

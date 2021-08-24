@@ -48,7 +48,7 @@ namespace Jde::Markets
 		};
 		auto req = [check]( DayIndex day, DayIndex dayCount, DayIndex checkDay=0 )
 		{
-			VectorPtr<::Bar> pBars = _client.ReqHistoricalDataSync( Contracts::Spy, day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true, true ).get();
+			auto pBars = Future<vector<::Bar>>( TwsClientCo::HistoricalData( make_shared<Contract>(Contracts::Spy), day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
@@ -121,8 +121,6 @@ namespace Jde::Markets
 
 		CompareBars( *pCache, *pNoCache, false );
 	}
-
-
 
 	TEST_F( HistoricalDataCacheTest, DayBars )
 	{

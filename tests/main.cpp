@@ -9,7 +9,7 @@ namespace Jde::Markets
 	{
 		var sv2 = "Tests.MarketLibrary"sv;
 		string appName{ sv2 };
-		OSApp::Startup( argc, argv, appName );
+		OSApp::Startup( argc, argv, appName, "Test program" );
 
 /*		std::filesystem::path settingsPath{ fmt::format("{}.json", appName) };
 		if( !fs::exists(settingsPath) )
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	if( p )
 	{
 		//::testing::GTEST_FLAG(filter) = "OrderManagerTests.Adhoc";
-		::testing::GTEST_FLAG(filter) = "NewsTest.Providers";//SaveToFile
+		::testing::GTEST_FLAG(filter) = "HistoricalDataCacheTest.PartialCache";
 	   result = RUN_ALL_TESTS();
 		p->Shutdown();
 		p = nullptr;

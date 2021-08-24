@@ -244,7 +244,8 @@ namespace Jde::Markets
 	}
 	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
 	{
-		historicalDataSync( reqId, bar );
+		if( !WrapperCo::HistoricalData(reqId, bar) )
+			historicalDataSync( reqId, bar );
 	}
 	bool WrapperSync::historicalDataSync( TickerId reqId, const ::Bar& bar )noexcept
 	{
@@ -256,7 +257,8 @@ namespace Jde::Markets
 	}
 	void WrapperSync::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
 	{
-		historicalDataEndSync( reqId, startDateStr, endDateStr );
+		if( !WrapperCo::HistoricalDataEnd(reqId, startDateStr, endDateStr) )
+			historicalDataEndSync( reqId, startDateStr, endDateStr );
 	}
 	bool WrapperSync::historicalDataEndSync( int reqId, str startDateStr, str endDateStr )noexcept
 	{
@@ -266,16 +268,6 @@ namespace Jde::Markets
 			_historicalData.End( reqId );
 		return captured;
 	}
-/*	void WrapperSync::newsProviders( const vector<NewsProvider>& newsProviders )noexcept
-	{
-		WrapperCache::newsProviders( newsProviders );
-		_newsProviderData.End( make_shared<vector<NewsProvider>>(newsProviders) );
-	}
-*/
-/*	void WrapperSync::newsProviders( const std::vector<NewsProvider>& providers, bool isCache )noexcept
-	{
-	}*/
-
 	void WrapperSync::nextValidId( ibapi::OrderId orderId )noexcept
 	{
 		WrapperLog::nextValidId( orderId );
@@ -293,8 +285,6 @@ namespace Jde::Markets
 	void WrapperSync::openOrderEnd()noexcept
 	{
 		WrapperLog::openOrderEnd();
-		//std::function<void(EndCallback&)> fnctn = []( function<void()>& f2 ){ f2(); };
-		//_openOrderEnds.ForEach( fnctn );
 	}
 
 	void WrapperSync::headTimestamp( int reqId, str headTimestamp )noexcept
@@ -313,113 +303,5 @@ namespace Jde::Markets
 			DBG( "Could not find headTimestamp request '{}'"sv, reqId );
 	}
 
-/*	bool WrapperSync::TickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept
-	{
-		WrapperLog::tickPrice( tickerId, field, price, attrib );
-		var handled = _ratioData.Contains( tickerId );
-		if( handled )
-			AddRatioTick( tickerId, std::to_string(field), price );
-		return handled;
-	}
-	bool WrapperSync::TickSize( TickerId tickerId, TickType field, int size )noexcept
-	{
-		WrapperLog::tickSize( tickerId, field, size );
-		var handled = _ratioData.Contains( tickerId );
-		if( handled )
-			AddRatioTick( tickerId, std::to_string(field), size );
-		return handled;
-	}
-	bool WrapperSync::TickString( TickerId tickerId, TickType tickType, str value )noexcept
-	{
-		WrapperLog::tickString( tickerId, tickType, value );
-		var handled = _ratioData.Contains( tickerId );
-		if( handled )
-		{
-			var values = Str::Split( value, ';' );
-			for( var& subValue : values )
-			{
-				if( subValue.size()==0 )
-					continue;
-				if( tickType==TickType::IB_DIVIDENDS )
-				{
-					var dividendValues = Str::Split( subValue );
-					if( subValue==",,," )
-					{
-						AddRatioTick( tickerId, "DIV_PAST_YEAR", 0.0 );
-						AddRatioTick( tickerId, "DIV_NEXT_YEAR", 0.0 );
-						AddRatioTick( tickerId, "DIV_NEXT_DAY", 0.0 );
-						AddRatioTick( tickerId, "DIV_NEXT", 0.0 );
-					}
-					else if( dividendValues.size()!=4 )
-						DBG( "({})Could not convert '{}' to dividends."sv, tickerId, subValue );
-					else
-					{
-						AddRatioTick( tickerId, "DIV_PAST_YEAR", stod(dividendValues[0]) );
-						AddRatioTick( tickerId, "DIV_NEXT_YEAR", stod(dividendValues[1]) );
-						var& dateString = dividendValues[2];
-						if( dateString.size()==8 )
-						{
-							const DateTime date( stoi(dateString.substr(0,4)), (uint8)stoi(dateString.substr(4,2)), (uint8)stoi(dateString.substr(6,2)) );
-							AddRatioTick( tickerId, "DIV_NEXT_DAY", Chrono::DaysSinceEpoch(date.GetTimePoint()) );
-						}
-						else
-							DBG( "({})Could not read next dividend day '{}'."sv, tickerId, dateString );
-						AddRatioTick( tickerId, "DIV_NEXT", stod(dividendValues[3]) );
-					}
-				}
-				else
-				{
-					var pair = Str::Split( subValue, '=' );
-					if( pair.size()!=2 || pair[0]=="CURRENCY" )
-						continue;
-					try
-					{
-						AddRatioTick( tickerId, pair[0], stod(pair[1]) );
-					}
-					catch( std::invalid_argument& )
-					{
-						DBG( "Could not convert [{}]='{}' to double."sv, pair[0], pair[1] );
-					}
-				}
-			}
-		}
-		return handled;
-	}
-	bool WrapperSync::TickGeneric( TickerId tickerId, TickType field, double value )noexcept
-	{
-		WrapperLog::tickGeneric( tickerId, field, value );
-		var handled = _ratioData.Contains( tickerId );
-		if( handled )
-			AddRatioTick( tickerId, std::to_string(field), value );
-		return handled;
-	}
-	void WrapperSync::AddRatioTick( TickerId tickerId, string_view key, double value )noexcept
-	{
-		lock_guard l{_ratioMutex};
-		auto& values = _ratioValues[tickerId];
-		values.emplace( key, value );
-		if(	values.find("3")!=values.end()
-			&& values.find("2")!=values.end()
-			&& values.find("0")!=values.end()
-			&& values.find("1")!=values.end()
-			&& values.find("9")!=values.end()
-			&& values.find("MKTCAP")!=values.end()
-			&& values.find("NPRICE")!=values.end()/ *
-			&& values.find("AvgVolume")!=values.end()* / )
-		{
-			static set<TickerId> setTickers;
-			if( setTickers.emplace(tickerId).second )//.contains(tickerId)
-			{
-				std::thread( [tickerId, this]()
-				{
-					std::this_thread::sleep_for( 1s );//TODO Remove this.
-					TwsClientSync::Instance().cancelMktData( tickerId );
-					lock_guard l{_ratioMutex};
-					auto& values = _ratioValues[tickerId];
-					_ratioData.Push( tickerId, make_shared<map<string,double>>(values) );
-					_ratioValues.erase( tickerId );
-				}).detach();
-			}
-		}
-	}*/
+
 }

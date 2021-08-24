@@ -27,22 +27,54 @@ namespace Jde::Markets
 
 	sp<Proto::BarFile> BarData::Load( path path )noexcept(false)
 	{
-		var pBytes = IO::Zip::XZ::Read( path );
-		auto pFile = pBytes ? make_shared<Proto::BarFile>() : sp<Proto::BarFile>();
-		if( pFile )
-		{
-			google::protobuf::io::CodedInputStream input{ (const uint8*)pBytes->data(), (int)pBytes->size() };
-			if( !pFile->MergePartialFromCodedStream(&input) )
-				THROW( IOException("barFile.MergePartialFromCodedStream returned false") );
-		}
-		else
-		{
-			ERR( "'{}' has 0 bytes."sv, path.string() );
-			fs::remove( path );
-			DBG( "Deleted '{}'."sv, path.string() );
-		}
-		return pFile;
+		return Future<Proto::BarFile>( IO::Zip::XZ::ReadProto<Proto::BarFile>(path) ).get();
 	}
+
+	α BarData::Load( fs::path path2, string symbol2 )noexcept->AWrapper
+	{
+		return AWrapper{ [path=move(path2), symbol=move(symbol2)]( HCoroutine h )->Task2
+		{
+			try
+			{
+				TaskResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
+				var pFile = t.Get<Proto::BarFile>();
+				DayIndex dayCount = pFile->days_size();
+				auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
+				for( DayIndex i=0; i<dayCount; ++i )
+				{
+					var& day = pFile->days(i);
+					var dayIndex = day.day();
+					uint barCount = day.bars_size();
+					if( IsHoliday(dayIndex) )
+					{
+						ERR( "({}) - {} has {} with {} bars but it is a holiday."sv, symbol, path.string(), DateDisplay(dayIndex), barCount );
+						continue;
+					}
+					auto& pDays = pResults->try_emplace( pResults->end(), dayIndex, make_shared<vector<CandleStick>>() )->second;
+					if( pDays->size() )
+					{
+						ERR( "({}) - {} has {} 2x."sv, symbol, path.string(), DateDisplay(dayIndex) );
+						continue;
+					}
+					if( barCount>ExchangeTime::MinuteCount(dayIndex) )
+					{
+						ERR( "{} for {} has {} bars."sv, symbol, DateDisplay(dayIndex), barCount );
+						barCount = ExchangeTime::MinuteCount( dayIndex );
+					}
+					pDays->reserve( barCount );
+					for( int iBar=0; iBar<barCount; ++iBar )
+						pDays->push_back( CandleStick(day.bars(iBar)) );
+				}
+				h.promise().get_return_object().SetResult( pResults );
+			}
+			catch( Exception& e )
+			{
+				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
+			}
+			h.resume();
+		}};
+	}
+
 
 	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
@@ -92,11 +124,12 @@ namespace Jde::Markets
 		return make_tuple( DaysSinceEpoch(start), DaysSinceEpoch(end) );
 	}
 
-	void BarData::ForEachFile( const Contract& contract, const function<void(path,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, sv prefix )noexcept//fnctn better not throw
+	vector<tuple<fs::path,DayIndex,DayIndex>> ApplicableFiles( path root, TimePoint issueDate, DayIndex start, DayIndex endInput, sv prefix={} )
 	{
-		var root = BarData::Path( contract );
-		if( !fs::exists(root) )
-			return;
+		vector<tuple<fs::path,DayIndex,DayIndex>> paths;
+		// var root = BarData::Path( contract );
+		// if( !fs::exists(root) )
+		// 	return paths;
 		var pEntries = IO::FileUtilities::GetDirectory( root );
 		var end = endInput ? endInput : std::numeric_limits<DayIndex>::max();
 		for( var& entry : *pEntries )
@@ -107,7 +140,7 @@ namespace Jde::Markets
 			{
 				continue;
 			}
-			auto issueDate = contract.IssueDate;
+			//auto issueDate = contract.IssueDate;
 			if( issueDate==TimePoint::max() )
 				issueDate = DateTime{2010,1,1}.GetTimePoint();
 			ASSERT( issueDate!=TimePoint::max() );
@@ -118,8 +151,55 @@ namespace Jde::Markets
 				continue;
 			}
 			if( start<=fileEnd && end>=fileStart )
-				fnctn( path, fileStart, fileEnd );
+				paths.push_back( make_tuple(path, fileStart, fileEnd) );
 		}
+		return paths;
+	}
+	struct BarFilesAwaitable : IAwaitable
+	{
+		BarFilesAwaitable( const Contract& contract, DayIndex start, DayIndex endInput, function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> f )noexcept(false):
+			_function{ f },
+			_files{ ApplicableFiles( BarData::Path( contract ), contract.IssueDate, start, endInput) },
+			_symbol{ contract.Symbol }
+		{}
+		bool await_ready()noexcept override{ return _files.empty(); }
+		void await_suspend( typename base::THandle h )noexcept override
+		{
+			base::await_suspend( h );
+			auto f = [files=move(_files), function=_function, symbol=move(_symbol),this]()->Task2
+			{
+				for( var& [path,start,end] : files )
+				{
+					try
+					{
+						auto pData = ( co_await BarData::Load(path, symbol) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
+						function( *pData, start, end );
+					}
+					catch( const Exception& e )
+					{
+						_pException = std::make_exception_ptr( e );
+						break;
+					}
+				}
+			};
+			f();
+		}
+		typename base::TResult await_resume()noexcept override
+		{
+			AwaitResume();
+			return _pException ? TaskResult{ _pException } : TaskResult{ sp<void>{} };
+		}
+	private:
+		function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> _function;
+		vector<tuple<fs::path,DayIndex,DayIndex>> _files;
+		std::exception_ptr _pException;
+		string _symbol;
+	};
+	α ForEachFile( const Contract& contract, DayIndex start, DayIndex endInput, function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> f )noexcept{ return BarFilesAwaitable{contract, start, endInput, f}; }
+	void BarData::ForEachFile( const Contract& contract, const function<void(path,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, sv prefix )noexcept//fnctn better not throw
+	{
+		for( var& [path,fileStart,fileEnd] : ApplicableFiles(BarData::Path(contract), contract.IssueDate, start, endInput, prefix) )
+			fnctn( path, fileStart, fileEnd );
 	}
 
 	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept
@@ -136,23 +216,46 @@ namespace Jde::Markets
 	}
 	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
 	{
-		//var root = BarData::Path( contract );
 		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 		auto fnctn = [&]( path path, DayIndex, DayIndex )
 		{
-			var pFileValues = Load( path, contract.Symbol );
+			var pFileValues = Load( path, (sv)contract.Symbol );
 			for( var& [day,pBars] : *pFileValues )
 			{
 				if( day>=start && day<=end )
 					pResults->try_emplace( pResults->end(), day, pBars );
 			}
 		};
-		//if( HavePath() )
-			ForEachFile( contract, fnctn, start, end );
+		ForEachFile( contract, fnctn, start, end );
 		return pResults;
 	}
+	α BarData::CoLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)->AWrapper
+	{
+		return AWrapper( [&contract, start,end]( HCoroutine h )->Task2
+		{
+			auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
+			auto fnctn = [pResults,start,end]( const map<DayIndex,VectorPtr<CandleStick>>& bars,DayIndex,DayIndex )
+			{
+				for( var& [day,pBars] : bars )
+				{
+					if( day>=start && day<=end )
+						pResults->try_emplace( pResults->end(), day, pBars );
+				}
+			};
+			try
+			{
+				auto y = ( co_await ForEachFile(contract, start, end, fnctn) ).Get<sp<void>>();
+				h.promise().get_return_object().SetResult( pResults );
+			}
+			catch( const Exception& e )
+			{
+				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
+			}
+			CoroutinePool::Resume( move(h) );
+		} );
+	}
 
-	void BarData::Save( const Contract& contract, map<DayIndex,vector<sp<::Bar>>>& rthBars )noexcept
+	void BarData::Save( const Contract& contract, flat_map<DayIndex,vector<sp<::Bar>>>& rthBars )noexcept
 	{
 		var current = CurrentTradingDay( contract );
 		var exclude = Clock::now()>ExtendedEnd( contract, current ) ? 0 : current;

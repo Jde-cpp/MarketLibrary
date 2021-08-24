@@ -430,7 +430,6 @@ namespace Jde
 	TimePoint Markets::NextTradingDay( TimePoint time )noexcept
 	{
 		DateTime t2{ time-Timezone::EasternTimezoneDifference(time) };
-		DBG( ToIsoString(time+Timezone::EasternTimezoneDifference(time)) );
 		if( t2.Hour()<4 )
 			time -= 4h;
 		return FromDays( NextTradingDay(DaysSinceEpoch(t2)) );
