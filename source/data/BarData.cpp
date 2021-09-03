@@ -396,7 +396,7 @@ namespace Jde::Markets
 					fs::remove( combinedFile );
 				}
 			}
-			catch( const fs::filesystem_error& e )
+			catch( fs::filesystem_error& e )
 			{
 				throw IOException( move(e) );
 			}
@@ -406,7 +406,6 @@ namespace Jde::Markets
 	flat_set<DayIndex> BarData::FindExisting( const Contract& contract, DayIndex start2, DayIndex end2, sv prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		flat_set<DayIndex> existing;
-		list<fs::path> consolodate;
 		const DateTime today{ DateTime::Today() };
 		auto fnctn = [&]( path path, DayIndex fileStart, DayIndex fileEnd )
 		{

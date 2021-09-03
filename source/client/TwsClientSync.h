@@ -61,7 +61,7 @@ namespace Jde::Markets
 		Collections::UnorderedMap<TickerId,IBException> _errors;
 		UnorderedMapValue<TickerId,TimePoint> _headTimestamps;
 
-		Collections::UnorderedMap<TickerId,list<::Bar>> _historicalData;
+		//Collections::UnorderedMap<TickerId,std::list<::Bar>> _historicalData;
 		static sp<TwsClientSync> _pSyncInstance;
 	};
 }

@@ -173,7 +173,7 @@ namespace Jde::Markets
 	}
 	Proto::ETimeInForce MyOrder::TimeInForce()const noexcept
 	{
-		return Str::ToEnum( ETifStrings, tif, Proto::ETimeInForce::DayTif );
+		return Str::ToEnum<Proto::ETimeInForce>( ETifStrings, tif ).value_or( Proto::ETimeInForce::DayTif );
 	}
 
 	void MyOrder::TimeInForce( Proto::ETimeInForce value )noexcept
@@ -182,7 +182,7 @@ namespace Jde::Markets
 	}
 	Proto::EOrderType MyOrder::OrderType()const noexcept
 	{
-		return Str::ToEnum<Proto::EOrderType,std::array<sv,22>>( EOrderTypeStrings, orderType, Proto::EOrderType::Limit );
+		return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, orderType ).value_or( Proto::EOrderType::Limit );
 	}
 	void MyOrder::OrderType( Proto::EOrderType value )noexcept
 	{

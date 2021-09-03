@@ -142,7 +142,7 @@ namespace OrderManager
 				if( update.StatePtr )
 					v.StatePtr = update.StatePtr;
 				latest = v;
-				DBG( log );
+				LOGS( ELogLevel::Debug, move(log) );
 			}
 			else
 			{

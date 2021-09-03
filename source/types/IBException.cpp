@@ -9,9 +9,9 @@ namespace Jde::Markets
 		RequestId( reqId )
 	{}
 
-	void IBException::Log( sv pszAdditionalInformation, ELogLevel level )const noexcept
+	void IBException::Log( sv pszAdditionalInformation, optional<ELogLevel> level )const noexcept
 	{
 		string additionalInformation = pszAdditionalInformation.size() ? format("[{}]", pszAdditionalInformation)  : "";
-		LOG( level, "{{{}}}[{}] {}{} - ({}){}({})"sv, RequestId, ErrorCode, additionalInformation, what(), _functionName, _fileName, _line );
+		LOG( level ? *level : ELogLevel::Trace, "{{{}}}[{}] {}{} - ({}){}({})", RequestId, ErrorCode, additionalInformation, what(), _functionName, _fileName, _line );
 	}
 }

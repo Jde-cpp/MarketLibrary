@@ -16,7 +16,7 @@ namespace Jde::Markets
 			RequestId( reqId )
 		{}
 
-		void Log( sv pszAdditionalInformation="", ELogLevel level=ELogLevel::Trace )const noexcept override;
+		void Log( sv pszAdditionalInformation="", optional<ELogLevel> level=nullopt )const noexcept override;
 
 		const int ErrorCode;
 		const long RequestId{0};
