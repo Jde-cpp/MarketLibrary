@@ -37,11 +37,9 @@ namespace Jde::Markets
 
 		struct JDE_MARKETS_EXPORT Awaitable final : CancelAwaitable<Task2>, TickParams
 		{
-			//typedef TaskError<Markets::Tick> TTask;
 			typedef Task2::TResult TResult;
 			typedef CancelAwaitable<Task2> base;
 			typedef Task2::promise_type PromiseType;
-			//typedef coroutine_handle<Task2::promise_type> Handle;
 			Awaitable( const TickParams& params, Handle& h )noexcept;
 			~Awaitable()=default;
 			bool await_ready()noexcept override;
@@ -72,7 +70,7 @@ namespace Jde::Markets
 			struct SubscriptionInfo : base::Handles<>{ TickManager::TickParams Params; };
 			static sp<TickWorker> CreateInstance( sp<TwsClient> _pParent )noexcept;
 			TickWorker( sp<TwsClient> pParent )noexcept;
-
+			~TickWorker(){ DBG("~TickWorker"); }
 			void Push( TickerId id, ETickType type, double v )noexcept;
 			void Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept;
 			void Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept;

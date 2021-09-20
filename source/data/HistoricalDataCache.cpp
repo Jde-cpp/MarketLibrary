@@ -102,8 +102,8 @@ namespace Jde::Markets
 			? OptionCache::CacheId( contract.Id, display )
 			: barSize==EBarSize::Day ? DayCache::CacheId( contract.Id, display ) : MinuteCache::CacheId( contract.Id, display );
 		sp<DataCache> pCache = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
-			? dynamic_pointer_cast<DataCache>( Cache::TryGet<OptionCache>(cacheId) )
-			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::TryGet<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::TryGet<MinuteCache>(cacheId) );
+			? dynamic_pointer_cast<DataCache>( Cache::Emplace<OptionCache>(cacheId) )
+			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::Emplace<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::Emplace<MinuteCache>(cacheId) );
 		auto startEnd = pCache->Contains( days, useRth, barSize );
 		if( startEnd.has_value() )
 		{
@@ -132,8 +132,8 @@ namespace Jde::Markets
 			? OptionCache::CacheId( contract.Id, display )
 			: barSize==EBarSize::Day ? DayCache::CacheId( contract.Id, display ) : MinuteCache::CacheId( contract.Id, display );
 		sp<DataCache> pCache = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
-			? dynamic_pointer_cast<DataCache>( Cache::TryGet<OptionCache>(cacheId) )
-			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::TryGet<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::TryGet<MinuteCache>(cacheId) );
+			? dynamic_pointer_cast<DataCache>( Cache::Emplace<OptionCache>(cacheId) )
+			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::Emplace<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::Emplace<MinuteCache>(cacheId) );
 		uint missingCount;
 		auto load = [&]()
 		{
@@ -219,7 +219,6 @@ namespace Jde::Markets
 			return pValue;
 
 		var pAllBars = _client.ReqHistoricalDataSync( contract, end, dayCount, minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true, true ).get();
-		//HistoricalDataCache::ReqHistoricalData( contract, end, dayCount, minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true );
 		if( pAllBars->size()==0 )
 			THROW( Exception("No history") );
 		map<DayIndex,vector<::Bar>> bars;
@@ -359,7 +358,7 @@ namespace Jde::Markets
 			auto& saveBars = useRth || IsRth(contract, Clock::from_time_t(time)) ? rthBars : extendedBars;
 			saveBars.try_emplace( Chrono::ToDay(time) ).first->second.push_back( make_shared<::Bar>(bar) );
 		}
-		auto pValues = dynamic_pointer_cast<SubDataCache>( Cache::TryGet<MinuteCache>(CacheId(contract.Id, display)) );
+		auto pValues = dynamic_pointer_cast<SubDataCache>( Cache::Emplace<MinuteCache>(CacheId(contract.Id, display)) );
 		if( rthBars.size() )
 		{
 			pValues->Push( rthBars, true );
@@ -375,7 +374,7 @@ namespace Jde::Markets
 		for( var& bar : bars )
 			cacheBars.emplace( ToDay(ConvertIBDate(bar.time)), bar );
 
-		auto pValues = Cache::TryGet<DayCache>( CacheId(contract.Id, display) );
+		auto pValues = Cache::Emplace<DayCache>( CacheId(contract.Id, display) );
 		if( cacheBars.size() )
 			pValues->Push( cacheBars, useRth );
 	}
@@ -393,7 +392,7 @@ namespace Jde::Markets
 		for( DayIndex i=0, iDay=end ; i<subDayCount; ++i, iDay=PreviousTradingDay(iDay) )
 			rthBars.emplace( iDay, vector<BarPtr>{} );
 
-		auto pValues = static_pointer_cast<SubDataCache>( Cache::TryGet<OptionCache>(CacheId(contract.Id, display)) );
+		auto pValues = static_pointer_cast<SubDataCache>( Cache::Emplace<OptionCache>(CacheId(contract.Id, display)) );
 		pValues->Push( rthBars, true );
 	}
 

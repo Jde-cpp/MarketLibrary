@@ -31,18 +31,18 @@ namespace Jde::Markets
 	{
 		for( var port : _settings.Ports )
 		{
-			DBG( "Attempt to connect to Tws:  {}"sv, port );
+			TRACE( "Attempt to connect to Tws:  {}", port );
 			if( eConnect(_settings.Host.c_str(), port, (int)clientId, false) )
 			{
-				DBG( "connected to Tws:  {}."sv, port );
+				INFO( "connected to Tws:  {}.", port );
 				_port = port;
 				break;
 			}
 			else
-				DBG( "connect to Tws:  {} failed"sv, port );
+				INFO( "connect to Tws:  {} failed", port );
 		}
 		if( !_port )
-			THROW( Exception("Could not connect to IB {}"sv, _settings) );
+			THROW( "Could not connect to IB {}"sv, _settings );
 	}
 
 	shared_ptr<WrapperLog> TwsClient::WrapperLogPtr()noexcept
@@ -73,7 +73,7 @@ namespace Jde::Markets
 			p->reqAccountUpdates( false, string{acctCode} );
 		}
 	}
-	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV )noexcept
+	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, str account, str modelCode, bool ledgerAndNLV )noexcept
 	{
 		LOG( _logLevel, "({})reqAccountUpdatesMulti( {}, {}, {} )", reqId, account, modelCode, ledgerAndNLV );
 		EClient::reqAccountUpdatesMulti( reqId, account, modelCode, ledgerAndNLV );
@@ -89,7 +89,7 @@ namespace Jde::Markets
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 	}
-	void TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string&  barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
+	void TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
@@ -106,7 +106,7 @@ namespace Jde::Markets
 		else
 			_pWrapper->error( reqId, 322, format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
 	}
-	void TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
+	void TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{
 		LOG( _logLevel, "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
@@ -122,7 +122,7 @@ namespace Jde::Markets
 		LOG( _logLevel, "({})reqContractDetails( '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
-	void TwsClient::reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept
+	void TwsClient::reqHeadTimestamp( int tickerId, const ::Contract &contract, str whatToShow, int useRTH, int formatDate )noexcept
 	{
 		LOG( _logLevel, "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )", tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
@@ -180,7 +180,7 @@ namespace Jde::Markets
 		LOG( _logLevel, "reqAllOpenOrders" );
 		EClientSocket::reqAllOpenOrders();
 	}
-	void TwsClient::reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept
+	void TwsClient::reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, str whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept
 	{
 		LOG( _logLevel, "({})reqRealTimeBars( {}, {}, {} )", id, contract.conId, barSize, whatToShow, useRTH );
 		EClientSocket::reqRealTimeBars( id, contract, barSize, whatToShow, useRTH, realTimeBarsOptions );
@@ -193,7 +193,7 @@ namespace Jde::Markets
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}
 
-	void TwsClient::reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept
+	void TwsClient::reqPositionsMulti( int reqId, str account, str modelCode )noexcept
 	{
 		LOG( _logLevel, "({})reqPositionsMulti( '{}', '{}' )", reqId, account, modelCode );
 		EClientSocket::reqPositionsMulti( reqId, account, modelCode );

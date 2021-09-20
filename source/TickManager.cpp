@@ -11,6 +11,7 @@
 
 namespace Jde::Markets
 {
+	ELogLevel LogLevel()noexcept{ return ELogLevel::Trace; }
 	std::future<Tick> TickManager::Ratios( const ContractPK contractId )noexcept
 	{
 		auto p=TickWorker::Instance();
@@ -52,7 +53,6 @@ namespace Jde::Markets
 	void TickManager::Awaitable::await_suspend( coroutine_handle<Task2::promise_type> h )noexcept
 	{
 		base::await_suspend( h );
-		//ASSERT( Tick.ContractId );
 		_pPromise = &h.promise();
 		if( auto p=TickWorker::Instance(); p )
 			p->Subscribe( TickWorker::SubscriptionInfo{ {h, _hClient}, *this} );
@@ -62,7 +62,7 @@ namespace Jde::Markets
 		auto p=TickWorker::Instance();
 		var isReady = p && p->Test( Tick, Fields );
 		if( isReady )
-			DBG( "TickManager::await_ready={}"sv, isReady );
+			LOG( LogLevel(), "TickManager::await_ready={}"sv, isReady );
 		return isReady;
 	}
 
@@ -94,7 +94,7 @@ namespace Jde::Markets
 	void TickManager::TickWorker::SetRequestId( TickerId id, ContractPK contractId )noexcept
 	{
 		unique_lock l{ _valuesMutex };
-		DBG( "_tickerContractMap adding [{}]={}"sv, id, contractId );
+		LOG( LogLevel(), "_tickerContractMap adding [{}]={}"sv, id, contractId );
 		_tickerContractMap.emplace( id, contractId );
 		_values.try_emplace( contractId, contractId, id );
 	}
@@ -109,7 +109,7 @@ namespace Jde::Markets
 			unique_lock l2{ _delayMutex };
 			if( auto p = std::find_if(_delays.begin(), _delays.end(), [contractId](auto x){return contractId==get<2>(x.second);}); p!=_delays.end() )
 			{
-				DBG( "_delays.refresh[{}]={} - Test"sv, get<1>(p->second), get<2>(p->second) );
+				LOG( LogLevel(), "_delays.refresh[{}]={} - Test"sv, get<1>(p->second), get<2>(p->second) );
 				var value = p->second;
 				_delays.erase( p );
 				_delays.emplace( Clock::now()+3s, value );
@@ -166,11 +166,11 @@ namespace Jde::Markets
 	{
 		Push( id, type, [type,v](Tick& tick){ tick.SetInt(type, v);} );
 	}
-	void TickManager::TickWorker::Push( TickerId id, ETickType type, const std::string& v )noexcept
+	void TickManager::TickWorker::Push( TickerId id, ETickType type, str v )noexcept
 	{
 		Push( id, type, [type,v](Tick& tick){ tick.SetString(type, v);} );
 	}
-	void TickManager::TickWorker::Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept
+	void TickManager::TickWorker::Push( TickerId id, time_t timeStamp, str providerCode, str articleId, str headline, str extraData )noexcept
 	{
 		News v{ timeStamp, providerCode, articleId, headline, extraData };
 		Push( id, ETickType::NewsTick, [v](Tick& tick)mutable{ tick.AddNews(move(v));} );
@@ -195,19 +195,19 @@ namespace Jde::Markets
 		else
 			Push( id, type, [type, x=move(optionComp)](Tick& tick)mutable{tick.SetOptionComputation(type, move(x));} );
 	}
-	bool TickManager::TickWorker::HandleError( int id, int errorCode, const std::string& errorString )noexcept
+	bool TickManager::TickWorker::HandleError( int id, int errorCode, str errorString )noexcept
 	{
 		ContractPK contractId;
 		if( errorCode==10197 )
 			return false;
 		{
 			unique_lock l{ _valuesMutex };
-			DBG( "_tickerContractMap={}"sv, _tickerContractMap.size() );
+			LOG( LogLevel(), "_tickerContractMap={}"sv, _tickerContractMap.size() );
 			auto p=_tickerContractMap.find( id );
 			if( p==_tickerContractMap.end() )
 				return false;
 			contractId = p->second;
-			DBG( "_tickerContractMap erasing [{}]={}"sv, p->first, p->second );
+			LOG( LogLevel(), "_tickerContractMap erasing [{}]={}"sv, p->first, p->second );
 			_tickerContractMap.erase( p );
 			if( auto pValue = _values.find(contractId); pValue!=_values.end() )
 				pValue->second.TwsRequestId = 0;
@@ -267,6 +267,8 @@ namespace Jde::Markets
 				{
 					var& fields = pOutgoingField->second;
 					auto& tick = pValue->second;
+					if( fields[ETickType::BidSize] )
+						TRACE( "{}", tick.BidSize );
 					outgoingTicks.push_back( {tick, fields} );
 					if( fields[ETickType::NewsTick] )
 						tick.NewsPtr->clear();
@@ -279,7 +281,7 @@ namespace Jde::Markets
 		if( outgoingTicks.size() )
 		{
 			if( ++index %1000 == 0 )
-				DBG( "index={}k"sv, index/1000 );
+				LOG( LogLevel(), "index={}k"sv, index/1000 );
 		}
 		for( var& outgoing : outgoingTicks )
 		{
@@ -308,7 +310,7 @@ namespace Jde::Markets
 						}
 						auto& returnObject = h.promise().get_return_object();
 						returnObject.SetResult( make_shared<Tick>(tick) );
-						DBG( "({})TickManager - Calling resume()."sv, hClient );
+						LOG( LogLevel(), "({})TickManager - Calling resume()."sv, hClient );
 						Coroutine::CoroutinePool::Resume( move(h)/*, move(p->second.ThreadParam)*/ );
 						p = _subscriptions.erase( p );
 					}
@@ -330,6 +332,8 @@ namespace Jde::Markets
 							continue;
 						f.reset( i );
 						var tickType = (ETickType)i;
+						if( tickType==ETickType::BidSize )
+							TRACE( "{}", tick.BidSize );
 						tick.AddProto( tickType, messages );
 					}
 					if( messages.size() )
@@ -348,7 +352,7 @@ namespace Jde::Markets
 						}
 					}
 					else
-						DBG( "!messages.size()"sv );
+						LOG( LogLevel(), "!messages.size()"sv );
 				}
 			}
 			{//Ratio Subscriptions
@@ -362,7 +366,7 @@ namespace Jde::Markets
 					get<0>(p->second).set_value( tick );
 					_ratioSubscriptions.erase( p );
 					unique_lock ul2{ _delayMutex };
-					DBG( "_delays.emplace[{}]={} - ratios"sv, get<2>(p->second), contractId );
+					LOG( LogLevel(), "_delays.emplace[{}]={} - ratios"sv, get<2>(p->second), contractId );
 					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), contractId) );
 				}
 			}
@@ -384,8 +388,8 @@ namespace Jde::Markets
 				var remove = get<1>(value)<Clock::now();
 				if( remove )
 				{
-					DBG( "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
-					DBG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(p->second), p->first );
+					LOG( LogLevel(), "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
+					LOG( LogLevel(), "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(p->second), p->first );
 					get<0>(value).set_exception( std::make_exception_ptr(Exception("Timeout")) );
 					unique_lock ul2{ _delayMutex };
 					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), p->first) );
@@ -406,14 +410,15 @@ namespace Jde::Markets
 			unique_lock ul{ _orphanMutex };
 			for( auto p = _orphans.begin(); p!=_orphans.end() && p->first<Clock::now(); p = _orphans.erase( p ) )
 			{
-				DBG( "({})Canceling orphan request {}<now"sv, p->second, ToIsoString(p->first) );
+				LOG( LogLevel(), "({})Canceling orphan request {}<now"sv, p->second, ToIsoString(p->first) );
 				CancelMarketData( p->second, 0 );
 			}
 		}
 		if( !outgoingTicks.size() )
 		{
-				std::unique_lock<std::mutex> ul( _mtx );
-				_cv.wait_for( ul, WakeDuration );
+			std::unique_lock<std::mutex> ul( _mtx );
+			_cv.wait_for( ul, WakeDuration );
+			TRACE( "Woken" );
 		}
 	}
 	flat_set<ETickList> TickManager::TickWorker::GetSubscribedTicks( ContractPK id )const noexcept
@@ -439,7 +444,7 @@ namespace Jde::Markets
 		}
 		if( pFound!=range.second )
 		{
-			DBG( "({})Erasing _twsSubscription {}."sv, pFound->second.Id, pFound->second.Source );
+			LOG( LogLevel(), "({})Erasing _twsSubscription {}."sv, pFound->second.Id, pFound->second.Source );
 			_twsSubscriptions.erase( pFound );
 			var currentTicks = GetSubscribedTicks( contractId );
 			var requestId = RequestId( contractId );
@@ -464,7 +469,7 @@ namespace Jde::Markets
 		unique_lock l{ _subscriptionMutex };
 		if( auto p = std::find_if(_subscriptions.begin(), _subscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_subscriptions.end() )
 		{
-			DBG( "Cancel({})"sv, h );
+			LOG( LogLevel(), "Cancel({})"sv, h );
 			p->second.HCoroutine.destroy();
 			var contractId = p->first;
 			_subscriptions.erase( p );
@@ -473,14 +478,14 @@ namespace Jde::Markets
 			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, h, contractId) );
 		}
 		else
-			DBG( "Could not find handle {}."sv, h );
+			LOG( LogLevel(), "Could not find handle {}."sv, h );
 	}
 	void TickManager::TickWorker::CancelProto( uint sessionId, ContractPK contractId, unique_lock<mutex>* pLock )noexcept
 	{
 		auto pl = pLock ? up<unique_lock<mutex>>{} : make_unique<unique_lock<mutex>>( _protoSubscriptionMutex );
 		auto remove = [this]( auto p )
 		{
-			DBG( "_delays.emplace[{}]={} - Proto Cancel"sv, p->second.SessionId, p->first );
+			LOG( LogLevel(), "_delays.emplace[{}]={} - Proto Cancel"sv, p->second.SessionId, p->first );
 			unique_lock l{ _delayMutex };
 			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Proto, p->second.SessionId, p->first) );
 			return _protoSubscriptions.erase( p );
@@ -492,7 +497,7 @@ namespace Jde::Markets
 			if( p!=range.second )
 				remove( p );
 			else
-				DBG( "Could not find proto contractId={} sessionId={}"sv, contractId, sessionId );
+				LOG( LogLevel(), "Could not find proto contractId={} sessionId={}"sv, contractId, sessionId );
 		}
 		else
 			for( auto p = _protoSubscriptions.begin(); p!=_protoSubscriptions.end(); p = sessionId==p->second.SessionId ? remove(p) : std::next(p) );
@@ -529,7 +534,7 @@ namespace Jde::Markets
 		AddSubscription( contractId, TickListSource{ESubscriptionSource::Internal, handle, ticks}, pLock );
 
 		unique_lock l{ _ratioSubscriptionMutex };
-		DBG( "_ratioSubscriptions.emplace({}, {})"sv, contractId, ToIsoString(Clock::now()+5s) );
+		LOG( LogLevel(), "_ratioSubscriptions.emplace({}, {})"sv, contractId, ToIsoString(Clock::now()+5s) );
 		auto p = _ratioSubscriptions.emplace( contractId, make_tuple( std::promise<Tick>{}, Clock::now()+5s, handle ) );
 		return get<0>( p->second ).get_future();
 	}
@@ -542,7 +547,7 @@ namespace Jde::Markets
 			pLock = make_shared<unique_lock<mutex>>( _twsSubscriptionMutex );
 		auto requestTicks = GetSubscribedTicks( contractId );
 		std::for_each( source.Ticks.begin(), source.Ticks.end(), [&newTicks, &requestTicks](auto x){newTicks+=requestTicks.emplace(x).second;} );
-		DBG("({})Adding _twsSubscription {}."sv, source.Id, source.Source );
+		LOG( LogLevel(), "({})Adding _twsSubscription {}."sv, source.Id, source.Source );
 		_twsSubscriptions.emplace( contractId, source );
 		pLock = nullptr;
 		if( newTicks )
@@ -554,7 +559,7 @@ namespace Jde::Markets
 			else
 			{
 				unique_lock l{ _valuesMutex };
-				DBG( "_tickerContractMap[{}]={}"sv, reqId, contractId );
+				LOG( LogLevel(), "_tickerContractMap[{}]={}"sv, reqId, contractId );
 				if( auto p=_tickerContractMap.emplace( reqId, contractId ); !p.second )
 					p.first->second = contractId;
 				if( auto pValue = _values.find(contractId); pValue!=_values.end() )
@@ -585,11 +590,11 @@ namespace Jde::Markets
 			if( auto p=_tickerContractMap.find( oldId ); p!=_tickerContractMap.end() )
 			{
 				var contractId = p->second;
-				DBG( "_tickerContractMap erasing [{}]={}"sv, p->first, contractId );
+				LOG( LogLevel(), "_tickerContractMap erasing [{}]={}"sv, p->first, contractId );
 				_tickerContractMap.erase( p );
 				if( newId )
 				{
-					DBG( "_tickerContractMap adding [{}]={}"sv, newId, contractId );
+					LOG( LogLevel(), "_tickerContractMap adding [{}]={}"sv, newId, contractId );
 					_tickerContractMap.emplace( newId, contractId );
 				}
 				if( auto pValue=_values.find(contractId); pValue!=_values.end() )
@@ -598,7 +603,7 @@ namespace Jde::Markets
 					ERR( "Lost requestId for contract '{}' with newRequest {}."sv, contractId, newId );
 			}
 		}
-		DBG( "TickWorker::cancelMktData( oldId={}, newId={} )"sv, oldId, newId );
+		LOG( LogLevel(), "TickWorker::cancelMktData( oldId={}, newId={} )"sv, oldId, newId );
 		TwsClientPtr->cancelMktData( oldId, false );
 	}
 

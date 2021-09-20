@@ -25,11 +25,12 @@ namespace Jde::Markets
 		bool handled = r(_contractSingleHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
 		if( !handled && _historical.Has(id) )
 		{
-			auto handle = (*_historical.Find(id))->_hCoroutine;
-			handle.promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
+			auto h = (*_historical.Find(id))->_hCoroutine;
+			h.promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
 			_historical.erase( id );
 			_historicalData.erase( id );
-			Coroutine::CoroutinePool::Resume( move(handle) );
+			Coroutine::CoroutinePool::Resume( move(h) );
+			handled = true;
 		}
 		return handled;
 	}

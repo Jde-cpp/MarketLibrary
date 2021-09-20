@@ -195,8 +195,8 @@ namespace Jde::Markets
 		case ETickType::AskPrice: price( Ask ); break;
 		case ETickType::LastPrice: price( LastPrice ); break;
 
-		case ETickType::BidSize: price( BidSize ); break;
-		case ETickType::AskSize: price( AskSize ); break;
+		case ETickType::BidSize: size( BidSize ); break;
+		case ETickType::AskSize: size( AskSize ); break;
 		case ETickType::Volume: size( (int)Volume ); break;
 
 		case ETickType::BidExchange: stng( BidExchange ); break;

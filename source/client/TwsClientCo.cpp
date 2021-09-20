@@ -86,7 +86,7 @@ namespace Jde::Markets
 		{
 			for( var& [start,end] : missing() )
 			{
-				DBG( "BarData::CoLoad"sv );
+//				DBG( "BarData::CoLoad"sv );
 				auto pBars = ( co_await BarData::CoLoad( *_contractPtr, start, end) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
 				for( auto [day,pSticks] : *pBars )
 				{

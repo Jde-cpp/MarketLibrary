@@ -42,9 +42,10 @@ namespace Jde::Markets
 	}
 	void TwsProcessor::ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
-		Threading::SetThreadDscrptn( "IBMessageProcessor" );
+		Threading::SetThreadDscrptn( "TwsReader" );
 		EReader reader( pTwsClient.get(), pReaderSignal.get() );
 		reader.start();
+		Threading::SetThreadDscrptn( "TwsProc" );
 		_isConnected = true;
 		DBG( "Enter TwsProcessor::ProcessMessages IsConnected = {}, Threading::GetThreadInterruptFlag().IsSet={}"sv, (bool)pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
 		while( pTwsClient->isConnected() && !Threading::GetThreadInterruptFlag().IsSet() )

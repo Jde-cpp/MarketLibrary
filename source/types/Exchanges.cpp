@@ -21,32 +21,14 @@ namespace Jde
 	}
 	Exchanges Markets::ToExchange( sv name )noexcept
 	{
-		auto p = ExchangeStrings.end();
-		if( name.length()>0 )
-		{
-			const CIString ciName{ name };
-			p = std::find_if( ExchangeStrings.begin(), ExchangeStrings.end(), [&ciName](var item){return ciName==item;} );
-			if( p == ExchangeStrings.end() )
-				DBG( "could not find exchange '{}'"sv, name );
-		}
-		return p==ExchangeStrings.end() ? Markets::Proto::Exchanges::Smart : static_cast<Markets::Proto::Exchanges>( std::distance(ExchangeStrings.begin(), p) );
+		auto p = Str::ToEnum<Exchanges>( ExchangeStrings, CIString{name} );
+		if( !p )
+			DBG( "could not find exchange '{}'"sv, name );
+		return p.value_or( Exchanges::Smart );
 	}
 
 	bool Markets::IsHoliday( const TimePoint& time )noexcept
 	{
-/*		static bool first=true;
-		if( first )
-		{
-			first = false;
-			ostringstream os;
-			for( auto day = DaysSinceEpoch(DateTime(2004,1,1)); day<DaysSinceEpoch(DateTime(2021,1,1)); ++day )
-			{
-				const DateTime date{ FromDays(day) };
-				if( date.DayOfWk()!=DayOfWeek::Saturday && date.DayOfWk()!=DayOfWeek::Sunday && IsHoliday(day) )
-					os << day << ",";
-			}
-			DBG0( os.str() );
-		}*/
 		const DateTime date{time};
 		bool isHoliday = date.DayOfWk()==DayOfWeek::Saturday || date.DayOfWk()==DayOfWeek::Sunday;
 		if( !isHoliday )
