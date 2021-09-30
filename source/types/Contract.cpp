@@ -19,8 +19,8 @@ namespace Jde::Markets
 		Strike{ other.strike },
 		Right{ ToSecurityRight(other.right) },
 		Multiplier{ other.multiplier.size() ? (uint)stoi(other.multiplier) : 0 },
-		Exchange{ ToExchange(other.exchange) },
-		PrimaryExchange{ ToExchange(other.primaryExchange) },
+		Exchange{ other.exchange.size() ? ToExchange(other.exchange) : Exchanges::Smart },
+		PrimaryExchange{ other.primaryExchange.size() ? ToExchange(other.primaryExchange) : Exchanges::Smart },
 		Currency{ ToCurrency(other.currency) },
 		LocalSymbol{other.localSymbol},
 		TradingClass{ other.tradingClass }

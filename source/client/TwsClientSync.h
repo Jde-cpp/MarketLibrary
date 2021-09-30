@@ -36,8 +36,8 @@ namespace Jde::Markets
 			return promise.get_future();
 		}
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
-		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false);
-		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
+//		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false);
+//		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
 		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept;
 		//Future<NewsProvider> RequestNewsProviders()noexcept;

@@ -189,7 +189,7 @@ namespace Jde::Markets
 		return _detailsData.Promise( reqId, 5s );
 	}
 
-	void WrapperSync::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+/*	void WrapperSync::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		securityDefinitionOptionalParameterSync( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
@@ -221,7 +221,7 @@ namespace Jde::Markets
 		}
 		return captured;
 	}
-
+*/
 	WrapperItem<Proto::Results::OptionExchanges>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
 		return _optionFutures.Promise( reqId, 15s );

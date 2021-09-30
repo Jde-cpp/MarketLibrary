@@ -22,7 +22,7 @@ namespace Jde::Markets
 		typedef function<void(bool)> DisconnectCallback; void AddDisconnectCallback( const DisconnectCallback& callback )noexcept;
 		typedef function<void(TimePoint)> CurrentTimeCallback; void AddCurrentTime( CurrentTimeCallback& fnctn )noexcept;
 		typedef function<void(TimePoint)> HeadTimestampCallback; void AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept;
-		typedef vector<::Bar> ReqHistoricalData; //typedef function<void(sp<ReqHistoricalData>)> ReqHistoricalDataCallback;
+		typedef vector<::Bar> ReqHistoricalData;
 		typedef function<void()> EndCallback;
 
 		void AddOpenOrderEnd( EndCallback& )noexcept;
@@ -53,10 +53,10 @@ namespace Jde::Markets
 		void position( str account, const ::Contract& contract, double position, double avgCost )noexcept override;
 		void positionEnd()noexcept override;
 	public:
-		void securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
-		bool securityDefinitionOptionalParameterSync( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
-		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
-		bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
+		//void securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
+		//bool securityDefinitionOptionalParameterSync( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
+		//void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
+		//bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
 		void contractDetailsEnd( int reqId )noexcept override;
 

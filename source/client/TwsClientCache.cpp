@@ -56,6 +56,7 @@ namespace Jde::Markets
 			TwsClient::reqContractDetails( reqId, contract );
 		}
 	}
+/*
 	void TwsClientCache::ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, sv symbol )noexcept
 	{
 		auto cacheId = format( "OptParams.{}", underlyingConId );
@@ -82,6 +83,7 @@ namespace Jde::Markets
 			TwsClient::reqSecDefOptParams( reqId, underlyingConId, symbol );
 		}
 	}
+*/
 /*	void TwsClientCache::RequestNewsProviders()noexcept
 	{
 		auto cacheId = format( "RequestProviders" );

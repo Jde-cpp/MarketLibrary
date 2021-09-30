@@ -85,7 +85,8 @@
 		"stack": "cpp",
 		"coroutine": "cpp",
 		"*.inc": "cpp",
-		"*.def": "cpp"
+		"*.def": "cpp",
+		"__functional_03": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "Enabled",
 	"window.title": "Markets"

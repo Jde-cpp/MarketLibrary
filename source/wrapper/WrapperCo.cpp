@@ -1,17 +1,24 @@
 #include "WrapperCo.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/collections/Collections.h"
+#include "../types/Exchanges.h"
 #include "../types/IBException.h"
 
 #define var const auto
 
 namespace Jde::Markets
 {
+	void Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, sp<void> pResult )
+	{
+		auto p = handles.MoveOut( reqId ); RETURN_IF( !p, "({})Could not get co-handle", reqId );
+		p->promise().get_return_object().SetResult( pResult );
+		Coroutine::CoroutinePool::Resume( move(*p) );
+	}
+
 	bool WrapperCo::error2( int id, int errorCode, str errorMsg )noexcept
 	{
 		if( WrapperLog::error2(id, errorCode, errorMsg) )
 			return true;
-		WrapperLog::error( id, errorCode, errorMsg );
 		auto r = [&]( auto& handles )->bool
 		{
 			auto pHandle = handles.MoveOut( id );
@@ -116,12 +123,10 @@ namespace Jde::Markets
 
 	void WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept
 	{
-		auto pHandle = _newsArticleHandles.MoveOut( reqId ); RETURN_IF( !pHandle, "({})Could not get co-handle", reqId );
 		auto p = make_shared<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
 		p->set_value( articleText );
-		pHandle->promise().get_return_object().SetResult( p );
-		Coroutine::CoroutinePool::Resume( move(*pHandle) );
+		Resume( _newsArticleHandles, reqId, p );
 	}
 
 	bool WrapperCo::HistoricalData( TickerId reqId, const ::Bar& bar )noexcept
@@ -147,4 +152,33 @@ namespace Jde::Markets
 		return true;
 	}
 
+	Proto::Results::ExchangeContracts ToOptionParam( sv exchangeString, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	{
+		auto exchange = ToExchange( exchangeString );
+		if( exchange==Exchanges::Smart && CIString{ "SMART"sv }!=exchangeString )
+			exchange = Exchanges::UnknownExchange;
+		Proto::Results::ExchangeContracts y; y.set_exchange( exchange ); y.set_multiplier( multiplier ); y.set_trading_class( tradingClass ); y.set_underlying_contract_id( underlyingConId );
+		for( var strike : strikes )
+			y.add_strikes( strike );
+
+		for( var& expiration : expirations )
+			y.add_expirations( Contract::ToDay(expiration) );
+		return y;
+	}
+
+	void WrapperCo::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<string>& expirations, const std::set<double>& strikes )noexcept
+	{
+		WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
+		if( CIString{exchange}=="SMART"sv )
+			*Collections::InsertUnique( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
+	}
+
+	void WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )noexcept
+	{
+		WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
+		var pParams = _optionParams.find( reqId );
+		auto pResults = pParams!=_optionParams.end() ? move( (*pParams).second ) : make_unique<Proto::Results::OptionExchanges>();
+		_optionParams.erase( reqId );
+		Resume( _secDefOptParamHandles, reqId, move(pResults) );
+	}
 }

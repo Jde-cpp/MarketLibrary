@@ -150,7 +150,7 @@ namespace Jde::Markets
 #pragma endregion
 	void WrapperLog::securityDefinitionOptionalParameter(int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
-		LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameter( '{}', '{}', '{}', '{}', '{}', '{}', '{}' )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() );
+		LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameter( {}, '{}', {}, '{}', {}, {}, {} )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() );
 	}
 	void WrapperLog::securityDefinitionOptionalParameterEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameterEnd( {} )", reqId ); }
 	void WrapperLog::fundamentalData(TickerId reqId, str data)noexcept{ LOG( _logLevel, "WrapperLog::fundamentalData( {}, {} )", reqId, data ); }

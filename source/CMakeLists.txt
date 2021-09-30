@@ -10,6 +10,7 @@ include_directories( "${PROJECT_SOURCE_DIR}/../../Public" )
 #############################################################
 add_library( Jde.Markets SHARED TwsProcessor.cpp OrderManager.cpp TickManager.cpp
 	client/TwsClient.cpp client/TwsClientCo.cpp client/TwsClientSync.cpp client/TwsClientCache.cpp
+	client/awaitables/TwsAwaitable.cpp client/awaitables/HistoricalDataAwaitable.cpp
 	wrapper/WrapperLog.cpp wrapper/WrapperCo.cpp wrapper/WrapperSync.cpp wrapper/WrapperCache.cpp
 	data/OptionData.cpp data/HistoricalDataCache.cpp data/BarData.cpp
 	types/Bar.cpp types/Contract.cpp types/Currencies.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/Tick.cpp types/TwsConnectionSettings.cpp

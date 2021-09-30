@@ -3,31 +3,13 @@
 #include <jde/markets/types/Contract.h>
 #include <jde/coroutine/Task.h>
 #include "../../../Framework/source/coroutine/Awaitable.h"
+#include "awaitables/TwsAwaitable.h"
+#include "awaitables/HistoricalDataAwaitable.h"
 #include "../types/Bar.h"
 #include "TwsClient.h"
 
 namespace Jde::Markets
 {
-	using namespace Jde::Coroutine;
-	struct WrapperCo; struct TwsClientCo;
-
-	struct JDE_MARKETS_EXPORT ITwsAwaitable
-	{
-		ITwsAwaitable()noexcept;
-	protected:
-		sp<WrapperCo> WrapperPtr()noexcept;
-		sp<TwsClientCo> _pTws;
-	};
-	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable
-	{
-		using base=IAwaitable;
-		bool await_ready()noexcept override{ return !_pTws; }
-		void await_suspend( typename base::THandle h )noexcept override{ base::await_suspend( h ); _pPromise = &h.promise(); };
-		typename base::TResult await_resume()noexcept override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
-	protected:
-		typename base::TPromise* _pPromise{ nullptr };
-	};
-
 	struct JDE_MARKETS_EXPORT HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
 	{
 		HistoricalNewsAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
@@ -69,37 +51,7 @@ namespace Jde::Markets
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
 
-	struct JDE_MARKETS_EXPORT HistoricalDataAwaitable final : ITwsAwaitableImpl//sp<vector<::Bar>>
-	{
-		using base = ITwsAwaitableImpl;
-		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
-		//HistoricalDataAwaitable( sp<Contract> pContract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, 0, 0, barSize, display, useRth, start }{}
-		bool await_ready()noexcept override;
-		void await_suspend( HCoroutine h )noexcept override;
-		TaskResult await_resume()noexcept override;
-		α AddTws( ibapi::OrderId reqId, const vector<::Bar>& bars )->void;
-	private:
-		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
-			_contractPtr{pContract}, _end{end}, _dayCount{dayCount}, _start{start}, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
-		{}
-		α AsyncFetch( HCoroutine h )noexcept->Task2;
-		bool SetData(bool force=false)noexcept;
-		sp<Contract> _contractPtr;
-		DayIndex _end;
-		DayIndex _dayCount;
-		time_t _start;
-		Proto::Requests::BarSize _barSize;
-		TwsDisplay::Enum _display;
-		const bool _useRth;
-		sp<vector<::Bar>> _dataPtr;
-		flat_map<DayIndex,VectorPtr<sp<::Bar>>> _cache;
-		HCoroutine _hCoroutine;
-		vector<ibapi::OrderId> _twsRequests;
-		friend WrapperCo;
-	};
-
-
-	struct JDE_MARKETS_EXPORT TwsClientCo : public TwsClient
+	struct JDE_MARKETS_EXPORT TwsClientCo : TwsClient
 	{
 		TwsClientCo( const TwsConnectionSettings& settings, shared_ptr<WrapperCo> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		TickerId AddParam( coroutine_handle<>&& h )noexcept;
@@ -110,8 +62,7 @@ namespace Jde::Markets
 		Ω ContractDetails( ContractPK conId )noexcept->ContractAwaitable;
 		Ω NewsProviders()noexcept->NewsProviderAwaitable;
 		Ω NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable;
-
-
+		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwaitable{underlyingConId, smart}; }
 		Ω InstancePtr()noexcept->sp<TwsClientCo>{ return dynamic_pointer_cast<TwsClientCo>( TwsClient::InstancePtr() ); }
 	private:
 		friend ITwsAwaitable;

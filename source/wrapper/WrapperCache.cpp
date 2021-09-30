@@ -32,21 +32,21 @@ namespace Jde::Markets
 		}
 	}
 
-	Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( sv exchangeString, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
-	{
-		auto exchange = ToExchange( exchangeString );
-		if( exchange==Exchanges::Smart && CIString{ "SMART"sv }!=exchangeString )
-			exchange = Exchanges::UnknownExchange;
-		Proto::Results::ExchangeContracts a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
-		for( var strike : strikes )
-			a.add_strikes( strike );
+	// Proto::Results::ExchangeContracts WrapperCache::ToOptionParam( sv exchangeString, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	// {
+	// 	auto exchange = ToExchange( exchangeString );
+	// 	if( exchange==Exchanges::Smart && CIString{ "SMART"sv }!=exchangeString )
+	// 		exchange = Exchanges::UnknownExchange;
+	// 	Proto::Results::ExchangeContracts a; a.set_exchange( exchange ); a.set_multiplier( multiplier ); a.set_trading_class( tradingClass ); a.set_underlying_contract_id( underlyingConId );
+	// 	for( var strike : strikes )
+	// 		a.add_strikes( strike );
 
-		for( var& expiration : expirations )
-			a.add_expirations( Contract::ToDay(expiration) );
-		return a;
-	}
+	// 	for( var& expiration : expirations )
+	// 		a.add_expirations( Contract::ToDay(expiration) );
+	// 	return a;
+	// }
 
-	void WrapperCache::securityDefinitionOptionalParameter( int reqId, const std::string& exchange, int underlyingConId, const std::string& tradingClass, const std::string& multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+/*	void WrapperCache::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
 	{
 		var pCacheId = _cacheIds.Find( reqId );
 		if( pCacheId )
@@ -70,7 +70,7 @@ namespace Jde::Markets
 			_cacheIds.erase( reqId );
 		}
 	}
-
+*/
 	void WrapperCache::ToBar( const ::Bar& bar, Proto::Results::Bar& proto )noexcept
 	{
 		var time = bar.time.size()==8 ? DateTime{ (uint16)stoi(bar.time.substr(0,4)), (uint8)stoi(bar.time.substr(4,2)), (uint8)stoi(bar.time.substr(6,2)) } : DateTime( stoi(bar.time) );
@@ -88,18 +88,8 @@ namespace Jde::Markets
 	{
 		WrapperLog::historicalData( reqId, bar );
 	}
-	void WrapperCache::historicalDataEnd( int reqId, const std::string& startDateStr, const std::string& endDateStr )noexcept
+	void WrapperCache::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
 	{
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
 	}
-
-/*	void WrapperCache::newsProviders( const std::vector<NewsProvider>& newsProviders )noexcept
-	{
-		WrapperLog::newsProviders( newsProviders );
-
-		auto pResults = make_shared<Proto::Results::StringMap>();
-		for( var& provider : newsProviders )
-			(*pResults->mutable_values())[provider.providerCode] = provider.providerName;
-		Cache::Set( "RequestProviders", pResults );
-	}*/
 }

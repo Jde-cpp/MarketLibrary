@@ -127,29 +127,20 @@ namespace Jde::Markets
 	vector<tuple<fs::path,DayIndex,DayIndex>> ApplicableFiles( path root, TimePoint issueDate, DayIndex start, DayIndex endInput, sv prefix={} )
 	{
 		vector<tuple<fs::path,DayIndex,DayIndex>> paths;
-		// var root = BarData::Path( contract );
-		// if( !fs::exists(root) )
-		// 	return paths;
+		if( !fs::exists(root) )
+			return paths;
 		var pEntries = IO::FileUtilities::GetDirectory( root );
 		var end = endInput ? endInput : std::numeric_limits<DayIndex>::max();
 		for( var& entry : *pEntries )
 		{
 			var path = entry.path();
-			if( 	(prefix.size() && path.stem().string().find(prefix)!=0)
-				|| (!prefix.size() && std::isalpha(path.stem().string()[0])) )
-			{
+			if( (prefix.size() && path.stem().string().find(prefix)!=0) || (!prefix.size() && std::isalpha(path.stem().string()[0])) )
 				continue;
-			}
-			//auto issueDate = contract.IssueDate;
 			if( issueDate==TimePoint::max() )
 				issueDate = DateTime{2010,1,1}.GetTimePoint();
 			ASSERT( issueDate!=TimePoint::max() );
 			var [fileStart,fileEnd] = ExtractTimeframe( path, issueDate );
-			if( fileEnd==0 )
-			{
-				DBG( "could not find ent to '{}' prefix='{}'"sv, path.stem().string(), prefix );
-				continue;
-			}
+			CONTINUE_IF( fileEnd==0, "could not find end to '{}' prefix='{}'", path.stem().string(), prefix );
 			if( start<=fileEnd && end>=fileStart )
 				paths.push_back( make_tuple(path, fileStart, fileEnd) );
 		}

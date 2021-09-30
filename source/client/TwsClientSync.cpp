@@ -211,7 +211,7 @@ namespace Jde::Markets
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
 	}
-	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false)
+/*	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false)
 	{
 		auto pParams = ReqSecDefOptParams( underlyingConId, symbol ).get();
 		for( auto i = 0; i<pParams->exchanges_size(); ++i )
@@ -228,6 +228,7 @@ namespace Jde::Markets
 		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
 		return future;
 	}
+*/
 /*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol, sv futFopExchange, sv underlyingSecType )noexcept
 	{
 		auto future = _wrapper.SecDefOptParamsPromise( tickerId );
