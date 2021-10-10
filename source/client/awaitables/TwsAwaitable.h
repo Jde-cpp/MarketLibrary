@@ -1,11 +1,13 @@
-#pragma once
+﻿#pragma once
 #include <jde/coroutine/Task.h>
+#include <jde/markets/Exports.h>
 #include <jde/markets/TypeDefs.h>
-#include <jde/markets/types/proto/results.pb.h>
+//#include <jde/markets/types/proto/results.pb.h>
 #include "../../../../Framework/source/coroutine/Awaitable.h"
 
 namespace Jde::Markets
 {
+	namespace Proto::Results{ class OptionExchanges; }
 	using namespace Jde::Coroutine;
 	struct WrapperCo; struct TwsClientCo;
 
@@ -25,7 +27,7 @@ namespace Jde::Markets
 		α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
 	};
 
-	struct SecDefOptParamAwaitable :ITwsAwaitableImpl
+	struct JDE_MARKETS_EXPORT SecDefOptParamAwaitable :ITwsAwaitableImpl
 	{
 		SecDefOptParamAwaitable( ContractPK conId, bool smart )noexcept:_underlyingConId{conId}, _smart{smart}{};
 		α await_ready()noexcept->bool override;

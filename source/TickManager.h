@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //#include <experimental/coroutine>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
@@ -18,6 +18,7 @@
 #pragma warning( default : 4244 )
 #include <jde/markets/types/Tick.h>
 
+#define 🚪 JDE_MARKETS_EXPORT auto
 namespace Jde::Markets
 {
 	using namespace Coroutine;
@@ -74,12 +75,12 @@ namespace Jde::Markets
 			void Push( TickerId id, ETickType type, double v )noexcept;
 			void Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept;
 			void Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept;
-			JDE_MARKETS_EXPORT void PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept;
+			🚪 PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept->void;
 			void Push( TickerId id, ETickType type, long long v )noexcept;
 			void Push( TickerId id, ETickType type, const std::string& v )noexcept;
 			bool HandleError( int id, int errorCode, const std::string& errorString )noexcept;
 		private:
-			void Process()noexcept override;
+			🚪 Process()noexcept->void override;
 			void Cancel( Handle h )noexcept;
 			void CancelProto( uint hClient, ContractPK contractId, unique_lock<mutex>* pLock=nullptr )noexcept;
 			void Subscribe( const SubscriptionInfo& params )noexcept;
@@ -149,4 +150,4 @@ namespace Jde::Markets
 		_cv.notify_one();
 	}
 }
-
+#undef 🚪

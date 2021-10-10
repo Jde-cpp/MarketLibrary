@@ -1,4 +1,4 @@
-#include "BarData.h"
+﻿#include "BarData.h"
 #include <jde/io/File.h>
 #include <jde/Str.h>
 #include <jde/Assert.h>
@@ -227,8 +227,9 @@ namespace Jde::Markets
 			auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 			auto fnctn = [pResults,start,end]( const map<DayIndex,VectorPtr<CandleStick>>& bars,DayIndex,DayIndex )
 			{
-				for( var& [day,pBars] : bars )
+				for( var& dayBars : bars )
 				{
+					var day = dayBars.first; var pBars = dayBars.second;
 					if( day>=start && day<=end )
 						pResults->try_emplace( pResults->end(), day, pBars );
 				}

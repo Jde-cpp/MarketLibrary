@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifdef _MSC_VER
 	#pragma push_macro("assert")
 	#undef assert
@@ -14,9 +14,9 @@ namespace Jde::Markets
 {
 	struct IAccountUpdateHandler
 	{
-		virtual bool UpdateAccountValue( sv key, sv val, sv currency, sv accountName )noexcept=0;
-		virtual bool PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept=0;
-		virtual void AccountDownloadEnd( sv accountName )noexcept=0;
+		β UpdateAccountValue( sv key, sv val, sv currency, sv accountName )noexcept->bool=0;
+		β PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept->bool=0;
+		β AccountDownloadEnd( sv accountName )noexcept->void=0;
 	};
 	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
 	{
@@ -49,7 +49,7 @@ namespace Jde::Markets
 		void execDetails( int reqId, const ::Contract& contract, const Execution& execution)noexcept override;
 		void execDetailsEnd( int reqId)noexcept override;
 		void error( int id, int errorCode, str errorMsg )noexcept override;
-		virtual bool error2( int id, int errorCode, str errorMsg )noexcept;
+		β error2( int id, int errorCode, str errorMsg )noexcept->bool;
 		void updateMktDepth(TickerId id, int position, int operation, int side, double price, long long size)noexcept override;
 		void updateMktDepthL2(TickerId id, int position, str marketMaker, int operation, int side, double price, long long size, bool isSmartDepth)noexcept override;
 		void updateNewsBulletin(int msgId, int msgType, str newsMessage, str originExch)noexcept override;

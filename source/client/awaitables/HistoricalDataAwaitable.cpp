@@ -52,7 +52,7 @@ namespace Jde::Markets
 	}
 	α HistoricalDataAwaitable::Missing()noexcept->vector<tuple<DayIndex,DayIndex>>
 	{
-		uint start=0;
+		DayIndex start=0;
 		vector<tuple<DayIndex,DayIndex>> values;
 		for( var& [day,pBars] : _cache )
 		{
@@ -93,7 +93,7 @@ namespace Jde::Markets
 					}
 				}
 			}
-			catch( const Exception& e )//just reload.
+			catch( const Exception& )//just reload.
 			{}
 		}
 		if( SetData() )

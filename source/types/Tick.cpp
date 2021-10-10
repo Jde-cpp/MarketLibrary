@@ -1,4 +1,4 @@
-#include <jde/markets/types/Tick.h>
+﻿#include <jde/markets/types/Tick.h>
 #include <jde/Exports.h>
 #pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/results.pb.h>
@@ -9,7 +9,7 @@
 #define var const auto
 namespace Jde::Markets
 {
-	bool Tick::SetString( ETickType type, const string& value )noexcept
+	α Tick::SetString( ETickType type, const string& value )noexcept->bool
 	{
 		bool set{ true };
 		switch( type )
@@ -46,8 +46,8 @@ namespace Jde::Markets
 		case ETickType::OPTION_PUT_VOLUME: OPTION_PUT_VOLUME = value; break;
 		case ETickType::AUCTION_VOLUME: AUCTION_VOLUME = value; break;
 		case ETickType::LastTimestamp: LastTimestamp = value; break;
-		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
-		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
+		//case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
+		case ETickType::RT_VOLUME: RT_VOLUME = std::to_string( value ); break;
 		case ETickType::TRADE_COUNT: TRADE_COUNT = value; break;
 		case ETickType::VOLUME_RATE: VOLUME_RATE = value; break;
 		case ETickType::SHORT_TERM_VOLUME_3_MIN: SHORT_TERM_VOLUME_3_MIN = value; break;
@@ -63,7 +63,7 @@ namespace Jde::Markets
 		case ETickType::AVG_OPT_VOLUME: AVG_OPT_VOLUME = value; break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: DELAYED_LAST_TIMESTAMP = value; break;
 		case ETickType::SHORTABLE_SHARES: SHORTABLE_SHARES = value; break;
-		case ETickType::NOT_SET: NOT_SET = value; break;
+		case ETickType::NOT_SET: NOT_SET = (int)value; break;
 		default:
 			WARN( "Ticktype {} value {} is not a int."sv, type, value );
 			set = false;
@@ -72,7 +72,7 @@ namespace Jde::Markets
 			_setFields.set( type );
 		return set;
 	}
-	void Tick::SetPrices( double bidSize, double bid, double askSize, double ask )noexcept
+	α Tick::SetPrices( long long bidSize, double bid, long long askSize, double ask )noexcept->void
 	{
 		BidSize = bidSize; _setFields.set( ETickType::BidSize );
 		Bid = bid; _setFields.set( ETickType::BidPrice );
@@ -184,7 +184,8 @@ namespace Jde::Markets
 	{
 		Proto::Results::MessageUnion msg;
 		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
-		auto size  = [type, &msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
+		auto sizeInt  = [type, &msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
+		auto size  = [type, &msg, id=ContractId](long long v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( (int)v ); msg.set_allocated_tick_size(p.release()); };
 		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
 		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
 		auto option  = [type, &msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
@@ -232,7 +233,7 @@ namespace Jde::Markets
 		case ETickType::SHORTABLE_SHARES: size( (int)SHORTABLE_SHARES ); break;
 		case ETickType::NOT_SET: size( NOT_SET ); break;
 
-		case ETickType::LastSize: price( LastSize ); break;
+		case ETickType::LastSize: size( LastSize ); break;
 		case ETickType::High: price( High ); break;
 		case ETickType::Low: price( Low ); break;
 		case ETickType::ClosePrice: price( ClosePrice ); break;
@@ -293,7 +294,7 @@ namespace Jde::Markets
 		}
 		return msg;
 	}
-	void Tick::AddProto( ETickType type, vector<Proto::Results::MessageUnion>& messages )const noexcept
+	α Tick::AddProto( ETickType type, vector<Proto::Results::MessageUnion>& messages )const noexcept->void
 	{
 		if( type==ETickType::NewsTick && NewsPtr )
 		{
@@ -481,7 +482,7 @@ namespace Jde::Markets
 		}
 		return values;
 	}
-	void Tick::AddNews( News&& news )noexcept
+	α Tick::AddNews( News&& news )noexcept->void
 	{
 		if( !NewsPtr )
 			NewsPtr = make_shared<Vector<News>>();

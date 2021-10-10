@@ -69,8 +69,8 @@
       <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025;4305</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Public</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/MP /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
@@ -102,8 +102,8 @@
       <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025;4305</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Public</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/MP /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
@@ -126,6 +126,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Windows\source\dllmain.cpp" />
+    <ClCompile Include="client\awaitables\HistoricalDataAwaitable.cpp" />
+    <ClCompile Include="client\awaitables\TwsAwaitable.cpp" />
     <ClCompile Include="client\TwsClient.cpp" />
     <ClCompile Include="client\TwsClientCache.cpp" />
     <ClCompile Include="client\TwsClientCo.cpp" />
@@ -244,6 +246,8 @@
     <ClInclude Include="..\..\Public\jde\markets\types\proto\requests.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\results.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\watch.pb.h" />
+    <ClInclude Include="client\awaitables\HistoricalDataAwaitable.h" />
+    <ClInclude Include="client\awaitables\TwsAwaitable.h" />
     <ClInclude Include="client\TwsClient.h" />
     <ClInclude Include="client\TwsClientCache.h" />
     <ClInclude Include="client\TwsClientCo.h" />

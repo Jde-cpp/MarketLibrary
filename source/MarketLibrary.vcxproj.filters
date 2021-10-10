@@ -36,6 +36,12 @@
     <Filter Include="Header Files\client">
       <UniqueIdentifier>{3ea9f97b-6a96-4215-990b-857a47b59a0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\client\awaitables">
+      <UniqueIdentifier>{9d1675c1-8e09-4397-9c51-13e570c46196}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\client\awaitables">
+      <UniqueIdentifier>{34fb6b44-bbe0-47e3-bb4d-49e09f616080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exports.h">
@@ -100,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="client\TwsClientSync.h">
       <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="client\awaitables\HistoricalDataAwaitable.h">
+      <Filter>Header Files\client\awaitables</Filter>
+    </ClInclude>
+    <ClInclude Include="client\awaitables\TwsAwaitable.h">
+      <Filter>Header Files\client\awaitables</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +207,12 @@
     </ClCompile>
     <ClCompile Include="wrapper\WrapperCo.cpp">
       <Filter>Source Files\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="client\awaitables\HistoricalDataAwaitable.cpp">
+      <Filter>Source Files\client\awaitables</Filter>
+    </ClCompile>
+    <ClCompile Include="client\awaitables\TwsAwaitable.cpp">
+      <Filter>Source Files\client\awaitables</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

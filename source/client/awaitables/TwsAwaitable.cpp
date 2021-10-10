@@ -1,4 +1,4 @@
-#include "TwsAwaitable.h"
+﻿#include "TwsAwaitable.h"
 #include "../../../../Framework/source/Cache.h"
 #include "../TwsClientCo.h"
 #include "../../wrapper/WrapperCo.h"
@@ -9,8 +9,7 @@ namespace Jde::Markets
 {
 	using namespace Proto::Results;
 	ITwsAwaitable::ITwsAwaitable()noexcept:_pTws{ TwsClientCo::InstancePtr() }{}
-	sp<WrapperCo> ITwsAwaitable::WrapperPtr()noexcept{ return _pTws->WrapperPtr(); }
-
+	α ITwsAwaitable::WrapperPtr()noexcept->sp<WrapperCo>{ return _pTws->WrapperPtr(); }
 
 	α SecDefOptParamAwaitable::await_ready()noexcept->bool
 	{
