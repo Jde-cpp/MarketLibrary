@@ -217,13 +217,13 @@ namespace Jde::Markets
 #define IBExceptionPtr std::make_exception_ptr(IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__})
 		{
 			unique_lock l{ _twsSubscriptionMutex };
-			FORX(_twsSubscriptions, pSub )
+			for( auto pSub=_twsSubscriptions.find(contractId); pSub!=_twsSubscriptions.end() && pSub->first==contractId; pSub = _twsSubscriptions.erase(pSub) )
 			{
 				const TickListSource& s = pSub->second;
 				if( s.Source==ESubscriptionSource::Proto )
 				{
 					unique_lock l2{ _protoSubscriptionMutex };
-					FOR(_protoSubscriptions )
+					for( auto p = _protoSubscriptions.find(contractId); p!=_protoSubscriptions.end() && p->first==contractId; p = _protoSubscriptions.erase(p) )
 					{
 						Proto::Results::MessageUnion message;
 						auto pError = make_unique<Proto::Results::Error>(); pError->set_request_id(contractId); pError->set_code(errorCode); pError->set_message(errorString);

@@ -18,6 +18,9 @@ add_library( Jde.Markets SHARED TwsProcessor.cpp OrderManager.cpp TickManager.cp
 #############################################################
 target_precompile_headers(Jde.Markets
   PRIVATE
+  		<Order.h>
+		<OrderState.h>
+		<CommonDefs.h>
 		<Contract.h>
 		<Execution.h>
 		<jde/markets/Exports.h>

@@ -8,6 +8,8 @@
 #define _client auto pClient = TwsClient::InstancePtr(); if( pClient ) (*pClient)
 namespace Jde::Markets
 {
+	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
+
 	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Debug) };
 	ELogLevel WrapperLog::_historicalLevel{ Logging::TagLevel("wrapperHist", [](auto l){ WrapperLog::SetHistoricalLevel(l);}) };
 	ELogLevel WrapperLog::_tickLevel{ Logging::TagLevel("wrapperTick", [](auto l){ WrapperLog::SetTickLevel(l);}) };
@@ -19,9 +21,9 @@ namespace Jde::Markets
 	}
 	void WrapperLog::error( int id, int errorCode, str errorMsg )noexcept
 	{
-		LOG_IF( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
-		LOG_IF( errorCode!=2106, _logLevel, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
-		LOG_IF( errorCode==509, ELogLevel::Error, "Disconnected:  {} - {}", errorCode, errorMsg );
+		LOG_IFL( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
+		LOG_IFL( errorCode!=2106, _logLevel, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
+		LOG_IFL( errorCode==509, ELogLevel::Error, "Disconnected:  {} - {}", errorCode, errorMsg );
 	}
 	void WrapperLog::connectAck()noexcept{ LOG( _logLevel, "WrapperLog::connectAck()"); }
 
@@ -70,6 +72,8 @@ namespace Jde::Markets
 	bool WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
+		_pUpdateLock = &l;
+
 		bool haveCallback = false;
 		if( auto p  = _accountUpdateCallbacks.find(string{accountName}); p!=_accountUpdateCallbacks.end() )
 		{
@@ -232,7 +236,6 @@ namespace Jde::Markets
 	}
 	void WrapperLog::completedOrdersEnd()noexcept{LOG( _logLevel, "WrapperLog::completedOrdersEnd()"); }
 	Handle WrapperLog::_accountUpdateHandle{0};
-	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 	tuple<uint,bool> WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
@@ -260,7 +263,7 @@ namespace Jde::Markets
 	bool WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept
 	{
 		bool cancel = true;
-		var pLock = _pUpdateLock ? unique_ptr<unique_lock<shared_mutex>>{} : make_unique<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
+		var pLock = _pUpdateLock ? up<unique_lock<shared_mutex>>{} : make_unique<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
 		if( auto p  = _accountUpdateCallbacks.find(string{account}); p!=_accountUpdateCallbacks.end() )
 		{
 			if( handle )
