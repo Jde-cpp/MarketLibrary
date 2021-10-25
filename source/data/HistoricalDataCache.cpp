@@ -207,20 +207,19 @@ namespace Jde::Markets
 			++fullDays;
 		}
 #pragma region Tests
-		if( fullDays==0 && minutes<1 ) THROW( Exception("days '{}' should be at least 1 minute.", days) );
-		if( var limit=3*365; days>limit ) THROW( Exception("days {} should be less than 3 years {}", days, limit) );
-		if( end>DaysSinceEpoch(Clock::now()) ) THROW( Exception("end should be < now") );
+		THROW_IF( fullDays==0 && minutes<1, "days '{}' should be at least 1 minute.", days );
+		THROW_IF( days>3*365, "days {} should be less than 3 years {}", days, 3*365 );
+		THROW_IF( end>DaysSinceEpoch(Clock::now()), "end should be < now" );
 		const DayIndex dayCount = DayCount( TradingDay{start, contract.Exchange}, end );
-		if( dayCount<days ) THROW( Exception("days should be less than end-start.") );
-		if( end<start ) THROW( Exception("end '{}' should be greater than start '{}'.", end, start) );
+		THROW_IF( dayCount<days, "days should be less than end-start." );
+		THROW_IF( end<start, "end '{}' should be greater than start '{}'.", end, start );
 #pragma endregion
 		var cacheId = minutes==0 ? "" : format( "ReqStdDev.{}.{}.{}.{}", contract.Symbol, fullDays, start, end );
 		if( var pValue = Cache::Get<HistoricalDataCache::StatCount>(cacheId); !cacheId.empty() && pValue )
 			return pValue;
 
 		var pAllBars = _client.ReqHistoricalDataSync( contract, end, dayCount, minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true, true ).get();
-		if( pAllBars->size()==0 )
-			THROW( Exception("No history") );
+		THROW_IF( pAllBars->size()==0, "No history" );
 		map<DayIndex,vector<::Bar>> bars;
 		for_each( pAllBars->begin(), pAllBars->end(), [&bars](var bar)
 		{

@@ -66,7 +66,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;WIN32_LEAN_AND_MEAN;_DEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -99,7 +99,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>JDE_EXPORT_MARKETS;TWS_EXPORTS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;BOOST_ALL_DYN_LINK;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;NOMINMAX;PROTOBUF_USE_DLLS;WIN32_LEAN_AND_MEAN;NDEBUG;MARKETS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>

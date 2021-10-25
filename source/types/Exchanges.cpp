@@ -389,8 +389,7 @@ namespace Jde
 	{
 		var now = Clock::to_time_t( Clock::now() );
 		auto pHours = std::find_if( tradingHours.begin(), tradingHours.end(), [now](var& x){return x.end()>now;} );
-		if( pHours==tradingHours.end() )
-			throw new Exception( "Could not find Closing time, tradingHours.size()={}."sv, tradingHours.size() );
+		THROW_IF( pHours==tradingHours.end(), "Could not find Closing time, tradingHours.size()={}."sv, tradingHours.size() );
 		return Clock::from_time_t( pHours->end() );
 	}
 	DayIndex Markets::CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept

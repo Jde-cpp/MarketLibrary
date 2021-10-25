@@ -67,7 +67,7 @@ namespace Jde::Markets
 				}
 				h.promise().get_return_object().SetResult( pResults );
 			}
-			catch( Exception& e )
+			catch( const std::exception& e )
 			{
 				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
 			}
@@ -166,7 +166,7 @@ namespace Jde::Markets
 						auto pData = ( co_await BarData::Load(path, symbol) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
 						function( *pData, start, end );
 					}
-					catch( const Exception& e )
+					catch( const std::exception& e )
 					{
 						_pException = std::make_exception_ptr( e );
 						break;
@@ -199,10 +199,8 @@ namespace Jde::Markets
 		{
 			return Load( contract, start, end );
 		}
-		catch( const Exception& e )
-		{
-			e.Log();
-		}
+		catch( const IException& )
+		{}
 		return make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 	}
 	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
@@ -239,7 +237,7 @@ namespace Jde::Markets
 				auto y = ( co_await ForEachFile(contract, start, end, fnctn) ).Get<sp<void>>();
 				h.promise().get_return_object().SetResult( pResults );
 			}
-			catch( const Exception& e )
+			catch( const std::exception& e )
 			{
 				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
 			}

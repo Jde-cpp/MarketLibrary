@@ -54,14 +54,14 @@ namespace Jde::Markets
 					_historicalData.End( id );
 				}
 				else
-					_historicalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+					_historicalData.Error( id, IBException{errorString, errorCode, id} );
 			}
 			else if( (handled = _fundamentalData.Contains(id)) )
-				_fundamentalData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+				_fundamentalData.Error( id, IBException{errorString, errorCode, id} );
 			else if( (handled = _detailsData.Contains(id)) )
-				_detailsData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+				_detailsData.Error( id, IBException{errorString, errorCode, id} );
 			else if( (handled = _ratioData.Contains(id)) )
-				_ratioData.Error( id, IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__} );
+				_ratioData.Error( id, IBException{errorString, errorCode, id} );
 			else
 			{
 				lock_guard l{ _errorCallbacksMutex };
@@ -189,39 +189,6 @@ namespace Jde::Markets
 		return _detailsData.Promise( reqId, 5s );
 	}
 
-/*	void WrapperSync::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
-	{
-		securityDefinitionOptionalParameterSync( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-	}
-
-	bool WrapperSync::securityDefinitionOptionalParameterSync( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
-	{
-		WrapperCache::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-		var captured = _optionFutures.Contains( reqId );
-		if( captured )
-			*Collections::InsertShared( _optionData, reqId ).add_exchanges() = WrapperCache::ToOptionParam( exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
-		return captured;
-	}
-
-	void WrapperSync::securityDefinitionOptionalParameterEnd( int reqId )noexcept
-	{
-		securityDefinitionOptionalParameterEndSync( reqId );
-	}
-
-	bool WrapperSync::securityDefinitionOptionalParameterEndSync( int reqId )noexcept
-	{
-		WrapperCache::securityDefinitionOptionalParameterEnd( reqId );
-		var captured = _optionFutures.Contains(reqId);
-		if( captured )
-		{
-			auto pData = _optionData.find( reqId );
-			_optionFutures.Push( reqId, pData==_optionData.end() ? make_shared<Proto::Results::OptionExchanges>() : pData->second );
-			if( pData!=_optionData.end() )
-				_optionData.erase( pData );
-		}
-		return captured;
-	}
-*/
 	WrapperItem<Proto::Results::OptionExchanges>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
 		return _optionFutures.Promise( reqId, 15s );
@@ -302,6 +269,4 @@ namespace Jde::Markets
 		else
 			DBG( "Could not find headTimestamp request '{}'"sv, reqId );
 	}
-
-
 }

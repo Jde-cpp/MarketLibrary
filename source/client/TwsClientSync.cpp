@@ -14,7 +14,6 @@ namespace Jde::Markets
 	bool TwsClientSync::IsConnected()noexcept{ auto p = _pSyncInstance; return p && p->isConnected(); }
 	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
-		//DBG( "TwsClientSync::CreateInstance"sv );
 		_pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
 		_pSyncInstance = static_pointer_cast<TwsClientSync>( _pInstance );
 		TwsProcessor::CreateInstance( _pSyncInstance, pReaderSignal );
@@ -23,7 +22,6 @@ namespace Jde::Markets
 
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pSyncInstance->_port, clientId );
 		return _pSyncInstance;
-	//	pInstance->ReqIds();
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClientCache( settings, wrapper, pReaderSignal, clientId )
@@ -52,7 +50,7 @@ namespace Jde::Markets
 	}
 	void TwsClientSync::OnError( TickerId id, int errorCode, const std::string& errorMsg )
 	{
-		auto pError = make_shared<IBException>( errorMsg, errorCode, id );
+		auto pError = sp<IBException>( new IBException{errorMsg, errorCode, id} );
 		_errors.emplace( id, pError );
 		auto pCv = _conditionVariables.Find( id );
 		if( pCv )
@@ -67,22 +65,6 @@ namespace Jde::Markets
 	}
 	TimePoint TwsClientSync::HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false)
 	{
-/*
-		TimePoint time;
-		sp<IBException> pError;
-		atomic<bool> returned = false;
-		WrapperSync::ErrorCallback errorFnctn = [&pError, &cv, &returned, contract]( TickerId id, int errorCode, const std::string& errorMsg )
-		{
-			returned = true;
-
-			cv.notify_one();
-		};
-		WrapperSync::CurrentTimeCallback fnctn = [&time, &cv, &returned]( TimePoint t )
-		{
-			returned = true;
-			time = t;
-			cv.notify_one();
-		};*/
 		var reqId = RequestId();
 		auto pCV = make_shared<std::condition_variable>();
 		_conditionVariables.emplace( reqId, pCV );
@@ -139,34 +121,7 @@ namespace Jde::Markets
 		return promise.get_future();
 	}
 
-/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalData( const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate )noexcept(false)
-	{
-		var reqId = RequestId();
-		auto future = _wrapper->ReqHistoricalDataPromise( reqId );
-		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/ *keepUpToDate* /, TagValueListSPtr() );
-		return future;
-	}*/
-/*		var reqId = RequestId();
-		auto pCV = make_shared<std::condition_variable>();
-		_conditionVariables.emplace( reqId, pCV );
-		Jde::Markets::WrapperSync::ReqHistoricalDataCallback callback = [&, reqId](auto t){OnReqHistoricalData(reqId,t);};
-		_wrapper->AddRequestHistoricalData( reqId, callback, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
-		mutex mutex;
-		unique_lock l{mutex};
-		TwsClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, false/ *keepUpToDate* /, TagValueListSPtr() );
-		if( pCV->wait_for(l, timeout)==std::cv_status::timeout )
-			WARN0( "Timed out looking for reqHistoricalData."sv );
-		if( _errors.Find(reqId) )
-		{
-			auto pError = _errors.Find(reqId);
-			_errors.erase( reqId );
-			throw *pError;
-		}
-		var pResults = _historicalData.Find( reqId );
-		_historicalData.erase( reqId );
-		_conditionVariables.erase( reqId );
-		return pResults ? pResults : make_shared<list<::Bar>>();*/
-	//}
+
 	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
 	{
 		::Contract contract;
@@ -211,49 +166,7 @@ namespace Jde::Markets
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
 	}
-/*	sp<Proto::Results::ExchangeContracts> TwsClientSync::ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false)
-	{
-		auto pParams = ReqSecDefOptParams( underlyingConId, symbol ).get();
-		for( auto i = 0; i<pParams->exchanges_size(); ++i )
-		{
-			if( pParams->exchanges(i).exchange()==Exchanges::Smart )
-				return make_shared<Proto::Results::ExchangeContracts>( pParams->exchanges(i) );
-		}
-		THROW( Exception("Could not find Smart options for '{}'", symbol) );
-	}
-	std::future<sp<Proto::Results::OptionExchanges>> TwsClientSync::ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept
-	{
-		var reqId = RequestId();
-		auto future = _wrapper.SecDefOptParamsPromise( reqId );
-		TwsClientCache::ReqSecDefOptParams( reqId, underlyingConId, symbol );
-		return future;
-	}
-*/
-/*	void TwsClientSync::reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol, sv futFopExchange, sv underlyingSecType )noexcept
-	{
-		auto future = _wrapper.SecDefOptParamsPromise( tickerId );
-		//if( !set )
-			TwsClientCache::reqSecDefOptParams( tickerId, underlyingConId, underlyingSymbol, futFopExchange, underlyingSecType );
-		else
-		{
-			var pData = future.get();
-			for( var& param : *pData )
-			{
-				std::set<std::string> expirations;
-				for( auto i=0; i<param.expirations_size(); ++i )
-				{
-					const DateTime date{ Chrono::FromDays(param.expirations(i)) };
-					expirations.emplace( format("{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day()) );
-				}
-				std::set<double> strikes;
-				for( auto i=0; i<param.strikes_size(); ++i )
-					strikes.emplace( param.strikes(i) );
-				_wrapper.securityDefinitionOptionalParameter( tickerId, param.exchange(), param.underlying_contract_id(), param.trading_class(), param.multiplier(), expirations, strikes );
-			}
-			_wrapper.securityDefinitionOptionalParameterEnd( tickerId );
-		}
-	}
-*/
+
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept
 	{
 		var reqId = RequestId();
@@ -261,22 +174,7 @@ namespace Jde::Markets
 		TwsClient::reqFundamentalData( reqId, contract, reportType );
 		return future;
 	}
-	/*
-	std::future<sp<map<string,double>>> TwsClientSync::ReqRatios( const ::Contract &contract )noexcept
-	{
-		var reqId = RequestId();
-		auto future = _wrapper.RatioPromise( reqId, 5s );//~~~
-		TwsClient::reqMktData( reqId, contract, "165,258,456", false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
-		return future;
-	}
-*/
-/*	TwsClientSync::Future<NewsProvider> TwsClientSync::RequestNewsProviders()noexcept
-	{
-		auto future = _wrapper.NewsProviderPromise();
-		TwsClientCache::RequestNewsProviders();
-		return future;
-	}
-*/
+
 	std::future<VectorPtr<Proto::Results::Position>> TwsClientSync::RequestPositions()noexcept(false)//should throw if currently perpetual reqPositions.
 	{
 		auto future = _wrapper.PositionPromise();
@@ -293,20 +191,4 @@ namespace Jde::Markets
 		else
 			SetRequestId( future.get() );
 	}
-/*
-	vector<ActiveOrderPtr> TwsClientSync::ReqAllOpenOrders()noexcept(false)
-	{
-		DBG0( "ReqAllOpenOrders" );
-		vector<ActiveOrderPtr> results;
-		std::condition_variable cv;
-		atomic<bool> done = false;
-		Jde::Markets::WrapperSync::EndCallback callback = [&](){ done=true; cv.notify_one(); };
-		_wrapper.AddOpenOrderEnd( callback );
-		mutex mutex;
-		unique_lock l{mutex};
-		TwsClient::reqAllOpenOrders();
-		if( !done && cv.wait_for(l, 60s)==std::cv_status::timeout && !done )
-			THROW( Exception("Timed out looking for open orders.") );
-	}
-	*/
 }

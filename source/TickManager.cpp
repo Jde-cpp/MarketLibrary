@@ -15,8 +15,7 @@ namespace Jde::Markets
 	std::future<Tick> TickManager::Ratios( const ContractPK contractId )noexcept
 	{
 		auto p=TickWorker::Instance();
-		if( !p )
-			THROW( Exception("Shutting Down") );
+		THROW_IF( !p, "Shutting Down" );
 		return p->Ratios( contractId );
 	}
 
@@ -214,7 +213,7 @@ namespace Jde::Markets
 		}
 #define FORX(X,Iter) for( auto Iter=X.find(contractId); Iter!=X.end() && Iter->first==contractId; Iter = X.erase(Iter) )
 #define FOR(X) FORX(X,p)
-#define IBExceptionPtr std::make_exception_ptr(IBException{errorString, errorCode, id, __func__,__FILE__, __LINE__})
+#define IBExceptionPtr std::make_exception_ptr(IBException{errorString, errorCode, id})
 		{
 			unique_lock l{ _twsSubscriptionMutex };
 			for( auto pSub=_twsSubscriptions.find(contractId); pSub!=_twsSubscriptions.end() && pSub->first==contractId; pSub = _twsSubscriptions.erase(pSub) )
@@ -344,7 +343,7 @@ namespace Jde::Markets
 							{
 								p->second.Function( messages, contractId );
 							}
-							catch( const Exception& /*e*/ )
+							catch( const IException& )
 							{
 								var sessionId = p->second.SessionId;
 								CancelProto( sessionId, contractId, &ul );
@@ -632,7 +631,7 @@ namespace Jde::Markets
 					{
 						fnctn( messages, contractId );
 					}
-					catch( const Exception& /*e*/ )
+					catch( const IException& )
 					{
 						CancelProto( sessionId, contractId );
 					}

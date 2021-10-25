@@ -26,7 +26,6 @@ namespace Jde
 		return time.Hour()==0 && time.Minute()==0 && time.Second()==0
 			? fmt::format( "{}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day() )
 			: std::to_string( time.TimeT() );
-			//: fmt::format( "{}{:0>2}{:0>2}:{:0>2}{:0>2}{:0>2}", time.Year(), time.Month(), time.Day(), time.Hour(), time.Minute(), time.Second() );
 	}
 }
 namespace Jde::Markets
@@ -86,7 +85,7 @@ namespace Jde::Markets
 			result = "1 month";
 			break;
 		default:
-			THROW( Exception(fmt::format("Unknown Barsize {}", barSize).c_str()) );
+			THROW( "Unknown Barsize {}", barSize );
 		}
 		return result;
 	}
@@ -179,9 +178,8 @@ namespace Jde::Markets
 
 	sv TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
 	{
-		//static_assert( display<sizeof(StringValues) );
 		if( static_cast<uint>(display)>=sizeof(StringValues) )
-			THROW( Exception(fmt::format("Unknown TwsDisplay {}", display).c_str()) );
+			THROW( "Unknown TwsDisplay {}", display );
 		return StringValues[display];
 	}
 	TwsDisplay::Enum TwsDisplay::FromString( sv stringValue )noexcept(false)
@@ -193,7 +191,7 @@ namespace Jde::Markets
 				break;
 		}
 		if( index==sizeof(StringValues) )
-			THROW( Exception(fmt::format("Unknown TwsDisplay {}", stringValue).c_str()) );
+			THROW( "Unknown TwsDisplay {}", stringValue );
 		return static_cast<TwsDisplay::Enum>( index );
 	}
 	std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value )

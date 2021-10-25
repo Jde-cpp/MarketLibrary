@@ -10,7 +10,7 @@ namespace Jde::Markets
 {
 	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 
-	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Debug) };
+	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
 	ELogLevel WrapperLog::_historicalLevel{ Logging::TagLevel("wrapperHist", [](auto l){ WrapperLog::SetHistoricalLevel(l);}) };
 	ELogLevel WrapperLog::_tickLevel{ Logging::TagLevel("wrapperTick", [](auto l){ WrapperLog::SetTickLevel(l);}) };
 

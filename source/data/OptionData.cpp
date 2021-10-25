@@ -99,9 +99,7 @@ namespace Jde::Markets
 				pUnderlying = dynamic_pointer_cast<Proto::UnderlyingOIValues>( Cache::Get<google::protobuf::Message>(cacheId) );
 			else
 			{
-				var pBytes = Jde::IO::Zip::XZ::Read( file );
-				if( !pBytes )
-					THROW( Exception("{} has 0 bytes.", file.string().c_str()) );
+				var pBytes = Jde::IO::Zip::XZ::Read( file ); THROW_IFX( !pBytes, IOException(file, "has 0 bytes.") );
 				google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
 				pUnderlying = make_shared<Proto::UnderlyingOIValues>();
 				pUnderlying->ParseFromCodedStream( &input );
@@ -238,7 +236,7 @@ namespace Jde::Markets
 			var& toDay = pToValues->contracts( i );
 			var pOptionIdValues = options.find( toDay.id() );
 			if( pOptionIdValues==options.end() )
-				THROW( ArgumentException("Could not find option id='{}'.", toDay.id()) );
+				THROW( "Could not find option id='{}'.", toDay.id() );
 			matchedIds.emplace( toDay.id() );
 			var pOption = get<0>( pOptionIdValues->second );
 			if( pOption->IsCall!=isCall )

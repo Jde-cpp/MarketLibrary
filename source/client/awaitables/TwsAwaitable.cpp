@@ -27,9 +27,9 @@ namespace Jde::Markets
 			auto pContract = Future<Contract>( TwsClientCo::ContractDetails(_underlyingConId) ).get();
 			_pTws->reqSecDefOptParams( id, _underlyingConId, pContract->LocalSymbol );
 		}
-		catch( Exception& e )
+		catch( std::exception& e )
 		{
-			_pPromise->get_return_object().SetResult( move(e) );
+			_pPromise->get_return_object().SetResult( std::make_exception_ptr(move(e)) );
 			h.resume();
 		}
 	}

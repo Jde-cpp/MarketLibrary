@@ -141,12 +141,6 @@ namespace Jde::Markets
 		TradingHoursPtr = ParseTradingHours( details.timeZoneId, details.tradingHours );
 		LiquidHoursPtr =  ParseTradingHours( details.timeZoneId, details.liquidHours );
 	}
-/*	Contract( const Contract& contract )
-	{
-		*this = contract;
-	}
-	operator=( const Contract& contract );
-*/
 
 	Contract::Contract(ContractPK id, sv symbol )noexcept:
 		Id(id),
@@ -187,18 +181,7 @@ namespace Jde::Markets
 	{
 		return PositionAmount( roundAmount==1 ? llround( amount ) : static_cast<_int>( amount/100 )*100 );
 	}
-/*	sp<DateTime> Contract::ExpirationTime()const noexcept
-	{
-		auto result = sp<DateTime>( nullptr );
-		if( LastTradeDateOrContractMonth.size()>0 )
-		{
-			var year = static_cast<uint16>(stoul( LastTradeDateOrContractMonth.substr(0,4)) );
-			var month = static_cast<uint8>( stoul( LastTradeDateOrContractMonth.substr(4,6)) );
-			var day = static_cast<uint8>(stoul( LastTradeDateOrContractMonth.substr(6,8) ));
-			result = make_shared<DateTime>( year, month, day );
-		}
-		return result;
-	}*/
+
 	Amount Contract::RoundDownToMinTick( Amount price )const noexcept//TODO find min tick.
 	{
 		return Amount( std::round( (static_cast<double>(price)-.000005)*100.0 )/100.0 );//.00005 rounds down .005
@@ -224,12 +207,6 @@ namespace Jde::Markets
 		return contract.to_stream( os );
 	}
 
-/*	DeltaNeutralContract::DeltaNeutralContract( IO::IncomingMessage& message ):
-		Id{ message.ReadInt32() },
-		Delta{ message.ReadDouble() },
-		Price{ message.ReadDouble() }
-	{}
-*/
 	DeltaNeutralContract::DeltaNeutralContract( const Proto::DeltaNeutralContract& proto )noexcept:
 		Id{ proto.id() },
 		Delta{ proto.delta() },
@@ -244,17 +221,7 @@ namespace Jde::Markets
 		pProto->set_price( Price );
 		return pProto;
 	}
-/*	ComboLeg::ComboLeg( IO::IncomingMessage& message, bool isOrder ):
-		ConId{ message.ReadInt32() },
-		Ratio{ message.ReadInt32() },
-		Action{ message.ReadString() },
-		Exchange{ message.ReadString() },
-		OpenClose{ isOrder ? message.ReadInt32() : 0 },
-		ShortSaleSlot{ isOrder ? message.ReadInt32() : 0 },
-		DesignatedLocation{ isOrder ? message.ReadString() : "" },
-		ExemptCode{ isOrder ? message.ReadInt32() : 0 }
-	{}
-	*/
+
 	ComboLeg::ComboLeg( const Proto::ComboLeg& proto )noexcept:
 		ConId{ (ContractPK)proto.contract_id() },
 		Ratio{ proto.ratio() },
@@ -363,7 +330,6 @@ namespace Jde::Markets
 
 	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( sv timeZoneId, str hours )noexcept
 	{
-//		return make_shared<vector<Proto::Results::ContractHours>>();
 		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
 		if( auto pValue = Cache::Get<vector<Proto::Results::ContractHours>>(cacheId); pValue )
 			return pValue;
@@ -373,14 +339,12 @@ namespace Jde::Markets
 			{
 				var dateTime = Str::Split( value, ':' );
 				var& date = dateTime[0];
-				if( date.size()!=8 || dateTime.size()!=2 )
-					THROW( Exception("Could not parse parseDateTime '{}'.", value) );
+				THROW_IF( date.size()!=8 || dateTime.size()!=2, "Could not parse parseDateTime '{}'.", value );
 				var year  = stoi( date.substr(0,4) ); var month = stoi( date.substr(4,2) ); var day = stoi( date.substr(6,2) );
 				var& time = dateTime[1]; uint8 hour=0; uint8 minute=0;
 				if( time!="CLOSED" )
 				{
-					if( time.size()!=4 )
-						THROW( Exception("Could not parse time part of parseDateTime '{}'.", value) );
+					THROW_IF( time.size()!=4, "Could not parse time part of parseDateTime '{}'.", value );
 					hour = stoi( time.substr(0,2) );
 					minute = stoi( time.substr(2,2) );
 				}
@@ -389,8 +353,7 @@ namespace Jde::Markets
 			};
 			var startEnd = Str::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
 			var start = parseDateTime( startEnd[0] );
-			if( startEnd.size()>2 )
-				THROW( Exception("Could not parse parseTimeframe '{}'.", timeFrame) );
+			THROW_IF( startEnd.size()>2, "Could not parse parseTimeframe '{}'.", timeFrame );
 			var end = startEnd.size()==2 ? parseDateTime( startEnd[1] ) : 0;
 
 			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end( (int)end );

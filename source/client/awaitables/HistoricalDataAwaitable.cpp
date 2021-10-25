@@ -93,7 +93,7 @@ namespace Jde::Markets
 					}
 				}
 			}
-			catch( const Exception& )//just reload.
+			catch( const IException& )//just reload.
 			{}
 		}
 		if( SetData() )
@@ -103,7 +103,6 @@ namespace Jde::Markets
 			co_return;
 		}
 		_hCoroutine = move(h);
-//		DBG( "({})HistoricalDataAwaitable::_hCoroutine"sv, _hCoroutine.address() );
 
 		if( var current=CurrentTradingDay(*_contractPtr); _cache.rbegin()->first==current && IsOpen(*_contractPtr) )//missing will return nothing
 			_cache[current] = nullptr;
@@ -132,7 +131,6 @@ namespace Jde::Markets
 	}
 	α HistoricalDataAwaitable::await_resume()noexcept->TaskResult
 	{
-		//DBG( "({})~~~~~~~~~~~~HistoricalDataAwaitable::await_resume~~~~~~~~~~~~~"sv, _hCoroutine.address() );
 		return _dataPtr ? TaskResult{ _dataPtr } : base::await_resume();
 	}
 }
