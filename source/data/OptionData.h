@@ -12,7 +12,7 @@ namespace Jde::Markets
 {
 	namespace Proto::Results{class OptionValues;}
 	struct Contract;
-	typedef std::shared_ptr<const Contract> ContractPtr_;
+	using ContractPtr_=sp<const Contract>;
 	struct Option
 	{
 		Option()=default;
@@ -26,9 +26,9 @@ namespace Jde::Markets
 		ContractPtr_ ContractPtr;
 		bool operator<( const Option& op2 )const noexcept;
 	};
-	typedef sp<const Option> OptionPtr;
-	typedef set<OptionPtr,SPCompare<const Option>> OptionSet;
-	typedef sp<OptionSet> OptionSetPtr;
+	using OptionPtr=sp<const Option>;
+	using OptionSet=flat_set<OptionPtr,SPCompare<const Option>>;
+	using OptionSetPtr=sp<OptionSet>;
 	namespace OptionData
 	{
 		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false);

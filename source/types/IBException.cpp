@@ -17,8 +17,8 @@ namespace Jde::Markets
 	{
 		std::ostringstream os;
 		var message = format( "({})[{}] - {}", RequestId, ErrorCode, what() );
-		Logging::Default().log( spdlog::source_loc{FileName(_fileName).c_str(),(int)_line,_functionName.data()}, (spdlog::level::level_enum)_level, message );
+		Logging::Default().log( spdlog::source_loc{FileName(_sl.file_name()).c_str(),(int)_sl.line(),_sl.function_name()}, (spdlog::level::level_enum)_level, message );
 		if( _level>=Logging::ServerLevel() )
-			LogServer( Logging::Messages::Message{Logging::Message2{_level, message, _fileName, _functionName, _line}} );
+			LogServer( Logging::Messages::ServerMessage{Logging::Message{_level, message, _sl}} );
 	}
 }

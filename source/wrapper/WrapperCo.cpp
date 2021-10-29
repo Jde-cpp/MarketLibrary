@@ -24,7 +24,7 @@ namespace Jde::Markets
 			auto pHandle = handles.MoveOut( id );
 			if( pHandle )
 			{
-				pHandle->promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
+				pHandle->promise().get_return_object().SetResult( IBException(errorMsg, errorCode, id) );
 				Coroutine::CoroutinePool::Resume( move(*pHandle) );
 			}
 			return pHandle.has_value();
@@ -33,7 +33,7 @@ namespace Jde::Markets
 		if( !handled && _historical.Has(id) )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
-			h.promise().get_return_object().SetResult( IB_Exception(errorMsg, errorCode, id) );
+			h.promise().get_return_object().SetResult( IBException(errorMsg, errorCode, id) );
 			_historical.erase( id );
 			_historicalData.erase( id );
 			Coroutine::CoroutinePool::Resume( move(h) );
@@ -103,7 +103,7 @@ namespace Jde::Markets
 		{
 			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1", reqId, contracts.size() );
 			if( contracts.size()==0 )
-				returnObject.SetResult( IB_Exception("no contracts returned", -1, reqId) );
+				returnObject.SetResult( IBException("no contracts returned", -1, reqId) );
 			else
 				returnObject.SetResult( contracts.front() );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );

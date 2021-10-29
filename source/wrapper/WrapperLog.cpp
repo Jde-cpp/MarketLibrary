@@ -45,7 +45,8 @@ namespace Jde::Markets
 		_historicalDataRequests.erase( reqId );
 		var size = _historicalDataRequests.size();
 		var format = startDateStr.size() || endDateStr.size() ? "({}){}WrapperLog::historicalDataEnd( {}, {} )"sv : "({})WrapperLog::historicalDataEnd(){}"sv;
-		Logging::Log( Logging::MessageBase(format, _historicalLevel, MY_FILE, __func__, __LINE__), reqId, size, startDateStr, endDateStr );
+		LOGS( _historicalLevel, string{format}, reqId, size, startDateStr, endDateStr );
+
 	}
 	void WrapperLog::managedAccounts( str accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
 	void WrapperLog::nextValidId( ::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )", orderId ); }

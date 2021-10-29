@@ -69,7 +69,7 @@ namespace Jde::Markets
 	OptionSetPtr OptionData::Load( ContractPK underlyingId, DayIndex earliestDay )noexcept(false)
 	{
 		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=? and expiration_date>=?";
-		auto pResults = make_shared<set<OptionPtr,SPCompare<const Option>>>();
+		auto pResults = make_shared<flat_set<OptionPtr,SPCompare<const Option>>>();
 		auto result = [&pResults, underlyingId]( const DB::IRow& row )
 		{
 			OptionPtr pOption = make_shared<const Option>();
@@ -99,7 +99,7 @@ namespace Jde::Markets
 				pUnderlying = dynamic_pointer_cast<Proto::UnderlyingOIValues>( Cache::Get<google::protobuf::Message>(cacheId) );
 			else
 			{
-				var pBytes = Jde::IO::Zip::XZ::Read( file ); THROW_IFX( !pBytes, IOException(file, "has 0 bytes.") );
+				var pBytes = Jde::IO::Zip::XZ::Read( file ); THROW_IFX2( !pBytes, IOException(file, "has 0 bytes.") );
 				google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
 				pUnderlying = make_shared<Proto::UnderlyingOIValues>();
 				pUnderlying->ParseFromCodedStream( &input );
@@ -137,7 +137,7 @@ namespace Jde::Markets
 			return 0;
 		var toSize = pToValues->contracts_size();
 		map<uint16,Proto::Results::OptionDay*> values;
-		set<ContractPK> matchedIds;
+		flat_set<ContractPK> matchedIds;
 		auto setValue = [&]( const Contract& option, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay )
 		{
 			var daysSinceEpoch = option.Expiration;
@@ -209,7 +209,7 @@ namespace Jde::Markets
 		auto pResults = new Proto::Results::OptionValues();
 		var today = DateTime::Today();
 		map<uint16,Proto::Results::OptionDay*> values;
-		set<ContractPK> matchedIds;
+		flat_set<ContractPK> matchedIds;
 		auto setValue = [&]( OptionPtr pOption, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay, bool expired )
 		{
 			uint16 daysSinceEpoch = pOption->ExpirationDay;
