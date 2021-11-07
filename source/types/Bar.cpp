@@ -1,11 +1,13 @@
-#include "Bar.h"
+﻿#include "Bar.h"
 #include <bar.h>
 #pragma warning( disable : 4244 )
 #include "./proto/bar.pb.h"
 #pragma warning( default : 4244 )
 #include <jde/Assert.h>
-#include <jde/Log.h>
 #include <jde/Exception.h>
+#include <jde/Log.h>
+#include <jde/Str.h>
+
 
 #define var const auto
 
@@ -30,62 +32,33 @@ namespace Jde
 }
 namespace Jde::Markets
 {
-	sv BarSize::TryToString(const BarSize::Enum barSize )noexcept
+/*	sv BarSize::TryToString(const BarSize::Enum barSize )noexcept
 	{
 		auto value = "1 hour"sv;
 		Try( [barSize, &value](){ value = ToString(barSize);} );
 		return value;
 	}
-
-	sv BarSize::ToString(const BarSize::Enum barSize )noexcept(false)
+*/
+	α BarSize::ToString( const BarSize::Enum barSize )noexcept->sv
 	{
-		sv result = "";
-		switch( barSize )
+		sv result = "1 hour";
+		if( barSize!=EBarSize::Hour )
 		{
-		case EBarSize::Second:
-			result = "1 sec";
-			break;
-		case EBarSize::Second5:
-			result = "5 secs";
-			break;
-		case EBarSize::Second15:
-			result = "15 secs";
-			break;
-		case EBarSize::Second30:
-			result = "30 secs";
-			break;
-		case EBarSize::Minute:
-			result = "1 min";
-			break;
-		case EBarSize::Minute2:
-			result = "2 mins";
-			break;
-		case EBarSize::Minute3:
-			result = "3 mins";
-			break;
-		case EBarSize::Minute5:
-			result = "5 mins";
-			break;
-		case EBarSize::Minute15:
-			result = "15 mins";
-			break;
-		case EBarSize::Minute30:
-			result = "30 mins";
-			break;
-		case EBarSize::Hour:
-			result = "1 hour";
-			break;
-		case EBarSize::Week:
-			result = "1 week";
-			break;
-		case EBarSize::Day:
-			result = "1 day";
-			break;
-		case EBarSize::Month:
-			result = "1 month";
-			break;
-		default:
-			THROW( "Unknown Barsize {}", barSize );
+			if( barSize==EBarSize::Second ) result = "1 sec";
+			else if( barSize==EBarSize::Second5 ) result = "5 secs";
+			else if( barSize==EBarSize::Second15 ) result = "15 secs";
+			else if( barSize==EBarSize::Second30 ) result = "30 secs";
+			else if( barSize==EBarSize::Minute ) result = "1 min";
+			else if( barSize==EBarSize::Minute2 ) result = "2 mins";
+			else if( barSize==EBarSize::Minute3 ) result = "3 mins";
+			else if( barSize==EBarSize::Minute5 ) result = "5 mins";
+			else if( barSize==EBarSize::Minute15 ) result = "15 mins";
+			else if( barSize==EBarSize::Minute30 ) result = "30 mins";
+			else if( barSize==EBarSize::Hour ) result = "1 hour";
+			else if( barSize==EBarSize::Week ) result = "1 week";
+			else if( barSize==EBarSize::Day ) result = "1 day";
+			else if( barSize==EBarSize::Month ) result = "1 month";
+			else WARN( "Unknown Barsize {}", barSize );
 		}
 		return result;
 	}
@@ -160,11 +133,11 @@ namespace Jde::Markets
 		Close{ static_cast<CandleStick::Amount>(bar.close) },
 		Volume{ static_cast<uint32>(bar.volume) }
 	{}
-	::Bar CandleStick::ToIB( TimePoint time )const noexcept
+	α CandleStick::ToIB( TimePoint time )const noexcept->::Bar
 	{
-		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0.0, (long long)Volume, 0 };
+		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0, ToDecimal(Volume), 0 };
 	}
-	Proto::MinuteBar CandleStick::ToProto()const noexcept
+	α CandleStick::ToProto()const noexcept->Proto::MinuteBar
 	{
 		Proto::MinuteBar proto;
 		proto.set_first_traded_price( static_cast<float>(Open) );
@@ -176,13 +149,11 @@ namespace Jde::Markets
 	}
 
 
-	sv TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept(false)
+	α TwsDisplay::ToString( const TwsDisplay::Enum display )noexcept->string
 	{
-		if( static_cast<uint>(display)>=sizeof(StringValues) )
-			THROW( "Unknown TwsDisplay {}", display );
-		return StringValues[display];
+		return Str::FromEnum( TwsDisplay::StringValues, display );
 	}
-	TwsDisplay::Enum TwsDisplay::FromString( sv stringValue )noexcept(false)
+	α TwsDisplay::FromString( sv stringValue )noexcept(false)->TwsDisplay::Enum
 	{
 		size_t index=0;
 		for( ;index<sizeof(StringValues); ++index )
@@ -194,9 +165,9 @@ namespace Jde::Markets
 			THROW( "Unknown TwsDisplay {}", stringValue );
 		return static_cast<TwsDisplay::Enum>( index );
 	}
-	std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value )
-	{
-		os << TwsDisplay::ToString( value );
-		return os;
-	}
+	//std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value )
+	//{
+	//	os << TwsDisplay::ToString( value );
+	//	return os;
+	//}
 }

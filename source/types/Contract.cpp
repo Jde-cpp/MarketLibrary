@@ -390,7 +390,7 @@ namespace Jde::Markets
 
 		proto.set_ev_rule( details.evRule );
 		proto.set_ev_multiplier( details.evMultiplier );
-		proto.set_md_size_multiplier( details.mdSizeMultiplier );
+		//proto.set_md_size_multiplier( details.mdSizeMultiplier );
 		proto.set_agg_group( details.aggGroup );
 		proto.set_under_symbol( details.underSymbol );
 		proto.set_under_sec_type( details.underSecType );

@@ -8,6 +8,8 @@
 
 namespace Jde::Markets
 {
+	static var& _logLevel{ Logging::TagLevel("hist") };
+
 	α HistoricalDataAwaitable::AddTws( ibapi::OrderId reqId, const vector<::Bar>& bars )->void
 	{
 		HistoricalDataCache::Push( *_contractPtr, _display, _barSize, _useRth, bars, _end, _dayCount );
@@ -26,7 +28,7 @@ namespace Jde::Markets
 			*p=0;
 		if( find_if( _twsRequests.begin(), _twsRequests.end(), [](auto x){return x!=0;})==_twsRequests.end() )
 		{
-			LOG( CoroutinePool::LogLevel(), "({})HistoricalDataAwaitable::AddTws - resume"sv, _hCoroutine.address() );
+			LOG( "({})HistoricalDataAwaitable::AddTws - resume"sv, _hCoroutine.address() );
 			CoroutinePool::Resume( move(_hCoroutine) );
 		}
 	}
@@ -79,7 +81,7 @@ namespace Jde::Markets
 			{
 				for( var& [start,end] : Missing() )
 				{
-					auto pBars = ( co_await BarData::CoLoad( *_contractPtr, start, end) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
+					auto pBars = ( co_await BarData::CoLoad( _contractPtr, start, end) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
 					for( auto [day,pSticks] : *pBars )
 					{
 						ERR_IF( _cache.find(end)->second, "Day {} has value, but loaded again.", end );
@@ -121,7 +123,7 @@ namespace Jde::Markets
 				if( !IsHoliday(start) )
 					++dayCount;
 			}
-			_pTws->reqHistoricalData( id, *_contractPtr->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+			_pTws->reqHistoricalData( id, *_contractPtr->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 		}
 	}
 	void HistoricalDataAwaitable::await_suspend( HCoroutine h )noexcept

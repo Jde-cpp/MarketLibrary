@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/TypeDefs.h>
 #include <jde/markets/Exports.h>
 #pragma warning( disable : 4244 )
@@ -6,19 +6,20 @@
 #pragma warning( default : 4244 )
 struct Bar;
 
+#define Γα JDE_MARKETS_EXPORT auto
 namespace Jde::Markets
 {
-	JDE_MARKETS_EXPORT time_t ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept;
-	JDE_MARKETS_EXPORT string ToIBDate( TimePoint time )noexcept;
+	Γα ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept->time_t;
+	Γα ToIBDate( TimePoint time )noexcept->string;
 	using EBarSize=Proto::Requests::BarSize;
-	struct JDE_MARKETS_EXPORT BarSize
+	namespace BarSize
 	{
 		using Enum=Proto::Requests::BarSize;
 
-		static Duration BarDuration( const BarSize::Enum barSize )noexcept;
-		static uint16 BarsPerDay( const BarSize::Enum barSize )noexcept;
-		static sv ToString(const BarSize::Enum barSize )noexcept(false);
-		static sv TryToString(const BarSize::Enum barSize )noexcept;
+		Γα BarDuration( const BarSize::Enum barSize )noexcept->Duration;
+		Γα BarsPerDay( const BarSize::Enum barSize )noexcept->uint16;
+		//α ToString( const BarSize::Enum barSize )noexcept(false)->sv;
+		Γα ToString( const BarSize::Enum barSize )noexcept->sv;
 	};
 
 	namespace Proto{ class MinuteBar; }
@@ -37,12 +38,13 @@ namespace Jde::Markets
 		const uint32 Volume{0};
 	};
 	using EDisplay=Proto::Requests::Display;
-	struct JDE_MARKETS_EXPORT TwsDisplay
+	namespace TwsDisplay
 	{
 		using Enum=Proto::Requests::Display;
 		static constexpr array<sv,9> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
-		static sv ToString( const TwsDisplay::Enum display )noexcept(false);
-		static TwsDisplay::Enum FromString( sv stringValue )noexcept(false);
+		Γα ToString( const TwsDisplay::Enum display )noexcept->string;
+		Γα FromString( sv stringValue )noexcept(false)->TwsDisplay::Enum;
 	};
-	std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value );
+	//std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value );
 }
+#undef Γα

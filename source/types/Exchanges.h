@@ -11,7 +11,7 @@ namespace Jde::Markets
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
 
-	constexpr std::array<sv,27> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX" };
+	constexpr std::array<sv,29> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF" };
 	JDE_MARKETS_EXPORT sv ToString( Exchanges exchange )noexcept;
 	Exchanges ToExchange( sv pszName )noexcept;
 	JDE_MARKETS_EXPORT DayIndex PreviousTradingDay( DayIndex day=0 )noexcept;

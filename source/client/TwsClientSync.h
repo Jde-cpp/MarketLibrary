@@ -26,8 +26,8 @@ namespace Jde::Markets
 		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
 		void CheckTimeouts()noexcept override;
 
-		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
-		Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
+		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
+		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
 
 		Future<::ContractDetails> ReqContractDetails( sv symbol )noexcept;
 		static Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept{ auto p=_pSyncInstance; if( p ) return p->ReqContractDetailsInst(id);

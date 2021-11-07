@@ -46,4 +46,7 @@ tests/.vscode/tasks.json
 source/.vscode/tasks.json
 tests/.vscode/c_cpp_properties.json
 
-.vs/*
+*/.vs/*
+tests/.bin/*
+tests/Debug/*
+tests/packages/*

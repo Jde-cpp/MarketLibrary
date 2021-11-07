@@ -1,4 +1,5 @@
-#include "WrapperSync.h"
+﻿#include "WrapperSync.h"
+
 #include <EReaderOSSignal.h>
 #include "../client/TwsClientSync.h"
 #include "../../../Framework/source/Settings.h"
@@ -25,12 +26,12 @@ namespace Jde::Markets
 	{
 		Shutdown();
 	}
-	void WrapperSync::Shutdown()noexcept
+	α WrapperSync::Shutdown()noexcept->void
 	{
 		_pClient = nullptr;
 		_pTickWorker = nullptr;
 	}
-	void WrapperSync::SendCurrentTime( const TimePoint& time )noexcept
+	α WrapperSync::SendCurrentTime( const TimePoint& time )noexcept->void
 	{
 		unique_lock l{ _currentTimeCallbacksMutex };
 		for( var& fnctn : _currentTimeCallbacks )
@@ -46,7 +47,7 @@ namespace Jde::Markets
 			SendCurrentTime( TimePoint{} );
 		else if( id>0 )
 		{
-			if( (handled = _historicalData.Contains(id)) )
+			/*if ((handled = _historicalData.Contains(id)))
 			{
 				if( errorCode==162 )
 				{
@@ -56,7 +57,7 @@ namespace Jde::Markets
 				else
 					_historicalData.Error( id, IBException{errorString, errorCode, id} );
 			}
-			else if( (handled = _fundamentalData.Contains(id)) )
+			else */if( (handled = _fundamentalData.Contains(id)) )
 				_fundamentalData.Error( id, IBException{errorString, errorCode, id} );
 			else if( (handled = _detailsData.Contains(id)) )
 				_detailsData.Error( id, IBException{errorString, errorCode, id} );
@@ -89,13 +90,13 @@ namespace Jde::Markets
 		}
 		return handled;
 	}
-	void WrapperSync::AddDisconnectCallback( const DisconnectCallback& callback )noexcept
+	α WrapperSync::AddDisconnectCallback( const DisconnectCallback& callback )noexcept->void
 	{
 		unique_lock l{ _disconnectCallbacksMutex };
 		_disconnectCallbacks.push_front( callback );
 	}
 
-	void WrapperSync::currentTime( long time )noexcept
+	α WrapperSync::currentTime( long time )noexcept->void
 	{
 		WrapperLog::currentTime( time );
 		shared_lock l{_currentTimeCallbacksMutex};
@@ -104,17 +105,17 @@ namespace Jde::Markets
 			callback( Clock::from_time_t(time) );
 	}
 
-	void WrapperSync::AddCurrentTime( CurrentTimeCallback& fnctn )noexcept
+	α WrapperSync::AddCurrentTime( CurrentTimeCallback& fnctn )noexcept->void
 	{
 		unique_lock l{_currentTimeCallbacksMutex};
 		_currentTimeCallbacks.push_front( fnctn );
 	}
-	void WrapperSync::fundamentalData( TickerId reqId, str data )noexcept
+	α WrapperSync::fundamentalData( TickerId reqId, str data )noexcept->void
 	{
 		_fundamentalData.Push( reqId, make_shared<string>(data) );
 	}
 ////////////////////////////////////////////////////////////////
-	void WrapperSync::AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept
+	α WrapperSync::AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept->void
 	{
 		{
 			lock_guard l{ _headTimestampMutex };
@@ -125,17 +126,17 @@ namespace Jde::Markets
 			_errorCallbacks.emplace( reqId, errorFnctn );
 		}
 	}
-	void WrapperSync::CheckTimeouts()noexcept
+	α WrapperSync::CheckTimeouts()noexcept->void
 	{
-		_historicalData.CheckTimeouts();
+		//_historicalData.CheckTimeouts();
 	}
-	void WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
+	α WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
 	{
 		if( WrapperCo::_contractSingleHandles.Has(reqId) ) return WrapperCo::contractDetails( reqId, contractDetails );
 		WrapperCache::contractDetails( reqId, contractDetails );
 		_detailsData.Push( reqId, contractDetails );
 	}
-	void WrapperSync::contractDetailsEnd( int reqId )noexcept
+	α WrapperSync::contractDetailsEnd( int reqId )noexcept->void
 	{
 		if( WrapperCo::_contractSingleHandles.Has(reqId) ) return WrapperCo::contractDetailsEnd( reqId );
 		WrapperCache::contractDetailsEnd( reqId );
@@ -151,17 +152,17 @@ namespace Jde::Markets
 		_positionsPtr = make_shared<vector<Proto::Results::Position>>();
 		return _positionPromisePtr->get_future();
 	}
-	void WrapperSync::position( str account, const ::Contract& contract, double position, double avgCost )noexcept
+	α WrapperSync::position( str account, const ::Contract& contract, ::Decimal position, double avgCost )noexcept->void
 	{
 		if( _positionsPtr )
 		{
 			ASSERT( _positionPromisePtr );
 			WrapperLog::position( account, contract, position, avgCost );
-			Proto::Results::Position y; y.set_allocated_contract( Contract{contract}.ToProto(true).get() ); y.set_account_number( account ); y.set_size( position ); y.set_avg_cost( avgCost );
+			Proto::Results::Position y; y.set_allocated_contract( Contract{contract}.ToProto(true).get() ); y.set_account_number( account ); y.set_size( ToDouble(position) ); y.set_avg_cost( avgCost );
 			_positionsPtr->emplace_back( y );
 		}
 	}
-	void WrapperSync::positionEnd()noexcept
+	α WrapperSync::positionEnd()noexcept->void
 	{
 		WrapperLog::positionEnd();
 		if( _positionsPtr )
@@ -205,11 +206,11 @@ namespace Jde::Markets
 		return _ratioData.Promise( reqId, duration );
 	}
 
-	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise( ReqId reqId, Duration timeout )noexcept
+/*	WrapperData<::Bar>::Future WrapperSync::ReqHistoricalDataPromise(ReqId reqId, Duration timeout)noexcept
 	{
 		return _historicalData.Promise( reqId, timeout );
 	}
-	void WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept
+	α WrapperSync::historicalData( TickerId reqId, const ::Bar& bar )noexcept->void
 	{
 		if( !WrapperCo::HistoricalData(reqId, bar) )
 			historicalDataSync( reqId, bar );
@@ -222,7 +223,7 @@ namespace Jde::Markets
 			_historicalData.Push( reqId, bar );
 		return captured;
 	}
-	void WrapperSync::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
+	α WrapperSync::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void
 	{
 		if( !WrapperCo::HistoricalDataEnd(reqId, startDateStr, endDateStr) )
 			historicalDataEndSync( reqId, startDateStr, endDateStr );
@@ -234,8 +235,8 @@ namespace Jde::Markets
 		if( captured )
 			_historicalData.End( reqId );
 		return captured;
-	}
-	void WrapperSync::nextValidId( ibapi::OrderId orderId )noexcept
+	}*/
+	α WrapperSync::nextValidId( ibapi::OrderId orderId )noexcept->void
 	{
 		WrapperLog::nextValidId( orderId );
 		unique_lock l{ _requestIdsPromiseMutex };
@@ -249,12 +250,12 @@ namespace Jde::Markets
 			_pClient->SetRequestId( orderId );
 	}
 
-	void WrapperSync::openOrderEnd()noexcept
+	α WrapperSync::openOrderEnd()noexcept->void
 	{
 		WrapperLog::openOrderEnd();
 	}
 
-	void WrapperSync::headTimestamp( int reqId, str headTimestamp )noexcept
+	α WrapperSync::headTimestamp( int reqId, str headTimestamp )noexcept->void
 	{
 		WrapperLog::headTimestamp( reqId, headTimestamp );
 		lock_guard l{ _headTimestampMutex };

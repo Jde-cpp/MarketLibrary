@@ -12,7 +12,7 @@ namespace Jde::Markets
 		clientId = proto.client_id();
 		permId = proto.perm_id();
 		IsBuy( proto.is_buy() );
-		totalQuantity = proto.quantity();
+		totalQuantity = ToDecimal( proto.quantity() );
 		orderType = ToOrderTypeString( proto.type() );
 		if( proto.limit() )
 			lmtPrice = proto.limit();
@@ -100,7 +100,7 @@ namespace Jde::Markets
 		proto.set_client_id(clientId);
 		proto.set_perm_id(permId);
 		proto.set_is_buy( IsBuy() );
-		proto.set_quantity(totalQuantity);
+		proto.set_quantity( ToDouble(totalQuantity) );
 		proto.set_type( ToOrderType(orderType) );
 		proto.set_limit( lmtPrice==UNSET_DOUBLE ? 0 : lmtPrice );
 		proto.set_aux( auxPrice==UNSET_DOUBLE ? 0 : auxPrice );

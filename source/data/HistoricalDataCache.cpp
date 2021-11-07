@@ -1,4 +1,4 @@
-#include "./HistoricalDataCache.h"
+﻿#include "./HistoricalDataCache.h"
 #include <bar.h>
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
@@ -10,11 +10,13 @@
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )
 
-
 #define var const auto
 #define _client TwsClientSync::Instance()
+
 namespace Jde::Markets
 {
+	static const LogTag& _logLevel{ Logging::TagLevel("mrk.hist") };
+
 	using namespace Chrono;
 	using EBarSize=Proto::Requests::BarSize;
 	using EDisplay=Proto::Requests::Display;
@@ -85,7 +87,7 @@ namespace Jde::Markets
 		else if( barSize==EBarSize::Hour && contract.SecType==SecurityType::Option )
 			OptionCache::Push( contract, display, bars, end, subDayCount );
 		else
-			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::TryToString(barSize) );
+			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::ToString(barSize) );
 	}
 
 	flat_map<DayIndex,VectorPtr<BarPtr>> HistoricalDataCache::ReqHistoricalData2( const Contract& contract, DayIndex end, uint dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
@@ -108,11 +110,13 @@ namespace Jde::Markets
 		if( startEnd.has_value() )
 		{
 			var [start,end] = startEnd.value();
+			LOG( "{} cache {}-{}", contract.Symbol, Chrono::DateDisplay(start), Chrono::DateDisplay(end) );
 			for( var day : days )
 				bars.emplace( day, day>=start && day<=end ? pCache->Get(contract, day, useRth, barSize) : VectorPtr<BarPtr>{} );
 		}
 		else
 		{
+			LOG( "No cache - {} {} {} days", contract.Symbol, Chrono::DateDisplay(end), dayCount );
 			for( var day : days )
 				bars.emplace( day, VectorPtr<BarPtr>{} );
 		}
@@ -194,58 +198,90 @@ namespace Jde::Markets
 		}
 		return pBars;
 	}
-	sp<HistoricalDataCache::StatCount> HistoricalDataCache::ReqStats( const Contract& contract, double days, DayIndex start, DayIndex end )noexcept(false)
+}
+namespace Jde::Markets::HistoricalDataCache
+{
+	α StatAwaitable::Count()const noexcept->DayIndex{ return DayCount( TradingDay{Start, ContractPtr->Exchange}, End ); }
+	α StatAwaitable::await_ready()noexcept->bool
 	{
 		double fullDaysDouble;
-		var minutesInDay = DayLengthMinutes( contract.Exchange );
-		double partialDays = std::modf( days, &fullDaysDouble );
-		auto fullDays = Math::URound<DayIndex>( fullDaysDouble );
-		auto minutes = Math::URound<uint16>( partialDays*minutesInDay );
-		if( minutes==minutesInDay )
+		var minutesInDay = DayLengthMinutes( ContractPtr->Exchange );
+		double partialDays = std::modf( Days, &fullDaysDouble );
+		FullDays = Math::URound<DayIndex>( fullDaysDouble );
+		Minutes = Math::URound<uint16>( partialDays*minutesInDay );
+		if( Minutes==minutesInDay )
 		{
-			minutes=0;
-			++fullDays;
+			Minutes=0;
+			++FullDays;
 		}
-#pragma region Tests
-		THROW_IF( fullDays==0 && minutes<1, "days '{}' should be at least 1 minute.", days );
-		THROW_IF( days>3*365, "days {} should be less than 3 years {}", days, 3*365 );
-		THROW_IF( end>DaysSinceEpoch(Clock::now()), "end should be < now" );
-		const DayIndex dayCount = DayCount( TradingDay{start, contract.Exchange}, end );
-		THROW_IF( dayCount<days, "days should be less than end-start." );
-		THROW_IF( end<start, "end '{}' should be greater than start '{}'.", end, start );
-#pragma endregion
-		var cacheId = minutes==0 ? "" : format( "ReqStdDev.{}.{}.{}.{}", contract.Symbol, fullDays, start, end );
-		if( var pValue = Cache::Get<HistoricalDataCache::StatCount>(cacheId); !cacheId.empty() && pValue )
-			return pValue;
-
-		var pAllBars = _client.ReqHistoricalDataSync( contract, end, dayCount, minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true, true ).get();
-		THROW_IF( pAllBars->size()==0, "No history" );
-		map<DayIndex,vector<::Bar>> bars;
-		for_each( pAllBars->begin(), pAllBars->end(), [&bars](var bar)
+	#pragma region Tests
+		try
 		{
-			bars.try_emplace( ToDay(ConvertIBDate(bar.time)) ).first->second.push_back(bar);
-		} );
+			THROW_IF( FullDays==0 && Minutes<1, "days '{}' should be at least 1 minute.", Days );
+			THROW_IF( Days>3*365, "days {} should be less than 3 years {}", Days, 3*365 );
+			THROW_IF( End>DaysSinceEpoch(Clock::now()), "end should be < now" );
+			THROW_IF( Count()<Days, "days should be less than end-start." );
+			THROW_IF( End<Start, "end '{}' should be greater than start '{}'.", End, Start );
+	#pragma endregion
+			CacheId = Minutes==0 ? "" : format( "ReqStdDev.{}.{}.{}.{}", ContractPtr->Symbol, FullDays, Start, End );
 
-		vector<double> returns;
-		auto pEnd = bars.rbegin();
-		typedef decltype(pEnd) RIterator;
-		const DayIndex diff = fullDays<6 ? TradingDay{pEnd->first, contract.Exchange}-(fullDays==0 ? 0 : fullDays-1) : pEnd->first-( fullDays-1 );
-		auto pForward = bars.lower_bound( diff );
-		RIterator pStart{ pForward==bars.end() ? pForward : std::next(pForward) };
-		for( ; pStart!=bars.rend() && pEnd!=bars.rend(); ++pStart, ++pEnd )
-		{
-			var index = minutes==0 ? pStart->second.size()-1 : minutes<=pStart->second.size() ? pStart->second.size()-minutes : std::numeric_limits<uint>::max();
-			var pStartBar = pStart->second.size() && index!=std::numeric_limits<uint>::max() ? &pStart->second[index] : nullptr;
-			var pEndBar = pEnd->second.size() ? &pEnd->second.back() : nullptr;
-			if( pStartBar && pEndBar )
-				returns.push_back( 1+(pEndBar->close-pStartBar->open)/pStartBar->open );
+			if( var pValue = Cache::Get<HistoricalDataCache::StatCount>(CacheId); !CacheId.empty() && pValue )
+				_result = pValue;
 		}
-		auto pValue = make_shared<HistoricalDataCache::StatCount>( Math::Statistics(returns), returns.size() );
-		if( !cacheId.empty() )
-			Cache::Set<HistoricalDataCache::StatCount>( cacheId, pValue );
-		return pValue;
+		catch( std::exception& e )
+		{
+			_result = std::make_exception_ptr( move(e) );
+		}
+		return _result.index() || get<sp<HistoricalDataCache::StatCount>>( _result );
 	}
+	α StatAwaitable::await_suspend( typename base::THandle h )noexcept->void
+	{
+		base::await_suspend( h );
+		auto f = [this,h]()->Task2
+		{
+			try
+			{
+				var pAllBars = ( co_await TwsClientCo::HistoricalData( ContractPtr, End, Count(), Minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true) ).Get<vector<::Bar>>();
+				THROW_IF( pAllBars->size()==0, "No history" );
+				map<DayIndex,vector<::Bar>> bars;
+				for_each( pAllBars->begin(), pAllBars->end(), [&bars](var bar)
+				{
+					bars.try_emplace( ToDay(ConvertIBDate(bar.time)) ).first->second.push_back(bar);
+				} );
 
+				vector<double> returns;
+				auto pEnd = bars.rbegin();
+				typedef decltype(pEnd) RIterator;
+				const DayIndex diff = FullDays<6 ? TradingDay{pEnd->first, ContractPtr->Exchange}-(FullDays==0 ? 0 : FullDays-1) : pEnd->first-( FullDays-1 );
+				auto pForward = bars.lower_bound( diff );
+				RIterator pStart{ pForward==bars.end() ? pForward : std::next(pForward) };
+				for( ; pStart!=bars.rend() && pEnd!=bars.rend(); ++pStart, ++pEnd )
+				{
+					var index = Minutes==0 ? pStart->second.size()-1 : Minutes<=pStart->second.size() ? pStart->second.size()-Minutes : std::numeric_limits<uint>::max();
+					var pStartBar = pStart->second.size() && index!=std::numeric_limits<uint>::max() ? &pStart->second[index] : nullptr;
+					var pEndBar = pEnd->second.size() ? &pEnd->second.back() : nullptr;
+					if( pStartBar && pEndBar )
+						returns.push_back( 1+(pEndBar->close-pStartBar->open)/pStartBar->open );
+				}
+				auto pValue = make_shared<HistoricalDataCache::StatCount>( Math::Statistics(returns), returns.size() );
+				if( !CacheId.empty() )
+					Cache::Set<HistoricalDataCache::StatCount>( CacheId, pValue );
+				_pPromise->get_return_object().SetResult(  pValue );
+			}
+			catch( std::exception& e )
+			{
+				_pPromise->get_return_object().SetResult( std::make_exception_ptr(e) );
+			}
+		};
+		f();
+	}
+	α StatAwaitable::await_resume()noexcept->TaskResult
+	{
+		return _pPromise ? _pPromise->get_return_object().GetResult() : _result.index() ? TaskResult{ std::get<std::exception_ptr>(_result) } : TaskResult{ std::get<sp<HistoricalDataCache::StatCount>>(_result) };
+	}
+}
+namespace Jde::Markets
+{
 	optional<tuple<DayIndex,DayIndex>> SubDataCache::Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize barSize )noexcept
 	{
 		optional<tuple<DayIndex,DayIndex>> result;
@@ -272,7 +308,6 @@ namespace Jde::Markets
 	{
 		auto& cache = useRth ? _rth : _extended;
 		auto& mutex = useRth ? _rthMutex : _extendedMutex;
-
 
 		shared_lock l1{ mutex };
 		var start = *days.begin();
@@ -332,14 +367,14 @@ namespace Jde::Markets
 					if( combined.open==0.0 )
 						combined.open = bar.open;
 					combined.close = bar.close;
-					sum = bar.wap*bar.volume;
+					sum = bar.wap*ToDouble( bar.volume );
 					DBG( "bar time={}, volume={}"sv, bar.time, bar.volume );
 					combined.volume += bar.volume;
 					combined.count += bar.count;
 				}
 				if( combined.low!=std::numeric_limits<double>::max() )
 				{
-					combined.wap = sum/combined.volume;
+					combined.wap = ToDecimal( sum/ToDouble(combined.volume) );
 					pNewResult->push_back( make_shared<::Bar>(combined) );
 				}
 			}

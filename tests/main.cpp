@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		p->Shutdown();
 		p = nullptr;
 	}
-	Jde::IApplication::Instance().Wait();
+	//Jde::IApplication::Instance().Wait();
 	Jde::IApplication::CleanUp();
 
 	return result;

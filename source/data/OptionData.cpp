@@ -99,7 +99,7 @@ namespace Jde::Markets
 				pUnderlying = dynamic_pointer_cast<Proto::UnderlyingOIValues>( Cache::Get<google::protobuf::Message>(cacheId) );
 			else
 			{
-				var pBytes = Jde::IO::Zip::XZ::Read( file ); THROW_IFX2( !pBytes, IOException(file, "has 0 bytes.") );
+				var pBytes = Jde::IO::Zip::XZ::Read( file ); THROW_IFX( !pBytes, IOException(file, "has 0 bytes.") );
 				google::protobuf::io::CodedInputStream input( (const uint8*)pBytes->data(), (int)pBytes->size() );
 				pUnderlying = make_shared<Proto::UnderlyingOIValues>();
 				pUnderlying->ParseFromCodedStream( &input );

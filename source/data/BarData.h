@@ -14,6 +14,7 @@ namespace Jde::Markets
 	using namespace Coroutine;
 	namespace Proto{ class BarFile; }
 	struct Contract;
+	using ContractPtr_=sp<const Contract>;
 	struct CandleStick;
 	using boost::container::flat_set;
 namespace BarData
@@ -28,7 +29,7 @@ namespace BarData
 
 	🚪 TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept->MapPtr<DayIndex,VectorPtr<CandleStick>>;
 	🚪 Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)->MapPtr<DayIndex,VectorPtr<CandleStick>>;
-	🚪 CoLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)->AWrapper;//map<DayIndex,VectorPtr<CandleStick>>
+	🚪 CoLoad( ContractPtr_ contract, DayIndex start, DayIndex end )noexcept(false)->AWrapper;//map<DayIndex,VectorPtr<CandleStick>>
 	α Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false)->MapPtr<DayIndex,VectorPtr<CandleStick>>;
 	α Load( fs::path path2, string symbol2 )noexcept->AWrapper;
 	α Load( path path )noexcept(false)->sp<Proto::BarFile>;

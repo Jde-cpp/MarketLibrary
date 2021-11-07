@@ -2,6 +2,7 @@
 #include <jde/Exports.h>
 #pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/results.pb.h>
+#include <jde/blockly/BlocklyLibrary.h>
 #pragma warning( default : 4244 )
 #include <jde/Str.h>
 #include "../../../Framework/source/collections/Vector.h"
@@ -22,23 +23,23 @@ namespace Jde::Markets
 		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		case ETickType::IB_DIVIDENDS: DividendString = value; break;
 		default:
-			WARN( "Ticktype {} value {} is not a string."sv, type, value );
+			WARN( "Ticktype {} value {} is not a string."sv, Str::FromEnum(TickTypeStrings, type), value );
 			set = false;
 		}
 		if( set )
 			_setFields.set( type );
 		return set;
 	}
-	bool Tick::SetInt( ETickType type, _int value )noexcept
+	α Tick::SetInt( ETickType type, _int value )noexcept->bool
 	{
 		bool set{ true };
 		switch( type )
 		{
-		case ETickType::BidSize: BidSize = value; break;
-		case ETickType::AskSize: AskSize = value; break;
-		case ETickType::LastSize: LastSize = value; break;
-		case ETickType::Volume: Volume = value; break;
-		case ETickType::AverageVolume: AverageVolume = value; break;
+		//case ETickType::BidSize: BidSize = value; break;
+		//case ETickType::AskSize: AskSize = value; break;
+		//case ETickType::LastSize: LastSize = value; break;
+		//case ETickType::Volume: Volume = value; break;
+		//case ETickType::AverageVolume: AverageVolume = value; break;
 		case ETickType::OPEN_INTEREST: OPEN_INTEREST = value; break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: OPTION_CALL_OPEN_INTEREST = value; break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: OPTION_PUT_OPEN_INTEREST = value; break;
@@ -62,24 +63,24 @@ namespace Jde::Markets
 		case ETickType::FUTURES_OPEN_INTEREST: FUTURES_OPEN_INTEREST = value; break;
 		case ETickType::AVG_OPT_VOLUME: AVG_OPT_VOLUME = value; break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: DELAYED_LAST_TIMESTAMP = value; break;
-		case ETickType::SHORTABLE_SHARES: SHORTABLE_SHARES = value; break;
+		//case ETickType::SHORTABLE_SHARES: SHORTABLE_SHARES = value; break;
 		case ETickType::NOT_SET: NOT_SET = (int)value; break;
 		default:
-			WARN( "Ticktype {} value {} is not a int."sv, type, value );
+			WARN( "Ticktype {} value {} is not a int."sv, Str::FromEnum(TickTypeStrings, type), value );
 			set = false;
 		}
 		if( set )
 			_setFields.set( type );
 		return set;
 	}
-	α Tick::SetPrices( long long bidSize, double bid, long long askSize, double ask )noexcept->void
+	α Tick::SetPrices( ::Decimal bidSize, double bid, ::Decimal askSize, double ask )noexcept->void
 	{
 		BidSize = bidSize; _setFields.set( ETickType::BidSize );
 		Bid = bid; _setFields.set( ETickType::BidPrice );
 		AskSize = askSize; _setFields.set( ETickType::AskSize );
 		Ask = ask; _setFields.set( ETickType::AskPrice );
 	}
-	bool Tick::SetPrice( ETickType type, double value/*, const TickAttrib& attribs*/ )noexcept
+	α Tick::SetPrice( ETickType type, double value/*, const TickAttrib& attribs*/ )noexcept->bool
 	{
 		bool set{ true };
 		switch( type )
@@ -103,18 +104,35 @@ namespace Jde::Markets
 		case ETickType::High52Week: High52Week = value; break;
 		case ETickType::Halted: Halted = value; break;
 		default:
-			WARN( "Ticktype {} value {} is not a price."sv, type, value );
+			WARN( "Ticktype {} value {} is not a price."sv, Str::FromEnum(TickTypeStrings, type), value );
 			set = SetDouble( type, value );
 		}
 		if( set )
 			_setFields.set( type );
 		return set;
 	}
-	bool Tick::SetDouble( ETickType type, double value )noexcept
+	α Tick::SetDecimal( ETickType type, Decimal value )noexcept->bool
+	{
+		bool set{ true };
+		if( type==ETickType::BidSize ) BidSize	= value;
+		else if( type==ETickType::AskSize )  AskSize = value;
+		else if( type==ETickType::LastSize )  LastSize = value;
+		else if( type==ETickType::Volume )  Volume = value;
+		else if( type==ETickType::AverageVolume ) AverageVolume = value;
+		else if( type==ETickType::ShortableShares ) ShortableShares = value;
+		else set = false;
+		ASSERT( set );
+		return set;
+	}
+	α Tick::SetDouble( ETickType type, double value )noexcept->bool
 	{
 		bool set{ true };
 		switch( type )
 		{
+		//case ETickType::BidSize: BidSize = value; break;
+		//case ETickType::AskSize: AskSize = value; break;
+		//case ETickType::LastSize: LastSize = value; break;
+		//case ETickType::Volume: Volume = value; break;
 		case ETickType::OPTION_BID_EXCH: OPTION_BID_EXCH = value; break;
 		case ETickType::OPTION_ASK_EXCH: OPTION_ASK_EXCH = value; break;
 		case ETickType::INDEX_FUTURE_PREMIUM: INDEX_FUTURE_PREMIUM = value; break;
@@ -151,7 +169,7 @@ namespace Jde::Markets
 		case ETickType::DELAYED_LAST_OPTION_COMPUTATION: DELAYED_LAST_OPTION_COMPUTATION = value; break;
 		case ETickType::DELAYED_MODEL_OPTION_COMPUTATION: DELAYED_MODEL_OPTION_COMPUTATION = value; break;
 		default:
-			WARN( "Ticktype {} value {} is not a double."sv, type, value );
+			WARN( "Ticktype '{}' value '{}' is not a double."sv, Str::FromEnum(TickTypeStrings, type), value );
 			set = false;
 		}
 		if( set )
@@ -159,7 +177,7 @@ namespace Jde::Markets
 		return set;
 	}
 
-	bool Tick::SetOptionComputation( ETickType type, OptionComputation&& v )noexcept
+	α Tick::SetOptionComputation( ETickType type, OptionComputation&& v )noexcept->bool
 	{
 		bool set{ true };
 		switch( type )
@@ -169,7 +187,7 @@ namespace Jde::Markets
 		case ETickType::LAST_OPTION_COMPUTATION: LAST_OPTION_COMPUTATION = move( v ); break;
 		case ETickType::MODEL_OPTION: MODEL_OPTION = move( v ); break;
 		default:
-			WARN( "Ticktype {} is not a option comp."sv, type );
+			WARN( "Ticktype '{}' value '{}' is not a option comp."sv, Str::FromEnum(TickTypeStrings, type) );
 			set = false;
 		}
 		if( set )
@@ -185,7 +203,7 @@ namespace Jde::Markets
 		Proto::Results::MessageUnion msg;
 		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
 		//auto sizeInt  = [type, &msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
-		auto size  = [type, &msg, id=ContractId](long long v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( (int)v ); msg.set_allocated_tick_size(p.release()); };
+		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( ToDouble(v) ); msg.set_allocated_tick_size(p.release()); };
 		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
 		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
 		auto option  = [type, &msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
@@ -204,7 +222,7 @@ namespace Jde::Markets
 		case ETickType::AskExchange: stng( AskExchange ); break;
 		case ETickType::LastExchange: stng( LastExchange ); break;
 
-		case ETickType::AverageVolume: size( (int)AverageVolume ); break;
+		case ETickType::AverageVolume: size( AverageVolume ); break;
 		case ETickType::OPEN_INTEREST: size( (int)OPEN_INTEREST ); break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: size( (int)OPTION_CALL_OPEN_INTEREST ); break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: size( (int)OPTION_PUT_OPEN_INTEREST ); break;
@@ -230,7 +248,7 @@ namespace Jde::Markets
 		case ETickType::FUTURES_OPEN_INTEREST: size( (int)FUTURES_OPEN_INTEREST ); break;
 		case ETickType::AVG_OPT_VOLUME: size( (int)AVG_OPT_VOLUME ); break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: size( (int)DELAYED_LAST_TIMESTAMP ); break;
-		case ETickType::SHORTABLE_SHARES: size( (int)SHORTABLE_SHARES ); break;
+		case ETickType::ShortableShares: size( ShortableShares ); break;
 		case ETickType::NOT_SET: size( NOT_SET ); break;
 
 		case ETickType::LastSize: size( LastSize ); break;
@@ -290,7 +308,7 @@ namespace Jde::Markets
 		case ETickType::LAST_OPTION_COMPUTATION: option( LAST_OPTION_COMPUTATION ); break;
 		case ETickType::MODEL_OPTION: option( MODEL_OPTION ); break;
 		default:
-			WARN( "Ticktype {} is not defined for proto."sv, type );
+			WARN( "Ticktype '{}' is not defined for proto."sv, Str::FromEnum(TickTypeStrings, type) );
 		}
 		return msg;
 	}
@@ -351,7 +369,7 @@ namespace Jde::Markets
 		case ETickType::FUTURES_OPEN_INTEREST: result = FUTURES_OPEN_INTEREST; break;
 		case ETickType::AVG_OPT_VOLUME: result = AVG_OPT_VOLUME; break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: result = DELAYED_LAST_TIMESTAMP; break;
-		case ETickType::SHORTABLE_SHARES: result = SHORTABLE_SHARES; break;
+		case ETickType::ShortableShares: result = ShortableShares; break;
 		case ETickType::NOT_SET: result = NOT_SET; break;
 
 		case ETickType::LastSize: result = LastSize; break;
@@ -414,16 +432,16 @@ namespace Jde::Markets
 		case ETickType::MODEL_OPTION: result = MODEL_OPTION; break;
 
 		default:
-			WARN( "Ticktype {} is not defined for Variant."sv, type );
+			WARN( "Ticktype {} is not defined for Variant."sv, Str::FromEnum(TickTypeStrings, type) );
 		}
 		return result;
 	}
-	bool Tick::FieldEqual( const Tick& other, ETickType tick )const noexcept
+	α Tick::FieldEqual( const Tick& other, ETickType tick )const noexcept->bool
 	{
 		return Variant( tick )==other.Variant( tick );
 	}
 
-	bool Tick::HasRatios()const noexcept
+	α Tick::HasRatios()const noexcept->bool
 	{
 		return _setFields[ETickType::FUNDAMENTAL_RATIOS];
 	}

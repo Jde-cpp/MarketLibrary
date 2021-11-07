@@ -4,6 +4,8 @@
 	#define TWSAPIDLLEXP __declspec( dllimport )
 #pragma push_macro("assert")
 #undef assert
+#pragma warning(push)
+#pragma warning( disable : 4267 )
 #include <platformspecific.h>
 #pragma pop_macro("assert")
 #else
@@ -12,4 +14,6 @@
 
 #include <Contract.h>
 #include <Execution.h>
+#include <jde/markets/TypeDefs.h>
+#pragma warning(pop)
 #include "../../Framework/source/DateTime.h"

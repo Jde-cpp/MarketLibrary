@@ -1,4 +1,4 @@
-#include "WrapperLog.h"
+﻿#include "WrapperLog.h"
 #include <CommissionReport.h>
 #include "../../../Framework/source/Cache.h"
 #include "../OrderManager.h"
@@ -6,70 +6,73 @@
 
 #define var const auto
 #define _client auto pClient = TwsClient::InstancePtr(); if( pClient ) (*pClient)
+
 namespace Jde::Markets
 {
 	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 
-	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
-	ELogLevel WrapperLog::_historicalLevel{ Logging::TagLevel("wrapperHist", [](auto l){ WrapperLog::SetHistoricalLevel(l);}) };
-	ELogLevel WrapperLog::_tickLevel{ Logging::TagLevel("wrapperTick", [](auto l){ WrapperLog::SetTickLevel(l);}) };
+//	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
+	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("wrapper") };
+	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("wrapperHist") };
+	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("wrapperTick") };
 
 	bool WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept
 	{
 		WrapperLog::error( id, errorCode, errorMsg );
 		return id==-1 || _pTickWorker->HandleError( id, errorCode, errorMsg );
 	}
-	void WrapperLog::error( int id, int errorCode, str errorMsg )noexcept
+	α WrapperLog::error( int id, int errorCode, str errorMsg )noexcept->void
 	{
-		LOG_IFL( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
-		LOG_IFL( errorCode!=2106, _logLevel, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
+		LOG_IFT( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
+		LOG_IF( errorCode!=2106, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
 		LOG_IFL( errorCode==509, ELogLevel::Error, "Disconnected:  {} - {}", errorCode, errorMsg );
 	}
-	void WrapperLog::connectAck()noexcept{ LOG( _logLevel, "WrapperLog::connectAck()"); }
+	α WrapperLog::connectAck()noexcept->void{ LOG( "WrapperLog::connectAck()"); }
 
-	void WrapperLog::connectionClosed()noexcept { LOG(_logLevel, "WrapperLog::connectionClosed()"); }
-	void WrapperLog::bondContractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept  { LOG( _logLevel, "WrapperLog::bondContractDetails( {}, {} )", reqId, contractDetails.contract.conId); }
-	void WrapperLog::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
+	α WrapperLog::connectionClosed()noexcept->void{ LOG( "WrapperLog::connectionClosed()" ); }
+	α WrapperLog::bondContractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void{ LOG( "WrapperLog::bondContractDetails( {}, {} )", reqId, contractDetails.contract.conId); }
+	α WrapperLog::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
 	{
-		LOG( _logLevel, "({})WrapperLog::contractDetails( '{}', '{}', '{}', '{}', '{}' )", reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
+		LOG( "({})WrapperLog::contractDetails( '{}', '{}', '{}', '{}', '{}' )", reqId, contractDetails.contract.conId, contractDetails.contract.localSymbol, contractDetails.contract.symbol, contractDetails.contract.right, contractDetails.realExpirationDate );
 	}
-	void WrapperLog::contractDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "({})WrapperLog::contractDetailsEnd()", reqId ); }
-	void WrapperLog::execDetails( int reqId, const ::Contract& contract, const Execution& execution )noexcept{ LOG( _logLevel, "({})WrapperLog::execDetails( {}, {}, {}, {}, {} )", reqId, contract.symbol, execution.acctNumber, execution.side, execution.shares, execution.price );	}
-	void WrapperLog::execDetailsEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::execDetailsEnd( {} )", reqId ); }
-	void WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )noexcept
+	α WrapperLog::contractDetailsEnd( int reqId )noexcept->void{ LOG( "({})WrapperLog::contractDetailsEnd()", reqId ); }
+	α WrapperLog::execDetails( int reqId, const ::Contract& contract, const Execution& execution )noexcept->void{ LOG( "({})WrapperLog::execDetails( {}, {}, {}, {}, {} )", reqId, contract.symbol, execution.acctNumber, execution.side, execution.shares, execution.price );	}
+	α WrapperLog::execDetailsEnd( int reqId )noexcept->void{ LOG( "WrapperLog::execDetailsEnd( {} )", reqId ); }
+	α WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )noexcept->void
 	{
-		LOG( _historicalLevel, "({})WrapperLog::historicalData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
+		LOGT( _historicalLevel, "({})WrapperLog::historicalData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
 	}
-	void WrapperLog::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
+	α WrapperLog::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void
 	{
 		_historicalDataRequests.erase( reqId );
 		var size = _historicalDataRequests.size();
-		var format = startDateStr.size() || endDateStr.size() ? "({}){}WrapperLog::historicalDataEnd( {}, {} )"sv : "({})WrapperLog::historicalDataEnd(){}"sv;
-		LOGS( _historicalLevel, string{format}, reqId, size, startDateStr, endDateStr );
-
+		if( startDateStr.size() || endDateStr.size() )
+			LOGT( _historicalLevel, "({}){}WrapperLog::historicalDataEnd( {}, {} )", reqId, size, startDateStr, endDateStr );
+		else
+			LOGT( _historicalLevel, "({})WrapperLog::historicalDataEnd(){}", reqId, size, startDateStr, endDateStr );
 	}
-	void WrapperLog::managedAccounts( str accountsList )noexcept{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
-	void WrapperLog::nextValidId( ::OrderId orderId )noexcept{ LOG( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )", orderId ); }
+	α WrapperLog::managedAccounts( str accountsList )noexcept->void{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
+	α WrapperLog::nextValidId( ::OrderId orderId )noexcept->void{ LOGL( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )", orderId ); }
 #pragma region Order
-	void WrapperLog::orderStatus( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept
+	α WrapperLog::orderStatus( ::OrderId orderId, str status, ::Decimal filled, ::Decimal remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void
 	{
-		OrderManager::Push( orderId, status, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice );
+		OrderManager::Push( orderId, status, ToDouble(filled), ToDouble(remaining), avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice );
 		DBG( "WrapperLog::orderStatus( {}, {}, {}/{} )"sv, orderId, status, filled, filled+remaining );
 	}
-	string toString( const ::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice ); };
-	void WrapperLog::openOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept
+	α toString( const ::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice ); };
+	α WrapperLog::openOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept->void
 	{
 		OrderManager::Push( order, contract, orderState );
-		LOG( _logLevel, "WrapperLog::openOrder( {}, {}@{}, {} )", orderId, contract.symbol, toString(order), orderState.status );
+		LOG( "WrapperLog::openOrder( {}, {}@{}, {} )", orderId, contract.symbol, toString(order), orderState.status );
 	}
-	void WrapperLog::openOrderEnd()noexcept{ LOG( _logLevel, "WrapperLog::openOrderEnd()"); }
+	α WrapperLog::openOrderEnd()noexcept->void{ LOG( "WrapperLog::openOrderEnd()"); }
 #pragma endregion
-	void WrapperLog::realtimeBar( TickerId reqId, long time, double open, double high, double low, double close, long volume, double wap, int count )noexcept{}
-	void WrapperLog::receiveFA(faDataType pFaDataType, str cxml)noexcept{ LOG( _logLevel, "WrapperLog::receiveFA( {}, {} )", pFaDataType, cxml); }
-	void WrapperLog::tickByTickAllLast(int reqId, int tickType, time_t time, double price, long long /*size*/, const TickAttribLast& /*attribs*/, str /*exchange*/, str /*specialConditions*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickAllLast( {}, {}, {}, {} )", reqId, tickType, time, price);  }
-	void WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, long long /*bidSize*/, long long /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )", reqId, time, bidPrice, askPrice); }
-	void WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept{ LOG( _logLevel, "WrapperLog::tickByTickMidPoint( {}, {}, {} )", reqId, time, midPoint); }
-	void WrapperLog::tickReqParams( int tickerId, double minTick, str bboExchange, int snapshotPermissions )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )", tickerId, minTick, bboExchange, snapshotPermissions ); }
+	α WrapperLog::realtimeBar( TickerId reqId, long time, double open, double high, double low, double close, ::Decimal volume, ::Decimal wap, int count )noexcept->void{}
+	α WrapperLog::receiveFA(faDataType pFaDataType, str cxml)noexcept->void{ LOG( "WrapperLog::receiveFA( {}, {} )", pFaDataType, cxml); }
+	α WrapperLog::tickByTickAllLast(int reqId, int tickType, time_t time, double price, ::Decimal /*size*/, const TickAttribLast& /*attribs*/, str /*exchange*/, str /*specialConditions*/)noexcept->void{ LOG( "WrapperLog::tickByTickAllLast( {}, {}, {}, {} )", reqId, tickType, time, price);  }
+	α WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, ::Decimal /*bidSize*/, ::Decimal /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept->void{ LOG( "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )", reqId, time, bidPrice, askPrice); }
+	α WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept->void{ LOG( "WrapperLog::tickByTickMidPoint( {}, {}, {} )", reqId, time, midPoint); }
+	α WrapperLog::tickReqParams( int tickerId, double minTick, str bboExchange, int snapshotPermissions )noexcept->void{ LOGL( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )", tickerId, minTick, bboExchange, snapshotPermissions ); }
 	bool WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
@@ -85,22 +88,22 @@ namespace Jde::Markets
 		accountValues[string{key}] = make_tuple( string{val}, string{currency} );
 		return haveCallback;
 	}
-	void WrapperLog::updateAccountValue( str key, str val, str currency, str accountName )noexcept
+	α WrapperLog::updateAccountValue( str key, str val, str currency, str accountName )noexcept->void
 	{
-		LOG( _logLevel, "updateAccountValue( {}, {}, {}, {} )", key, val, currency, accountName );
+		LOG( "updateAccountValue( {}, {}, {}, {} )", key, val, currency, accountName );
 		updateAccountValue2( key, val, currency, accountName );
 	}
-	void WrapperLog::accountDownloadEnd( str accountName )noexcept
+	α WrapperLog::accountDownloadEnd( str accountName )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::accountDownloadEnd( {} )", accountName);
+		LOG( "WrapperLog::accountDownloadEnd( {} )", accountName);
 		shared_lock l{ _accountUpdateCallbackMutex };
 		if( auto p  = _accountUpdateCallbacks.find(accountName); p!=_accountUpdateCallbacks.end() )
 			std::for_each( p->second.begin(), p->second.end(), [&](auto& x){ x.second->AccountDownloadEnd(accountName); } );
 	}
 
-	void WrapperLog::updatePortfolio( const ::Contract& contract, double position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, str accountNumber )noexcept
+	α WrapperLog::updatePortfolio( const ::Contract& contract, ::Decimal position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, str accountNumber )noexcept->void
 	{
-		LOG( ELogLevel::Trace, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )", contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountNumber);
+		LOGL( ELogLevel::Trace, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )", contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountNumber);
 		Proto::Results::PortfolioUpdate update;
 		unique_lock l{ _accountUpdateCallbackMutex };
 		auto p  = _accountUpdateCallbacks.find( string{accountNumber} );
@@ -108,13 +111,13 @@ namespace Jde::Markets
 		{
 			if( p!=_accountUpdateCallbacks.end() )
 				_accountPortfolioUpdates.erase( string{accountNumber} );
-			LOG( ELogLevel::Trace, "WrapperLog::updatePortfolio - no callbacks canceling" );
+			LOGL( ELogLevel::Trace, "WrapperLog::updatePortfolio - no callbacks canceling" );
 			return TwsClient::CancelAccountUpdates( accountNumber, 0 );
 		}
 
 		Contract myContract{ contract };
 		update.set_allocated_contract( myContract.ToProto(true).get() );
-		update.set_position( position );
+		update.set_position( ToDouble(position) );
 		update.set_market_price( marketPrice );
 		update.set_market_value( marketValue );
 		update.set_average_cost( averageCost );
@@ -136,106 +139,106 @@ namespace Jde::Markets
 		std::for_each( p->second.begin(), p->second.end(), [&](auto x){ x.second->PortfolioUpdate(update); } );
 		_accountPortfolioUpdates[accountNumber][contract.conId]=update;
 	}
-	void WrapperLog::updateAccountTime(str timeStamp)noexcept{ LOG( ELogLevel::Trace, "WrapperLog::updateAccountTime( {} )", timeStamp); }
-	void WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, long long /*size*/)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepth( {}, {}, {}, {} )", id, position, operation, side); }
-	void WrapperLog::updateMktDepthL2(TickerId id, int position, str marketMaker, int operation, int /*side*/, double /*price*/, long long /*size*/, bool isSmartDepth)noexcept{ LOG( _logLevel, "WrapperLog::updateMktDepthL2( {}, {}, {}, {}, {} )", id, position, marketMaker, operation, isSmartDepth); }
-	void WrapperLog::updateNewsBulletin(int msgId, int msgType, str newsMessage, str originExch)noexcept{ LOG( _logLevel, "WrapperLog::updateNewsBulletin( {}, {}, {}, {} )", msgId, msgType, newsMessage, originExch); }
-	void WrapperLog::scannerParameters(str xml)noexcept{ LOG( _logLevel, "WrapperLog::scannerDataEnd( {} )", xml ); }
-	void WrapperLog::scannerData(int reqId, int rank, const ::ContractDetails& contractDetails, str distance, str /*benchmark*/, str /*projection*/, str /*legsStr*/)noexcept{ LOG( _logLevel, "WrapperLog::scannerData( {}, {}, {}, {} )", reqId, rank, contractDetails.contract.conId, distance ); }
-	void WrapperLog::scannerDataEnd(int reqId)noexcept{ LOG( _logLevel, "WrapperLog::scannerDataEnd( {} )", reqId ); }
-	void WrapperLog::currentTime( long time )noexcept
+	α WrapperLog::updateAccountTime(str timeStamp)noexcept->void{ LOGL( ELogLevel::Trace, "WrapperLog::updateAccountTime( {} )", timeStamp); }
+	α WrapperLog::updateMktDepth(TickerId id, int position, int operation, int side, double /*price*/, ::Decimal /*size*/)noexcept->void{ LOG( "WrapperLog::updateMktDepth( {}, {}, {}, {} )", id, position, operation, side); }
+	α WrapperLog::updateMktDepthL2(TickerId id, int position, str marketMaker, int operation, int /*side*/, double /*price*/, ::Decimal /*size*/, bool isSmartDepth)noexcept->void{ LOG( "WrapperLog::updateMktDepthL2( {}, {}, {}, {}, {} )", id, position, marketMaker, operation, isSmartDepth); }
+	α WrapperLog::updateNewsBulletin(int msgId, int msgType, str newsMessage, str originExch)noexcept->void{ LOG( "WrapperLog::updateNewsBulletin( {}, {}, {}, {} )", msgId, msgType, newsMessage, originExch); }
+	α WrapperLog::scannerParameters(str xml)noexcept->void{ LOG( "WrapperLog::scannerDataEnd( {} )", xml ); }
+	α WrapperLog::scannerData(int reqId, int rank, const ::ContractDetails& contractDetails, str distance, str /*benchmark*/, str /*projection*/, str /*legsStr*/)noexcept->void{ LOG( "WrapperLog::scannerData( {}, {}, {}, {} )", reqId, rank, contractDetails.contract.conId, distance ); }
+	α WrapperLog::scannerDataEnd(int reqId)noexcept->void{ LOG( "WrapperLog::scannerDataEnd( {} )", reqId ); }
+	α WrapperLog::currentTime( long time )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::currentTime( {} )", ToIsoString(Clock::from_time_t(time)) );
+		LOG( "WrapperLog::currentTime( {} )", ToIsoString(Clock::from_time_t(time)) );
 	}
-	void WrapperLog::accountSummaryEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::accountSummaryEnd( {} )", reqId ); }
-	void WrapperLog::positionMultiEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::positionMultiEnd( {} )", reqId ); }
+	α WrapperLog::accountSummaryEnd( int reqId )noexcept->void{ LOG( "WrapperLog::accountSummaryEnd( {} )", reqId ); }
+	α WrapperLog::positionMultiEnd( int reqId )noexcept->void{ LOG( "WrapperLog::positionMultiEnd( {} )", reqId ); }
 #pragma region accountUpdateMulti
-	void WrapperLog::accountUpdateMulti( int reqId, str account, str modelCode, str key, str value, str currency )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::accountUpdateMulti( {}, {}, {}, {}, {}, {} )", reqId, account, modelCode, key, value, currency ); }
-	void WrapperLog::accountUpdateMultiEnd( int reqId )noexcept{ LOG( ELogLevel::Trace, "WrapperLog::accountUpdateMultiEnd( {} )", reqId ); }
+	α WrapperLog::accountUpdateMulti( int reqId, str account, str modelCode, str key, str value, str currency )noexcept->void{ LOGL( ELogLevel::Trace, "WrapperLog::accountUpdateMulti( {}, {}, {}, {}, {}, {} )", reqId, account, modelCode, key, value, currency ); }
+	α WrapperLog::accountUpdateMultiEnd( int reqId )noexcept->void{ LOGL( ELogLevel::Trace, "WrapperLog::accountUpdateMultiEnd( {} )", reqId ); }
 #pragma endregion
-	void WrapperLog::securityDefinitionOptionalParameter(int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept
+	α WrapperLog::securityDefinitionOptionalParameter(int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameter( {}, '{}', {}, '{}', {}, {}, {} )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() );
+		LOG( "WrapperLog::securityDefinitionOptionalParameter( {}, '{}', {}, '{}', {}, {}, {} )", reqId, exchange, underlyingConId, tradingClass, multiplier, expirations.size(), strikes.size() );
 	}
-	void WrapperLog::securityDefinitionOptionalParameterEnd( int reqId )noexcept{ LOG( _logLevel, "WrapperLog::securityDefinitionOptionalParameterEnd( {} )", reqId ); }
-	void WrapperLog::fundamentalData(TickerId reqId, str data)noexcept{ LOG( _logLevel, "WrapperLog::fundamentalData( {}, {} )", reqId, data ); }
-	void WrapperLog::deltaNeutralValidation(int reqId, const ::DeltaNeutralContract& deltaNeutralContract)noexcept{ LOG( _logLevel, "WrapperLog::deltaNeutralValidation({},{})", reqId, deltaNeutralContract.conId); }
-	void WrapperLog::marketDataType( TickerId tickerId, int marketDataType )noexcept{ }
-	void WrapperLog::commissionReport( const CommissionReport& commissionReport )noexcept{ LOG( _logLevel, "WrapperLog::commissionReport( {} )", commissionReport.commission ); }
+	α WrapperLog::securityDefinitionOptionalParameterEnd( int reqId )noexcept->void{ LOG( "WrapperLog::securityDefinitionOptionalParameterEnd( {} )", reqId ); }
+	α WrapperLog::fundamentalData(TickerId reqId, str data)noexcept->void{ LOG( "WrapperLog::fundamentalData( {}, {} )", reqId, data ); }
+	α WrapperLog::deltaNeutralValidation(int reqId, const ::DeltaNeutralContract& deltaNeutralContract)noexcept->void{ LOG( "WrapperLog::deltaNeutralValidation({},{})", reqId, deltaNeutralContract.conId); }
+	α WrapperLog::marketDataType( TickerId tickerId, int marketDataType )noexcept->void{ }
+	α WrapperLog::commissionReport( const CommissionReport& commissionReport )noexcept->void{ LOG( "WrapperLog::commissionReport( {} )", commissionReport.commission ); }
 #pragma region Poision
-	void WrapperLog::position( str account, const ::Contract& contract, double position, double avgCost )noexcept{ LOG( _logLevel, "WrapperLog::position( {}, {}, {}, {}, {} )", account, contract.conId, contract.symbol, position, avgCost ); }
-	void WrapperLog::positionEnd()noexcept{ LOG( _logLevel, "WrapperLog::positionEnd()" ); }
+	α WrapperLog::position( str account, const ::Contract& contract, ::Decimal position, double avgCost )noexcept->void{ LOG( "WrapperLog::position( {}, {}, {}, {}, {} )", account, contract.conId, contract.symbol, position, avgCost ); }
+	α WrapperLog::positionEnd()noexcept->void{ LOG( "WrapperLog::positionEnd()" ); }
 #pragma endregion
-	void WrapperLog::accountSummary( int reqId, str account, str tag, str value, str /*curency*/)noexcept{ LOG( _logLevel, "WrapperLog::accountSummary({},{},{},{})", reqId, account, tag, value); }
-	void WrapperLog::verifyMessageAPI( str apiData )noexcept{ LOG( _logLevel, "WrapperLog::verifyMessageAPI({})", apiData); }
-	void WrapperLog::verifyCompleted( bool isSuccessful, str errorText)noexcept{ LOG( _logLevel, "WrapperLog::verifyCompleted( {},{} )", isSuccessful, errorText); }
-	void WrapperLog::displayGroupList( int reqId, str groups )noexcept{ LOG( _logLevel, "WrapperLog::displayGroupList( {}, {} )", reqId, groups); }
-	void WrapperLog::displayGroupUpdated( int reqId, str contractInfo )noexcept{ LOG( _logLevel, "WrapperLog::displayGroupUpdated( {},{} )", reqId, contractInfo); }
-	void WrapperLog::verifyAndAuthMessageAPI( str apiData, str xyzChallange)noexcept{ LOG( _logLevel, "WrapperLog::verifyAndAuthMessageAPI({},{})", apiData, xyzChallange); }
+	α WrapperLog::accountSummary( int reqId, str account, str tag, str value, str /*curency*/)noexcept->void{ LOG( "WrapperLog::accountSummary({},{},{},{})", reqId, account, tag, value); }
+	α WrapperLog::verifyMessageAPI( str apiData )noexcept->void{ LOG( "WrapperLog::verifyMessageAPI({})", apiData); }
+	α WrapperLog::verifyCompleted( bool isSuccessful, str errorText)noexcept->void{ LOG( "WrapperLog::verifyCompleted( {},{} )", isSuccessful, errorText); }
+	α WrapperLog::displayGroupList( int reqId, str groups )noexcept->void{ LOG( "WrapperLog::displayGroupList( {}, {} )", reqId, groups); }
+	α WrapperLog::displayGroupUpdated( int reqId, str contractInfo )noexcept->void{ LOG( "WrapperLog::displayGroupUpdated( {},{} )", reqId, contractInfo); }
+	α WrapperLog::verifyAndAuthMessageAPI( str apiData, str xyzChallange)noexcept->void{ LOG( "WrapperLog::verifyAndAuthMessageAPI({},{})", apiData, xyzChallange); }
 
-	void WrapperLog::verifyAndAuthCompleted( bool isSuccessful, str errorText)noexcept{ LOG( _logLevel, "WrapperLog::position( {}, {} )", isSuccessful, errorText); }
-	void WrapperLog::positionMulti( int reqId, str account,str modelCode, const ::Contract& contract, double /*pos*/, double /*avgCost*/)noexcept{ LOG( _logLevel, "WrapperLog::positionMulti( {}, {}, {}, {} )", reqId, account, modelCode, contract.conId); }
-	void WrapperLog::softDollarTiers(int reqId, const std::vector<SoftDollarTier> &tiers)noexcept{ LOG( _logLevel, "WrapperLog::softDollarTiers( {}, {} )", reqId, tiers.size()); }
-	void WrapperLog::familyCodes(const std::vector<FamilyCode> &familyCodes)noexcept{ LOG( _logLevel, "WrapperLog::familyCodes( {} )", familyCodes.size()); }
-	void WrapperLog::symbolSamples(int reqId, const std::vector<::ContractDescription> &contractDescriptions)noexcept{ LOG( _logLevel, "WrapperLog::symbolSamples( {}, {} )", reqId, contractDescriptions.size()); }
-	void WrapperLog::mktDepthExchanges(const std::vector<DepthMktDataDescription> &depthMktDataDescriptions)noexcept{ LOG( _logLevel, "WrapperLog::mktDepthExchanges( {} )", depthMktDataDescriptions.size()); }
-	void WrapperLog::smartComponents(int reqId, const SmartComponentsMap& theMap)noexcept{ LOG( _logLevel, "WrapperLog::smartComponents( {}, {} )", reqId, theMap.size()); }
-	void WrapperLog::newsProviders(const std::vector<NewsProvider> &newsProviders)noexcept{ LOG( _logLevel, "WrapperLog::newsProviders( {} )", newsProviders.size()); }
-	void WrapperLog::newsArticle(int requestId, int articleType, str articleText)noexcept{ LOG( _logLevel, "WrapperLog::newsArticle( {}, {}, {} )", requestId, articleType, articleText); }
-	void WrapperLog::historicalNews(int requestId, str time, str providerCode, str articleId, str /*headline*/)noexcept{ LOG( _logLevel, "WrapperLog::historicalNews( {}, {}, {}, {} )", requestId, time, providerCode, articleId); }
-	void WrapperLog::historicalNewsEnd(int requestId, bool hasMore)noexcept{ LOG( _logLevel, "WrapperLog::historicalNewsEnd( {}, {} )", requestId, hasMore); }
-	void WrapperLog::headTimestamp(int reqId, str headTimestamp)noexcept{ LOG( _logLevel, "WrapperLog::headTimestamp( {}, {} )", reqId, headTimestamp); }
-	void WrapperLog::histogramData(int reqId, const HistogramDataVector& data)noexcept{ LOG( _logLevel, "WrapperLog::histogramData( {}, {} )", reqId, data.size()); }
-	void WrapperLog::historicalDataUpdate(TickerId reqId, const ::Bar& bar)noexcept{ LOG( _logLevel, "WrapperLog::historicalDataUpdate( {}, {} )", reqId, bar.time); }
-	void WrapperLog::rerouteMktDataReq(int reqId, int conid, str exchange)noexcept{ LOG( _logLevel, "WrapperLog::rerouteMktDataReq( {}, {}, {} )", reqId, conid, exchange); }
-	void WrapperLog::rerouteMktDepthReq(int reqId, int conid, str exchange)noexcept{ LOG( _logLevel, "WrapperLog::rerouteMktDepthReq( {}, {}, {} )", reqId, conid, exchange); }
-	void WrapperLog::marketRule(int marketRuleId, const std::vector<PriceIncrement> &priceIncrements)noexcept{ LOG( _logLevel, "WrapperLog::marketRule( {}, {} )", marketRuleId, priceIncrements.size()); }
-	void WrapperLog::pnl(int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL)noexcept{ LOG( _logLevel, "WrapperLog::pnl( {}, {}, {}, {} )", reqId, dailyPnL, unrealizedPnL, realizedPnL); }
-	void WrapperLog::pnlSingle(int reqId, int pos, double dailyPnL, double unrealizedPnL, double /*realizedPnL*/, double /*value*/)noexcept{ LOG( _logLevel, "WrapperLog::pnlSingle( {}, {}, {}, {} )", reqId, pos, dailyPnL, unrealizedPnL); }
-	void WrapperLog::historicalTicks(int reqId, const std::vector<HistoricalTick>& ticks, bool done)noexcept{ LOG( _logLevel, "WrapperLog::historicalTicks( {}, {}, {} )", reqId, ticks.size(), done); }
-	void WrapperLog::historicalTicksBidAsk( int reqId, const std::vector<HistoricalTickBidAsk>& ticks, bool done )noexcept{ LOG( _logLevel, "WrapperLog::historicalTicksBidAsk( {}, {}, {} )", reqId, ticks.size(), done); }
-	void WrapperLog::historicalTicksLast( int reqId, const std::vector<HistoricalTickLast>& ticks, bool done )noexcept{ LOG( _logLevel, "WrapperLog::position( {}, {}, {} )", reqId, ticks.size(), done ); }
-	void WrapperLog::tickEFP( TickerId tickerId, TickType tickType, double basisPoints, str formattedBasisPoints, double /*totalDividends*/, int /*holdDays*/, str /*futureLastTradeDate*/, double /*dividendImpact*/, double /*dividendsToLastTradeDate*/ )noexcept{ LOG( _logLevel, "WrapperLog::tickEFP( {}, {}, {}, {} )", tickerId, tickType, basisPoints, formattedBasisPoints ); }
-	void WrapperLog::tickGeneric( TickerId t, TickType type, double v )noexcept
+	α WrapperLog::verifyAndAuthCompleted( bool isSuccessful, str errorText)noexcept->void{ LOG( "WrapperLog::position( {}, {} )", isSuccessful, errorText); }
+	α WrapperLog::positionMulti( int reqId, str account,str modelCode, const ::Contract& contract, ::Decimal /*pos*/, double /*avgCost*/)noexcept->void{ LOG( "WrapperLog::positionMulti( {}, {}, {}, {} )", reqId, account, modelCode, contract.conId); }
+	α WrapperLog::softDollarTiers(int reqId, const std::vector<SoftDollarTier> &tiers)noexcept->void{ LOG( "WrapperLog::softDollarTiers( {}, {} )", reqId, tiers.size()); }
+	α WrapperLog::familyCodes(const std::vector<FamilyCode> &familyCodes)noexcept->void{ LOG( "WrapperLog::familyCodes( {} )", familyCodes.size()); }
+	α WrapperLog::symbolSamples(int reqId, const std::vector<::ContractDescription> &contractDescriptions)noexcept->void{ LOG( "WrapperLog::symbolSamples( {}, {} )", reqId, contractDescriptions.size()); }
+	α WrapperLog::mktDepthExchanges(const std::vector<DepthMktDataDescription> &depthMktDataDescriptions)noexcept->void{ LOG( "WrapperLog::mktDepthExchanges( {} )", depthMktDataDescriptions.size()); }
+	α WrapperLog::smartComponents(int reqId, const SmartComponentsMap& theMap)noexcept->void{ LOG( "WrapperLog::smartComponents( {}, {} )", reqId, theMap.size()); }
+	α WrapperLog::newsProviders(const std::vector<NewsProvider> &newsProviders)noexcept->void{ LOG( "WrapperLog::newsProviders( {} )", newsProviders.size()); }
+	α WrapperLog::newsArticle(int requestId, int articleType, str articleText)noexcept->void{ LOG( "WrapperLog::newsArticle( {}, {}, {} )", requestId, articleType, articleText); }
+	α WrapperLog::historicalNews(int requestId, str time, str providerCode, str articleId, str /*headline*/)noexcept->void{ LOG( "WrapperLog::historicalNews( {}, {}, {}, {} )", requestId, time, providerCode, articleId); }
+	α WrapperLog::historicalNewsEnd(int requestId, bool hasMore)noexcept->void{ LOG( "WrapperLog::historicalNewsEnd( {}, {} )", requestId, hasMore); }
+	α WrapperLog::headTimestamp(int reqId, str headTimestamp)noexcept->void{ LOG( "WrapperLog::headTimestamp( {}, {} )", reqId, headTimestamp); }
+	α WrapperLog::histogramData(int reqId, const HistogramDataVector& data)noexcept->void{ LOG( "WrapperLog::histogramData( {}, {} )", reqId, data.size()); }
+	α WrapperLog::historicalDataUpdate(TickerId reqId, const ::Bar& bar)noexcept->void{ LOG( "WrapperLog::historicalDataUpdate( {}, {} )", reqId, bar.time); }
+	α WrapperLog::rerouteMktDataReq(int reqId, int conid, str exchange)noexcept->void{ LOG( "WrapperLog::rerouteMktDataReq( {}, {}, {} )", reqId, conid, exchange); }
+	α WrapperLog::rerouteMktDepthReq(int reqId, int conid, str exchange)noexcept->void{ LOG( "WrapperLog::rerouteMktDepthReq( {}, {}, {} )", reqId, conid, exchange); }
+	α WrapperLog::marketRule(int marketRuleId, const std::vector<PriceIncrement> &priceIncrements)noexcept->void{ LOG( "WrapperLog::marketRule( {}, {} )", marketRuleId, priceIncrements.size()); }
+	α WrapperLog::pnl(int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL)noexcept->void{ LOG( "WrapperLog::pnl( {}, {}, {}, {} )", reqId, dailyPnL, unrealizedPnL, realizedPnL); }
+	α WrapperLog::pnlSingle(int reqId, ::Decimal pos, double dailyPnL, double unrealizedPnL, double /*realizedPnL*/, double /*value*/)noexcept->void{ LOG( "WrapperLog::pnlSingle( {}, {}, {}, {} )", reqId, pos, dailyPnL, unrealizedPnL); }
+	α WrapperLog::historicalTicks(int reqId, const std::vector<HistoricalTick>& ticks, bool done)noexcept->void{ LOG( "WrapperLog::historicalTicks( {}, {}, {} )", reqId, ticks.size(), done); }
+	α WrapperLog::historicalTicksBidAsk( int reqId, const std::vector<HistoricalTickBidAsk>& ticks, bool done )noexcept->void{ LOG( "WrapperLog::historicalTicksBidAsk( {}, {}, {} )", reqId, ticks.size(), done); }
+	α WrapperLog::historicalTicksLast( int reqId, const std::vector<HistoricalTickLast>& ticks, bool done )noexcept->void{ LOG( "WrapperLog::position( {}, {}, {} )", reqId, ticks.size(), done ); }
+	α WrapperLog::tickEFP( TickerId tickerId, TickType tickType, double basisPoints, str formattedBasisPoints, double /*totalDividends*/, int /*holdDays*/, str /*futureLastTradeDate*/, double /*dividendImpact*/, double /*dividendsToLastTradeDate*/ )noexcept->void{ LOG( "WrapperLog::tickEFP( {}, {}, {}, {} )", tickerId, tickType, basisPoints, formattedBasisPoints ); }
+	α WrapperLog::tickGeneric( TickerId t, TickType type, double v )noexcept->void
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickGeneric( type='{}', value='{}' )", t, type, v );
+		LOGT( _tickLevel, "({})WrapperLog::tickGeneric( type='{}', value='{}' )", t, type, v );
 		_pTickWorker->PushPrice( t, (ETickType)type, v );
 	}
-	void WrapperLog::tickOptionComputation( TickerId t, TickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept
+	α WrapperLog::tickOptionComputation( TickerId t, TickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept->void
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickOptionComputation( type='{}', tickAttrib='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )", t, type, tickAttrib, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
+		LOGT( _tickLevel, "({})WrapperLog::tickOptionComputation( type='{}', tickAttrib='{}', impliedVol='{}', delta='{}', optPrice='{}', pvDividend='{}', gamma='{}', vega='{}', theta='{}', undPrice='{}' )", t, type, tickAttrib, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
 		_pTickWorker->Push( t, (ETickType)type, tickAttrib, impliedVol, delta, optPrice, pvDividend, gamma, vega, theta, undPrice );
 	}
-	void WrapperLog::tickPrice( TickerId t, TickType type, double v, const TickAttrib& attribs )noexcept
+	α WrapperLog::tickPrice( TickerId t, TickType type, double v, const TickAttrib& attribs )noexcept->void
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickPrice( type='{}', price='{}' )", t, type, v );
+		LOGT( _tickLevel, "({})WrapperLog::tickPrice( type='{}', price='{}' )", t, type, v );
 		_pTickWorker->PushPrice( t, (ETickType)type, v );
 	}
-	void WrapperLog::tickSize( TickerId t, TickType type, long long v )noexcept
+	α WrapperLog::tickSize( TickerId t, TickType type, ::Decimal v )noexcept->void
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickSize( type='{}', size='{}' )", t, type, v );
+		LOGT( _tickLevel, "({})WrapperLog::tickSize( type='{}', size='{}' )", t, type, v );
 		_pTickWorker->Push( t, (ETickType)type, v );
 	}
-	void WrapperLog::tickString( TickerId t, TickType type, str v )noexcept
+	α WrapperLog::tickString( TickerId t, TickType type, str v )noexcept->void
 	{
-		LOG( _tickLevel, "({})WrapperLog::tickString( type='{}', value='{}' )", t, type, v );
+		LOGT( _tickLevel, "({})WrapperLog::tickString( type='{}', value='{}' )", t, type, v );
 		_pTickWorker->Push( t, (ETickType)type, v );
 	}
-	void WrapperLog::tickNews( int tickerId, time_t timeStamp, str providerCode, str articleId, str headline, str extraData )noexcept
+	α WrapperLog::tickNews( int tickerId, time_t timeStamp, str providerCode, str articleId, str headline, str extraData )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::tickNews( {}, {}, {}, {} )", tickerId, timeStamp, providerCode, articleId);
+		LOG( "WrapperLog::tickNews( {}, {}, {}, {} )", tickerId, timeStamp, providerCode, articleId);
 		_pTickWorker->Push( tickerId, timeStamp, providerCode, articleId, headline, extraData );
 	}
-	void WrapperLog::tickSnapshotEnd( int t )noexcept{LOG( _tickLevel, "WrapperLog::tickSnapshotEnd( t='{}' )", t);}
-	void WrapperLog::winError( str str, int lastError)noexcept{ LOG( _logLevel, "({})noexcept{}.", lastError, str ); }
-	void WrapperLog::orderBound( long long orderId, int apiClientId, int apiOrderId )noexcept{ LOG( _logLevel, "WrapperLog::orderBound( {}, {}, {} )", orderId, apiClientId, apiOrderId ); }
-	void WrapperLog::completedOrder( const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept
+	α WrapperLog::tickSnapshotEnd( int t )noexcept->void{LOGT( _tickLevel, "WrapperLog::tickSnapshotEnd( t='{}' )", t);}
+	α WrapperLog::winError( str str, int lastError)noexcept->void{ LOG( "({})noexcept->void{}.", lastError, str ); }
+	α WrapperLog::orderBound( long long orderId, int apiClientId, int apiOrderId )noexcept->void{ LOG( "WrapperLog::orderBound( {}, {}, {} )", orderId, apiClientId, apiOrderId ); }
+	α WrapperLog::completedOrder( const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept->void
 	{
 		OrderManager::Push( order, contract, orderState );
 
-		LOG( _logLevel, "WrapperLog::openOrder( {}, {}@{}, {} )", contract.symbol, toString(order), orderState.status );
+		LOG( "WrapperLog::openOrder( {}, {}@{}, {} )", contract.symbol, toString(order), orderState.status );
 	}
-	void WrapperLog::completedOrdersEnd()noexcept{LOG( _logLevel, "WrapperLog::completedOrdersEnd()"); }
+	α WrapperLog::completedOrdersEnd()noexcept->void{LOG( "WrapperLog::completedOrdersEnd()"); }
 	Handle WrapperLog::_accountUpdateHandle{0};
 	tuple<uint,bool> WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept
 	{
@@ -275,12 +278,12 @@ namespace Jde::Markets
 		}
 		return cancel;
 	}
-	void WrapperLog::wshMetaData( int reqId, str dataJson )noexcept
+	α WrapperLog::wshMetaData( int reqId, str dataJson )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::wshMetaData( {}, {} )", reqId, dataJson );
+		LOG( "WrapperLog::wshMetaData( {}, {} )", reqId, dataJson );
 	}
-	void WrapperLog::wshEventData( int reqId, str dataJson )noexcept
+	α WrapperLog::wshEventData( int reqId, str dataJson )noexcept->void
 	{
-		LOG( _logLevel, "WrapperLog::wshEventData( {}, {} )", reqId, dataJson );
+		LOG( "WrapperLog::wshEventData( {}, {} )", reqId, dataJson );
 	}
 }

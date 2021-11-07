@@ -12,7 +12,7 @@ namespace Jde::Markets
 {
 	using namespace Chrono;
 	sp<TwsClient> TwsClient::_pInstance;
-	ELogLevel TwsClient::_logLevel{ ELogLevel::Debug };
+	const LogTag& TwsClient::_logLevel{ Logging::TagLevel("tws-requests") };
 	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		if( _pInstance )
@@ -57,7 +57,7 @@ namespace Jde::Markets
 
 	uint TwsClient::RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> callback )noexcept
 	{
-		LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )", true, acctCode );
+		LOG( "reqAccountUpdates( '{}', '{}' )", true, acctCode );
 		auto [handle,subscribe] = WrapperLogPtr()->AddAccountUpdate( acctCode, callback );
 		if( subscribe )
 		 	EClient::reqAccountUpdates( true, string{acctCode} );
@@ -66,35 +66,35 @@ namespace Jde::Markets
 	void TwsClient::CancelAccountUpdates( sv acctCode, Handle handle )noexcept
 	{
 		auto p = _pInstance; if( !p ) return;
-		LOG(_logLevel, "({})CancelAccountUpdates( '{}' )", handle, acctCode );
+		LOG( "({})CancelAccountUpdates( '{}' )", handle, acctCode );
 		if( p->WrapperLogPtr()->RemoveAccountUpdate( acctCode, handle) )
 		{
-			LOG(_logLevel, "reqAccountUpdates( '{}', '{}' )", false, acctCode );
+			LOG( "reqAccountUpdates( '{}', '{}' )", false, acctCode );
 			p->reqAccountUpdates( false, string{acctCode} );
 		}
 	}
 	void TwsClient::reqAccountUpdatesMulti( TickerId reqId, str account, str modelCode, bool ledgerAndNLV )noexcept
 	{
-		LOG( _logLevel, "({})reqAccountUpdatesMulti( {}, {}, {} )", reqId, account, modelCode, ledgerAndNLV );
+		LOG( "({})reqAccountUpdatesMulti( {}, {}, {} )", reqId, account, modelCode, ledgerAndNLV );
 		EClient::reqAccountUpdatesMulti( reqId, account, modelCode, ledgerAndNLV );
 	}
 	void TwsClient::reqExecutions( int reqId, const ExecutionFilter& filter )noexcept
 	{
-		LOG( _logLevel, "({})reqExecutions( {}, {}, {} )", reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
+		LOG( "({})reqExecutions( {}, {}, {} )", reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
 		EClient::reqExecutions( reqId, filter );
 	}
 	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
 	{
 		const DateTime endTime{ EndOfDay(FromDays(endDay)) };
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
-		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 	}
 	void TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
-		LOG( _logLevel, "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
+		LOG( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
 		if( send )
 		{
 			ASSERT( durationStr!="0 D" );
@@ -108,33 +108,33 @@ namespace Jde::Markets
 	}
 	void TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept
 	{
-		LOG( _logLevel, "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
+		LOG( "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
 	}
 
 	void TwsClient::reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol, sv futFopExchange, sv underlyingSecType )noexcept
 	{
-		LOG( _logLevel, "({})reqSecDefOptParams( '{}', '{}', '{}', {} )", tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
+		LOG( "({})reqSecDefOptParams( '{}', '{}', '{}', {} )", tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
 	void TwsClient::reqContractDetails( int reqId, const ::Contract& contract )noexcept
 	{
-		LOG( _logLevel, "({})reqContractDetails( '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
+		LOG( "({})reqContractDetails( '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
 	void TwsClient::reqHeadTimestamp( int tickerId, const ::Contract &contract, str whatToShow, int useRTH, int formatDate )noexcept
 	{
-		LOG( _logLevel, "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )", tickerId, contract.conId, whatToShow, useRTH, formatDate );
+		LOG( "({})reqHeadTimestamp( '{}', '{}', useRTH:  '{}', formatDate:  '{}' )", tickerId, contract.conId, whatToShow, useRTH, formatDate );
 		EClientSocket::reqHeadTimestamp( tickerId, contract, whatToShow, useRTH, formatDate );
 	}
 	void TwsClient::reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept
 	{
-		LOG( _logLevel, "({})reqFundamentalData( '{}', '{}' )", tickerId, contract.conId, reportType );
+		LOG( "({})reqFundamentalData( '{}', '{}' )", tickerId, contract.conId, reportType );
 		EClientSocket::reqFundamentalData( tickerId, contract, string{reportType}, TagValueListSPtr{} );
 	}
 	void TwsClient::reqNewsProviders()noexcept
 	{
-		LOG( _logLevel, "reqNewsProviders", ReqNewsProvidersLogId );
+		LOG( "reqNewsProviders", ReqNewsProvidersLogId );
 		EClientSocket::reqNewsProviders();
 	}
 
@@ -154,48 +154,48 @@ namespace Jde::Markets
 
 		var startString = toIBTime( start );
 		var endString = toIBTime( end );
-		LOG( _logLevel, "({})reqHistoricalNews( '{}', '{}', '{}', '{}', '{}' )", requestId, conId, providers, startString, endString, totalResults );
+		LOG( "({})reqHistoricalNews( '{}', '{}', '{}', '{}', '{}' )", requestId, conId, providers, startString, endString, totalResults );
 
 		EClientSocket::reqHistoricalNews( requestId, conId, providers, startString, endString, (int)totalResults, nullptr );
 	}
 	void TwsClient::reqNewsArticle( TickerId requestId, str providerCode, str articleId )noexcept
 	{
-		LOG( _logLevel, "({})reqNewsArticle( '{}', '{}' )", requestId, providerCode, articleId );
+		LOG( "({})reqNewsArticle( '{}', '{}' )", requestId, providerCode, articleId );
 		EClientSocket::reqNewsArticle( requestId, providerCode, articleId, nullptr );
 	}
 
 	void TwsClient::reqCurrentTime()noexcept
 	{
-		LOG( _logLevel, "reqCurrentTime" );
+		LOG( "reqCurrentTime" );
 		EClientSocket::reqCurrentTime();
 	}
 
 	void TwsClient::reqOpenOrders()noexcept
 	{
-		LOG( _logLevel, "reqOpenOrders" );
+		LOG( "reqOpenOrders" );
 		EClientSocket::reqOpenOrders();
 	}
 	void TwsClient::reqAllOpenOrders()noexcept
 	{
-		LOG( _logLevel, "reqAllOpenOrders" );
+		LOG( "reqAllOpenOrders" );
 		EClientSocket::reqAllOpenOrders();
 	}
 	void TwsClient::reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, str whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept
 	{
-		LOG( _logLevel, "({})reqRealTimeBars( {}, {}, {} )", id, contract.conId, barSize, whatToShow, useRTH );
+		LOG( "({})reqRealTimeBars( {}, {}, {} )", id, contract.conId, barSize, whatToShow, useRTH );
 		EClientSocket::reqRealTimeBars( id, contract, barSize, whatToShow, useRTH, realTimeBarsOptions );
 	}
 	void TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
-		LOG( _logLevel, "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
+		LOG( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
 		OrderManager::Push( order, contract );
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}
 
 	void TwsClient::reqPositionsMulti( int reqId, str account, str modelCode )noexcept
 	{
-		LOG( _logLevel, "({})reqPositionsMulti( '{}', '{}' )", reqId, account, modelCode );
+		LOG( "({})reqPositionsMulti( '{}', '{}' )", reqId, account, modelCode );
 		EClientSocket::reqPositionsMulti( reqId, account, modelCode );
 	}
 }

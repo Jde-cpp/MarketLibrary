@@ -82,7 +82,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;Onecore.lib;libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;Onecore.lib;libbid.lib;libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);../../Public/stage/$(ConfigurationName)</AdditionalLibraryDirectories>
       <ShowProgress>NotSet</ShowProgress>
     </Link>
@@ -106,7 +106,7 @@
       <DisableSpecificWarnings>4068;4251;4275;4297;4703;5105;4996;4025;4305</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>../../Public</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
-      <AdditionalOptions>/MP /Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <StringPooling>true</StringPooling>
     </ClCompile>
@@ -116,7 +116,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>TwsSocketClient.lib;Onecore.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TwsSocketClient.lib;Onecore.lib;libbid.lib;libprotobuf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);../../Public/stage/$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -242,10 +242,15 @@
     <ClCompile Include="wrapper\WrapperSync.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Public\jde\markets\TypeDefs.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\Contract.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\MyOrder.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\edgar.pb.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\ib.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\requests.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\results.pb.h" />
     <ClInclude Include="..\..\Public\jde\markets\types\proto\watch.pb.h" />
+    <ClInclude Include="..\..\Public\jde\markets\types\Tick.h" />
     <ClInclude Include="client\awaitables\HistoricalDataAwaitable.h" />
     <ClInclude Include="client\awaitables\TwsAwaitable.h" />
     <ClInclude Include="client\TwsClient.h" />
@@ -254,17 +259,18 @@
     <ClInclude Include="client\TwsClientSync.h" />
     <ClInclude Include="Exports.h" />
     <ClInclude Include="TwsProcessor.h" />
-    <ClInclude Include="TypeDefs.h" />
     <ClInclude Include="types\Bar.h" />
-    <ClInclude Include="types\Contract.h" />
     <ClInclude Include="types\Currency.h" />
     <ClInclude Include="types\Exchanges.h" />
     <ClInclude Include="types\IBException.h" />
-    <ClInclude Include="types\MyOrder.h" />
-    <ClInclude Include="types\Tick.h" />
     <ClInclude Include="types\TwsConnectionSettings.h" />
     <ClInclude Include="types\WrapperLog.h" />
     <ClInclude Include="WrapperLog.h" />
+    <ClInclude Include="wrapper\WrapperCache.h" />
+    <ClInclude Include="wrapper\WrapperCo.h" />
+    <ClInclude Include="wrapper\WrapperLog.h" />
+    <ClInclude Include="wrapper\WrapperPromise.h" />
+    <ClInclude Include="wrapper\WrapperSync.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

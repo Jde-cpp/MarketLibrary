@@ -18,6 +18,8 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
+	static var& _logLevel{ Logging::TagLevel("mrk.hist") };
+
 	fs::path BarData::Path()noexcept(false)
 	{
 		var path = Settings::Global().Get<fs::path>( "barPath" );
@@ -157,7 +159,7 @@ namespace Jde::Markets
 		void await_suspend( typename base::THandle h )noexcept override
 		{
 			base::await_suspend( h );
-			auto f = [files=move(_files), function=_function, symbol=move(_symbol),this]()->Task2
+			auto f = [files=move(_files), function=_function, symbol=move(_symbol), h2=move(h),this]()->Task2
 			{
 				for( var& [path,start,end] : files )
 				{
@@ -172,6 +174,7 @@ namespace Jde::Markets
 						break;
 					}
 				}
+				h2.resume();
 			};
 			f();
 		}
@@ -218,10 +221,11 @@ namespace Jde::Markets
 		ForEachFile( contract, fnctn, start, end );
 		return pResults;
 	}
-	α BarData::CoLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)->AWrapper
+	α BarData::CoLoad( ContractPtr_ pContract, DayIndex start, DayIndex end )noexcept(false)->AWrapper
 	{
-		return AWrapper( [&contract, start,end]( HCoroutine h )->Task2
+		return AWrapper( [pContract, start,end]( HCoroutine h )->Task2
 		{
+			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, Chrono::DateDisplay(start), Chrono::DateDisplay(end) );
 			auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
 			auto fnctn = [pResults,start,end]( const map<DayIndex,VectorPtr<CandleStick>>& bars,DayIndex,DayIndex )
 			{
@@ -234,14 +238,14 @@ namespace Jde::Markets
 			};
 			try
 			{
-				auto y = ( co_await ForEachFile(contract, start, end, fnctn) ).Get<sp<void>>();
+				auto y = ( co_await ForEachFile(*pContract, start, end, fnctn) ).Get<sp<void>>();
 				h.promise().get_return_object().SetResult( pResults );
 			}
 			catch( const std::exception& e )
 			{
 				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
 			}
-			CoroutinePool::Resume( move(h) );
+			h.resume();
 		} );
 	}
 

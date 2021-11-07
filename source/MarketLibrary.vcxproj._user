@@ -3,7 +3,7 @@
   <PropertyGroup />
   <PropertyGroup Label="Globals">
     <IncludePath>$(BOOST_DIR);$(REPO_DIR)/spdlog/include;$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/json/include;C:\TWS API\source\CppClient\client;$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_DIR)/stage/lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(BOOST_DIR)/stage/lib;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <LibraryPath>$(REPO_DIR)\protobuf\cmake\build\sln\debug;$(REPO_DIR)/tws-api/source/cppclient/client/.bin/debug;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>

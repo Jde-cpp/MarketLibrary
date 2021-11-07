@@ -3,8 +3,10 @@ clean=${1:-0};
 shouldFetch=${2:-1};
 buildFramework=${3:-1};
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-stage=$REPO_DIR/jde/Public/stage
+stage=$JDE_DIR/Public/stage
 echo market-build.sh clean=$clean shouldFetch=$shouldFetch buildFramework=$buildFramework
+echo $scriptDir
+echo `pwd`
 if [[ -z $sourceBuild ]]; then source $scriptDir/../Framework/source-build.sh; fi;
 if [ $buildFramework -eq 1 ]; then
  	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch $buildBoost; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
@@ -53,11 +55,7 @@ function protocBuild()
 	fi;
 	cmd2="protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. $1.proto";
 	$cmd2;
-	if [ $? -ne 0 ]; then
-		echo `pwd`;
-		echo $cmd2;
-		exit 1;
-	fi;
+	if [ $? -ne 0 ]; then echo `pwd`; echo $cmd2; exit 1; fi;
 	if [ $publicDir -eq 1 ]; then
 		cd $prevDir;
 		mv $workDir/$1.pb.cc .;

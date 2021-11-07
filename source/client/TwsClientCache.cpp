@@ -1,6 +1,4 @@
 #include "TwsClientCache.h"
-//#include <ranges>
-#include "../data/HistoricalDataCache.h"
 #include "../wrapper/WrapperCache.h"
 #include <jde/markets/types/Contract.h>
 #include <jde/markets/types/proto/results.pb.h>
@@ -98,7 +96,7 @@ namespace Jde::Markets
 		else
 			TwsClient::reqNewsProviders();
 	}
-	*/
+	
 	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
 		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
@@ -183,11 +181,11 @@ namespace Jde::Markets
 				var timet = ConvertIBDate( pBar->time );
 				minTime = std::min( timet, minTime );
 				maxTime = std::max( timet, maxTime );
-				Wrapper()->historicalData( reqId, *pBar );
+				//Wrapper()->historicalData( reqId, *pBar );
 			}
 		}
 		Wrapper()->historicalDataEnd( reqId, minTime==now ? "" : ToIBDate(DateTime{minTime}), maxTime==0 ? "" : ToIBDate(DateTime{maxTime}) );
-	}
+	}*/
 /*
 	//tws is very slow
 	void TwsClientCache::reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept

@@ -14,16 +14,16 @@ namespace Jde::Markets
 	{
 		HistoricalNewsAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		//bool await_ready()noexcept override;TODO cache results...
-		void await_suspend( typename base::THandle h )noexcept override;
+		α await_suspend( typename base::THandle h )noexcept->void override;
 		private:
 			function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
-	struct JDE_MARKETS_EXPORT ContractAwaitable final : ITwsAwaitableImpl//<sp<Contract>>
+	struct JDE_MARKETS_EXPORT ContractAwaitable final : ITwsAwaitableImpl//ContractPtr_
 	{
 		using base = ITwsAwaitableImpl;
 		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f},_id{id}{}
 		bool await_ready()noexcept override;
-		void await_suspend( typename base::THandle h )noexcept override;
+		α await_suspend( typename base::THandle h )noexcept->void override;
 		typename base::TResult await_resume()noexcept override;
 	private:
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
@@ -36,7 +36,7 @@ namespace Jde::Markets
 		using base = ITwsAwaitableImpl;
 		NewsProviderAwaitable( function<void(sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		bool await_ready()noexcept override;
-		void await_suspend( typename base::THandle h )noexcept override;
+		α await_suspend( typename base::THandle h )noexcept->void override;
 		TaskResult await_resume()noexcept override;
 	private:
 		string CacheId()noexcept{ return "NewsProviders"; }
@@ -46,7 +46,7 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT NewsArticleAwaitable final : ITwsAwaitableImpl
 	{
 		NewsArticleAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
-		void await_suspend( typename base::THandle h )noexcept override;
+		α await_suspend( typename base::THandle h )noexcept->void override;
 	private:
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
@@ -54,12 +54,13 @@ namespace Jde::Markets
 	struct JDE_MARKETS_EXPORT TwsClientCo : TwsClient
 	{
 		TwsClientCo( const TwsConnectionSettings& settings, shared_ptr<WrapperCo> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
-		TickerId AddParam( coroutine_handle<>&& h )noexcept;
-		sp<WrapperCo> WrapperPtr()noexcept;
+		α AddParam( coroutine_handle<>&& h )noexcept->TickerId;
+		α WrapperPtr()noexcept->sp<WrapperCo>;
 
-		Ω HistoricalData( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept{ return HistoricalDataAwaitable{pContract, end, dayCount, barSize, display, useRth}; }
+		Ω HistoricalData( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept{ return HistoricalDataAwaitable{pContract, end, dayCount, barSize, display, useRth}; }
 		Ω HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept->HistoricalNewsAwaitable;
 		Ω ContractDetails( ContractPK conId )noexcept->ContractAwaitable;
+		Ω ContractDetails( sp<::Contract> c )noexcept->ContractAwaitable;
 		Ω NewsProviders()noexcept->NewsProviderAwaitable;
 		Ω NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable;
 		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwaitable{underlyingConId, smart}; }

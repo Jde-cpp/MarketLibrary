@@ -20,7 +20,7 @@ namespace Jde::Markets
 	}
 	α TwsClientCo::HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept->HistoricalNewsAwaitable{ return HistoricalNewsAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept{p->reqHistoricalNews( id, conId, providerCodes, totalResults, start, end );} }; }
 	/*****************************************************************************************************/
-	bool ContractAwaitable::await_ready()noexcept{ return base::await_ready() || (bool)(_pCache = Cache::Get<Contract>(CacheId()) ); }
+	bool ContractAwaitable::await_ready()noexcept{ return base::await_ready() || (_id && (bool)(_pCache = Cache::Get<Contract>(CacheId())) ); }
 	void ContractAwaitable::await_suspend( typename base::THandle h )noexcept
 	{
 		ITwsAwaitableImpl::await_suspend( h );
@@ -33,15 +33,20 @@ namespace Jde::Markets
 		ContractAwaitable::TResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
 		if( _pPromise && result.HasValue() )
 		{
-			_pCache = result.Get<Jde::Markets::Contract>();
+			_pCache = result.Get<Contract>();
 			Cache::Set<Contract>( CacheId(), _pCache );
 		}
 		return result;
 	}
-	α TwsClientCo::ContractDetails( ContractPK conId )noexcept->ContractAwaitable{ return ContractAwaitable{ conId, [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept
+	α TwsClientCo::ContractDetails( ContractPK conId )noexcept->ContractAwaitable{ return ContractAwaitable{ conId, [=]( TickerId id, sp<TwsClient> p )noexcept
 	{
 		::Contract c; c.conId=conId;
 		p->reqContractDetails( id, c );
+	}};}
+
+	α TwsClientCo::ContractDetails( sp<::Contract> c )noexcept->ContractAwaitable{ return ContractAwaitable{ 0, [=]( TickerId id, sp<TwsClient> p )noexcept
+	{
+		p->reqContractDetails( id, *c );
 	}};}
 	/*****************************************************************************************************/
 	bool NewsProviderAwaitable::await_ready()noexcept{ return base::await_ready() || (bool)(_pCache = Cache::Get<map<string,string>>(CacheId()) ); }

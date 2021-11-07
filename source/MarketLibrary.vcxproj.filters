@@ -50,9 +50,6 @@
     <ClInclude Include="types\Bar.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
-    <ClInclude Include="types\Contract.h">
-      <Filter>Header Files\types</Filter>
-    </ClInclude>
     <ClInclude Include="types\Exchanges.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
@@ -68,19 +65,10 @@
     <ClInclude Include="TwsProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TypeDefs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WrapperLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="types\IBException.h">
-      <Filter>Header Files\types</Filter>
-    </ClInclude>
-    <ClInclude Include="types\MyOrder.h">
-      <Filter>Header Files\types</Filter>
-    </ClInclude>
-    <ClInclude Include="types\Tick.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Public\jde\markets\types\proto\edgar.pb.h">
@@ -112,6 +100,36 @@
     </ClInclude>
     <ClInclude Include="client\awaitables\TwsAwaitable.h">
       <Filter>Header Files\client\awaitables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Public\jde\markets\TypeDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Public\jde\markets\types\MyOrder.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Public\jde\markets\types\Tick.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Public\jde\markets\types\Contract.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper\WrapperCache.h">
+      <Filter>Header Files\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper\WrapperCo.h">
+      <Filter>Header Files\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper\WrapperLog.h">
+      <Filter>Header Files\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper\WrapperPromise.h">
+      <Filter>Header Files\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper\WrapperSync.h">
+      <Filter>Header Files\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Public\jde\markets\types\proto\ib.pb.h">
+      <Filter>Header Files\types\proto</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

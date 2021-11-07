@@ -8,7 +8,7 @@
 #include <bar.h>
 
 #define var const auto
-#define _client TwsClientSync::Instance()
+//#define _client TwsClientSync::Instance()
 //UnitTests:
 	//during day cache then save.
 	//some kind of cache cleanup.
@@ -17,18 +17,16 @@
 	//test options.
 namespace Jde::Markets
 {
-	Jde::Markets::BarSize b;
+	Proto::Requests::BarSize b;
 	using Display2=Proto::Requests::Display;
 	class HistoricalDataCacheTest : public ::testing::Test
 	{
 	protected:
-		HistoricalDataCacheTest() {/*You can do set-up work for each test here.*/}
-	~HistoricalDataCacheTest() override{/*You can do clean-up work that doesn't throw exceptions here.*/}
+		HistoricalDataCacheTest() {}
+		~HistoricalDataCacheTest() override{}
 
-	void SetUp() override {/*Code here will be called immediately after the constructor (right before each test).*/}
-	void TearDown() override {/*Code here will be called immediately after each test (right before the destructor).*/}
-
-	/* Class members declared here can be used by all tests in the test suite*/
+	void SetUp() override {}
+	void TearDown() override {}
 	};
 
 	using namespace Chrono;
@@ -68,14 +66,13 @@ namespace Jde::Markets
 		var dates = BarData::FindExisting( Contracts::Aig, testFrom );
 		bool tested = false;
 		var start = IsOpen( contract ) ? PreviousTradingDay() : CurrentTradingDay();
-		//var end = dates.size() ? *dates.begin() : start;
 		for( auto day = start; !tested && day>testFrom; day=PreviousTradingDay(day) )
 		{
 			var file = BarData::File( contract, day );
 			tested = !fs::exists( file );
 			if( !tested )
 				continue;
-			auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, true ).get();
+			auto pBars = Future<vector<::Bar>>( TwsClientCo::HistoricalData(make_shared<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			ASSERT_TRUE( fs::exists(file) );
 		}
@@ -113,10 +110,10 @@ namespace Jde::Markets
 		var dates = BarData::FindExisting( contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
 		var day = *dates.rbegin();
 		ClearMemoryLog();
-		var pCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, true ).get();
+		auto pCache = Future<vector<::Bar>>( TwsClientCo::HistoricalData(make_shared<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
 
-		var pNoCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Minute, EDisplay::Trades, true, false ).get();
+		var pNoCache = Future<vector<::Bar>>( TwsClientCo::HistoricalData(make_shared<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
 
 		CompareBars( *pCache, *pNoCache, false );
@@ -126,10 +123,10 @@ namespace Jde::Markets
 	{
 		var& contract = Contracts::SH;
 		var day = PreviousTradingDay();
-		auto pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Day, EDisplay::Trades, true, true ).get();
+		auto pBars = Future<vector<::Bar>>( TwsClientCo::HistoricalData( make_shared<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
 		ASSERT_GT( pBars->size(), 0 );
 		ClearMemoryLog();
-		pBars = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Day, EDisplay::Trades, true, true ).get();
+		pBars = Future<vector<::Bar>>( TwsClientCo::HistoricalData( make_shared<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
 		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
 		ASSERT_EQ( logs.size(), 0 );
 	}
@@ -148,31 +145,32 @@ namespace Jde::Markets
 			ASSERT_NEAR( actual.Min, expected.Min, near2 );
 			ASSERT_NEAR( actual.Max, expected.Max, near2 );
 		};
-		var& contract = Contracts::Spy;
-		auto pValues = HistoricalDataCache::ReqStats( contract, 5, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint()) );
+		var contract{ make_shared<const Contract>(Contracts::Spy) };
+		auto pValues = Future<HistoricalDataCache::StatCount>( HistoricalDataCache::ReqStats(contract, 5, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{1.004734673, 0.0002306706838, 0.9463821274, 1.04559958}, 248} );
 
-		pValues = HistoricalDataCache::ReqStats( contract, 90/390.0, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint()) );
+		pValues = Future<HistoricalDataCache::StatCount>( HistoricalDataCache::ReqStats(contract, 90/390.0, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{1.00012755, 0.000006148848795, 0.9905072578, 1.007764935}, 252} );
 
-		pValues = HistoricalDataCache::ReqStats( contract, 14, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint()) );
+		pValues = Future<HistoricalDataCache::StatCount>( HistoricalDataCache::ReqStats(contract, 14, DaysSinceEpoch(DateTime{2019,1,2}.GetTimePoint()), DaysSinceEpoch(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{1.008462279, .000361840218, .9486596698, 1.054081344}, 244} );
 	}
 
 	TEST_F(HistoricalDataCacheTest, CombineMinuteBars)
 	{
-		var& contract = Contracts::Aig;
-		var dates = BarData::FindExisting( contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
+		var contract = make_shared<const Contract>( Contracts::Aig );
+		var dates = BarData::FindExisting( *contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
 		var day = *dates.rbegin();
 
 		ClearMemoryLog(); //2020-10-02T13:30:00, 2020-10-02T14:00:00Z
-		auto pCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true, true ).get();
+		auto pCache = Future<vector<::Bar>>( TwsClientCo::HistoricalData( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
 		for( auto bar : *pCache )
-			DBG( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
+			Dbg( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
 
 		ClearMemoryLog();
-		auto pNoCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true, false ).get();
+		//auto pNoCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true, false ).get();
+		auto pNoCache = Future<vector<::Bar>>( TwsClientCo::HistoricalData( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
 		//for( auto bar : *pNoCache )
 		//	DBG0( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
@@ -192,23 +190,21 @@ namespace Jde::Markets
 			ASSERT_EQ( log.Variables[4], "1 hour" );
 			ClearMemoryLog();
 		};
-		auto req = [check]( const ::Contract& contract, DayIndex day, DayIndex dayCount, DayIndex checkDay=0 )
+		auto req = [check]( ContractPtr_ contract, DayIndex day, DayIndex dayCount, DayIndex checkDay=0 )
 		{
-			VectorPtr<::Bar> pBars = _client.ReqHistoricalDataSync( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true, true ).get();
+			auto pBars = Future<vector<::Bar>>( TwsClientCo::HistoricalData( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true) ).get();
 			//ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
 		Contract contract; contract.Symbol = "SPY"; contract.SecType=SecurityType::Option; contract.Right=SecurityRight::Call; contract.Strike = 330; contract.Expiration = 19377; contract.Currency = Proto::Currencies::UsDollar;
-		var pDetails = _client.ReqContractDetails( *contract.ToTws() ).get(); ASSERT_EQ( pDetails->size(), 1 );
-		var& ibContract = (*pDetails)[0].contract;
+		var pDetails = Future<const Contract>( TwsClientCo::ContractDetails(contract.ToTws()) ).get();
+		//var& ibContract = pDetails->contract;
 		ClearMemoryLog();
 		var end = PreviousTradingDay();
 		var start = PreviousTradingDay( end );
 
-		req( ibContract, start, 1 );
-		req( ibContract, end, 2 );
-		req( ibContract, end, 3, PreviousTradingDay(start) );
+		req( pDetails, start, 1 );
+		req( pDetails, end, 2 );
+		req( pDetails, end, 3, PreviousTradingDay(start) );
 	}
-#if 0
-#endif
 }

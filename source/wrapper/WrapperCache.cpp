@@ -71,7 +71,7 @@ namespace Jde::Markets
 		}
 	}
 */
-	void WrapperCache::ToBar( const ::Bar& bar, Proto::Results::Bar& proto )noexcept
+	/*void WrapperCache::ToBar(const ::Bar& bar, Proto::Results::Bar& proto)noexcept
 	{
 		var time = bar.time.size()==8 ? DateTime{ (uint16)stoi(bar.time.substr(0,4)), (uint8)stoi(bar.time.substr(4,2)), (uint8)stoi(bar.time.substr(6,2)) } : DateTime( stoi(bar.time) );
 		proto.set_time( (int)time.TimeT() );
@@ -80,7 +80,7 @@ namespace Jde::Markets
 		proto.set_low( bar.low );
 		proto.set_open( bar.open );
 		proto.set_close( bar.close );
-		proto.set_wap( bar.wap );
+		proto.set_wap( ToDouble(bar.wap) );
 		proto.set_volume( bar.volume );
 		proto.set_count( bar.count );
 	}
@@ -91,5 +91,5 @@ namespace Jde::Markets
 	void WrapperCache::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
 	{
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
-	}
+	}*/
 }

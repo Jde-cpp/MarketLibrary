@@ -5,22 +5,23 @@
 
 namespace Jde::Markets
 {
+	using ContractPtr_=sp<const Contract>;
 	struct JDE_MARKETS_EXPORT HistoricalDataAwaitable final : ITwsAwaitableImpl//sp<vector<::Bar>>
 	{
 		using base = ITwsAwaitableImpl;
-		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
+		HistoricalDataAwaitable( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
 		bool await_ready()noexcept override;
 		void await_suspend( HCoroutine h )noexcept override;
 		TaskResult await_resume()noexcept override;
 		α AddTws( ibapi::OrderId reqId, const vector<::Bar>& bars )->void;
 	private:
-		HistoricalDataAwaitable( sp<Contract> pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
+		HistoricalDataAwaitable( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
 			_contractPtr{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 		{}
 		α Missing()noexcept->vector<tuple<DayIndex,DayIndex>>;
 		α AsyncFetch( HCoroutine h )noexcept->Task2;
 		bool SetData(bool force=false)noexcept;
-		sp<Contract> _contractPtr;
+		ContractPtr_ _contractPtr;
 		DayIndex _end;
 		DayIndex _dayCount;
 		time_t _start;

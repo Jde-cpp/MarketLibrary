@@ -86,7 +86,7 @@ namespace Jde::Markets
 		return time.value_or( TimePoint{} );
 	}
 
-	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, DayIndex endDay, DayIndex dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false)
+/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync(const Contract& contract, DayIndex endDay, DayIndex dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache)noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.ReqHistoricalDataPromise( reqId, barSize==EBarSize::Day && dayCount<3 ? 10s : 5min );
@@ -120,7 +120,7 @@ namespace Jde::Markets
 		promise.set_value( make_shared<vector<::Bar>>() );
 		return promise.get_future();
 	}
-
+	*/
 
 	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
 	{
