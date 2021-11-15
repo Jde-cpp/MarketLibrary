@@ -15,15 +15,15 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
-	TwsClientCache::TwsClientCache( const TwsConnectionSettings& settings, shared_ptr<WrapperCache> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
-		TwsClientCo( settings, wrapper, pReaderSignal, clientId )
+	TwsClientCache::TwsClientCache( const TwsConnectionSettings& settings, sp<WrapperCache> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
+		Tws( settings, wrapper, pReaderSignal, clientId )
 	{}
 
-	shared_ptr<WrapperCache> TwsClientCache::Wrapper()noexcept
+	sp<WrapperCache> TwsClientCache::Wrapper()noexcept
 	{
 		return std::dynamic_pointer_cast<WrapperCache>(_pWrapper);
 	}
-	::Contract TwsClientCache::ToContract( sv symbol, DayIndex dayIndex, SecurityRight right, double strike )noexcept
+	::Contract TwsClientCache::ToContract( sv symbol, Day dayIndex, SecurityRight right, double strike )noexcept
 	{
 		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
 		if( dayIndex>0 )
@@ -96,10 +96,10 @@ namespace Jde::Markets
 		else
 			TwsClient::reqNewsProviders();
 	}
-	
-	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
+
+	void TwsClientCache::ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false)
 	{
-		auto addBars = [&]( DayIndex end, DayIndex subDayCount, map<DayIndex,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
+		auto addBars = [&]( Day end, Day subDayCount, map<Day,VectorPtr<sp<::Bar>>>& existing, time_t lastTime=0 )
 		{
 			VectorPtr<::Bar> pBars;
 			if( !lastTime )
@@ -116,7 +116,7 @@ namespace Jde::Markets
 					if( time<currentStart || time>currentEnd )
 					{
 						var tp = Clock::from_time_t( time );
-						var day = DaysSinceEpoch( tp );
+						var day = ToDays( tp );
 						currentStart = Clock::to_time_t(BeginningOfDay(tp) ); currentEnd = currentStart+24*60*60;
 						pExisting = existing.find( day );
 						if( pExisting==existing.end() )
@@ -128,13 +128,13 @@ namespace Jde::Markets
 				}
 			}
 		};
-		auto pData = HistoricalDataCache::ReqHistoricalData( contract, endDay, dayCount, barSize, (Proto::Requests::Display)display, useRth );// : MapPtr<DayIndex,VectorPtr<sp<const ::Bar>>>{};
+		auto pData = HistoricalDataCache::ReqHistoricalData( contract, endDay, dayCount, barSize, (Proto::Requests::Display)display, useRth );// : MapPtr<Day,VectorPtr<sp<const ::Bar>>>{};
 		if( pData )
 		{
 			ASSERT( pData->size() );
 			if( !pData->begin()->second )
 			{
-				DayIndex startDayCount = 0; DayIndex endDay = 0;
+				Day startDayCount = 0; Day endDay = 0;
 				for( var& [day,pBars] : *pData )
 				{
 					if( pBars )
@@ -148,7 +148,7 @@ namespace Jde::Markets
 			if( var current = CurrentTradingDay( contract.Exchange );
 				!pData->rbegin()->second || (current==pData->rbegin()->first && isOpen) )//for current trading day bars
 			{
-				DayIndex endDayCount = 0, currentDay = endDay;
+				Day endDayCount = 0, currentDay = endDay;
 				time_t lastTime = 0;
 				for( auto p = pData->rbegin(); p!=pData->rend(); ++p )
 				{
@@ -167,7 +167,7 @@ namespace Jde::Markets
 		}
 		else
 		{
-			pData = make_shared<map<DayIndex,VectorPtr<sp<::Bar>>>>();
+			pData = make_shared<map<Day,VectorPtr<sp<::Bar>>>>();
 			addBars( endDay, dayCount, *pData );
 		}
 

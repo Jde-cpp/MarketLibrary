@@ -6,30 +6,32 @@
 namespace Jde::Markets
 {
 	using ContractPtr_=sp<const Contract>;
-	struct JDE_MARKETS_EXPORT HistoricalDataAwaitable final : ITwsAwaitableImpl//sp<vector<::Bar>>
+	struct ΓM HistoryAwait final : ITwsAwaitableImpl//sp<vector<::Bar>>
 	{
 		using base = ITwsAwaitableImpl;
-		HistoricalDataAwaitable( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoricalDataAwaitable{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
-		bool await_ready()noexcept override;
-		void await_suspend( HCoroutine h )noexcept override;
-		TaskResult await_resume()noexcept override;
-		α AddTws( ibapi::OrderId reqId, const vector<::Bar>& bars )->void;
+		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoryAwait{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
+		α await_ready()noexcept->bool override;
+		α await_suspend( HCoroutine h )noexcept->void override;
+		α await_resume()noexcept->TaskResult override;
+
 	private:
-		HistoricalDataAwaitable( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
-			_contractPtr{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
+		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
+			_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 		{}
-		α Missing()noexcept->vector<tuple<DayIndex,DayIndex>>;
+		α Missing()noexcept->vector<tuple<Day,Day>>;
 		α AsyncFetch( HCoroutine h )noexcept->Task2;
-		bool SetData(bool force=false)noexcept;
-		ContractPtr_ _contractPtr;
-		DayIndex _end;
-		DayIndex _dayCount;
+		α SetData(bool force=false)noexcept->bool;
+		α SetTwsResults( ibapi::OrderId reqId, const vector<::Bar>& bars )->void;
+
+		ContractPtr_ _pContract;
+		Day _end;
+		Day _dayCount;
 		time_t _start;
 		Proto::Requests::BarSize _barSize;
 		TwsDisplay::Enum _display;
 		const bool _useRth;
 		sp<vector<::Bar>> _dataPtr;
-		flat_map<DayIndex,VectorPtr<sp<::Bar>>> _cache;
+		flat_map<Day,VectorPtr<sp<::Bar>>> _cache;
 		HCoroutine _hCoroutine;
 		vector<ibapi::OrderId> _twsRequests;
 		friend WrapperCo;

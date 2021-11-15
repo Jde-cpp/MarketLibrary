@@ -21,15 +21,14 @@ endif()
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 # Add googletest directly to our build. This defines the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src ${CMAKE_CURRENT_BINARY_DIR}/googletest-build EXCLUDE_FROM_ALL)
 
 
 link_directories( ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
 add_executable(Tests.MarketLibrary main.cpp HistoricalDataCacheTest.cpp NewsTest.cpp OrderManagerTests.cpp )
 #TwsTests.cpp
 include_directories( "$ENV{REPO_DIR}/tws-api/source/cppclient/client" )
+include_directories( "$ENV{REPO_DIR}/IntelRDFPMathLib20U2/LIBRARY/src" )
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 #target_link_libraries(Tests.MarketLibrary c++abi)
 target_link_libraries(Tests.MarketLibrary Jde.Markets.Edgar)
@@ -46,9 +45,9 @@ target_link_libraries(Tests.MarketLibrary gtest_main)
 target_link_libraries(Tests.MarketLibrary crypto)
 target_link_libraries(Tests.MarketLibrary ssl)
 target_link_libraries(Tests.MarketLibrary boost_iostreams)
+target_link_libraries(Tests.MarketLibrary bid)
 target_link_libraries(Tests.MarketLibrary stdc++)
 target_link_libraries(Tests.MarketLibrary stdc++fs)
-
 
 #target_include_directories(Tests.MarketLibrary PUBLIC ${REPO_DIR}/llvm-project/build/lib)
 add_test(NAME HistoricalDataCacheTest COMMAND MethodBarDoesAbc)

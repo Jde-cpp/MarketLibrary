@@ -13,7 +13,7 @@ namespace Jde::Markets
 	using namespace Chrono;
 	sp<TwsClient> TwsClient::_pInstance;
 	const LogTag& TwsClient::_logLevel{ Logging::TagLevel("tws-requests") };
-	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
+	void TwsClient::CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		if( _pInstance )
 			DBG( "Creating new Instance of TwsClient, removing old."sv );
@@ -24,7 +24,7 @@ namespace Jde::Markets
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pInstance->_port, clientId );
 	}
 
-	TwsClient::TwsClient( const TwsConnectionSettings& settings, shared_ptr<EWrapper> pWrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
+	TwsClient::TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> pWrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		EClientSocket( pWrapper.get(), pReaderSignal.get() ),
 		_pWrapper{ pWrapper },
 		_settings{ settings }
@@ -41,11 +41,10 @@ namespace Jde::Markets
 			else
 				INFO( "connect to Tws:  {} failed", port );
 		}
-		if( !_port )
-			THROW( "Could not connect to IB {}"sv, _settings );
+		THROW_IF( !_port, "Could not connect to IB {}"sv, _settings );
 	}
 
-	shared_ptr<WrapperLog> TwsClient::WrapperLogPtr()noexcept
+	sp<WrapperLog> TwsClient::WrapperLogPtr()noexcept
 	{
 		return std::dynamic_pointer_cast<WrapperLog>(_pWrapper);
 	}
@@ -83,7 +82,7 @@ namespace Jde::Markets
 		LOG( "({})reqExecutions( {}, {}, {} )", reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
 		EClient::reqExecutions( reqId, filter );
 	}
-	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
+	void TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
 	{
 		const DateTime endTime{ EndOfDay(FromDays(endDay)) };
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };

@@ -5,7 +5,10 @@
 	#include <platformspecific.h>
 	#pragma pop_macro("assert")
 #endif
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreorder-ctor"
 #include <EClientSocket.h>
+#pragma clang diagnostic pop
 
 #include <jde/markets/Exports.h>
 #include "../types/TwsConnectionSettings.h"
@@ -27,7 +30,7 @@ namespace Jde::Markets
 	struct IAccountUpdateHandler;
 	struct TwsProcessor; struct TwsConnectionSettings; struct WrapperLog; struct Contract; class ClientConnection;
 
-	struct JDE_MARKETS_EXPORT TwsClient : private EClientSocket
+	struct ΓM TwsClient : private EClientSocket
 	{
 		virtual void CheckTimeouts()noexcept{};
 		static void CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
@@ -47,8 +50,8 @@ namespace Jde::Markets
 		static void CancelAccountUpdates( sv acctCode, Handle handle )noexcept;
 		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
 		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
-		void ReqHistoricalData( TickerId reqId, const Contract& contract, DayIndex endDay, DayIndex dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;
-		void reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept; static constexpr uint32 ReqHistoricalDataLogId = 202810476;
+		void ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;
+		void reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
 		void reqPositions()noexcept{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
 		void reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept;
 
@@ -69,10 +72,10 @@ namespace Jde::Markets
 		void reqAllOpenOrders()noexcept;
 		void placeOrder( const ::Contract& contract, const ::Order& order )noexcept;
 	protected:
-		shared_ptr<EWrapper> _pWrapper;
-		shared_ptr<WrapperLog> WrapperLogPtr()noexcept;
+		sp<EWrapper> _pWrapper;
+		sp<WrapperLog> WrapperLogPtr()noexcept;
 		uint16 _port{0};
-		TwsClient( const TwsConnectionSettings& settings, shared_ptr<EWrapper> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static sp<TwsClient> _pInstance;
 	private:
 		void reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions) noexcept;

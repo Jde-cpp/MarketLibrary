@@ -24,16 +24,16 @@ namespace Jde::Markets
 			auto pHandle = handles.MoveOut( id );
 			if( pHandle )
 			{
-				pHandle->promise().get_return_object().SetResult( IBException(errorMsg, errorCode, id) );
+				pHandle->promise().get_return_object().SetResult( IBException::SP(errorMsg, errorCode, id) );
 				Coroutine::CoroutinePool::Resume( move(*pHandle) );
 			}
 			return pHandle.has_value();
 		};
 		bool handled = r(_contractSingleHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
-		if( !handled && _historical.Has(id) )
+		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
-			h.promise().get_return_object().SetResult( IBException(errorMsg, errorCode, id) );
+			h.promise().get_return_object().SetResult( IBException::SP(errorMsg, errorCode, id) );
 			_historical.erase( id );
 			_historicalData.erase( id );
 			Coroutine::CoroutinePool::Resume( move(h) );
@@ -103,7 +103,7 @@ namespace Jde::Markets
 		{
 			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1", reqId, contracts.size() );
 			if( contracts.size()==0 )
-				returnObject.SetResult( IBException("no contracts returned", -1, reqId) );
+				returnObject.SetResult( IBException::SP("no contracts returned", -1, reqId) );
 			else
 				returnObject.SetResult( contracts.front() );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
@@ -144,7 +144,7 @@ namespace Jde::Markets
 		if( !ppAwaitable.has_value() )
 			return false;
 		auto pData = _historicalData.find( reqId );
-		(*ppAwaitable)->AddTws( reqId, pData==_historicalData.end() ? vector<::Bar>{} : move(pData->second) );//
+		(*ppAwaitable)->SetTwsResults( reqId, pData==_historicalData.end() ? vector<::Bar>{} : move(pData->second) );//
 
 		_historical.erase( reqId );
 		if( pData!=_historicalData.end() )

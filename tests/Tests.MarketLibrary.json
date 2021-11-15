@@ -1,19 +1,35 @@
 {
-	"zzzbarPath": "/mnt/2TB/securities",
-	"zzdbDriver":  "./libJde.MySql.so",
+	"testing":
+	{
+		"_tests":  "HistoricalDataCacheTest.SaveToFile",
+		"tests":  "*"
+	},
 	"logging":
 	{
-		"level": 1,
-		"flushOn": 1,
-		"path": "..",
-		"serverPort":  0,
-		"serverPortTest":  4321
+		"tags": [ "sql", "_tws.hist", "mrk.hist" ],
+		"console":{},
+		"file":{ "path": ".." },
+		"memory": true,
+		"server": { "portx": 4321, "level": "Debug", "diagnosticsLevel": "Debug", "tags": {"threads":"Debug"} }
 	},
-	"twsClientId": 14,
+	"wakeDuration": "PT5S",
+	"db":
+	{
+		"driver": "libJde.MySql.so",
+		"connectionString": "Jde_UM_Connection",
+		"meta": "../../TwsWebSocket/meta.json"
+	},
+	"_marketHistorian":
+	{
+		"_barPath": ""
+	},
 	"tws":
 	{
 		"host": "localhost",
-		"ports": [7497,7496,4001,4002],
+		"clientId": 14,
+		"options": "",
+		"ports": [7497],
+		"ports2": [7497,7496,4001,4002],
 		"maxHistoricalDataRequest": 40
 	}
 }

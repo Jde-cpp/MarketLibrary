@@ -8,7 +8,7 @@ namespace Jde::Threading{ struct InterruptibleThread;}
 namespace Jde::Markets
 {
 	struct TwsClient;
-	struct JDE_MARKETS_EXPORT TwsProcessor final
+	struct ΓM TwsProcessor final
 	{
 		~TwsProcessor();
 		static void CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept;

@@ -1,4 +1,4 @@
-//protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. OptionOI.proto
+//protoc --cpp_out dllexport_decl=ΓM:. OptionOI.proto
 syntax = "proto3";
 
 package Jde.Markets.Proto;

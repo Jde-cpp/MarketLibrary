@@ -86,7 +86,9 @@
 		"coroutine": "cpp",
 		"*.inc": "cpp",
 		"*.def": "cpp",
-		"__functional_03": "cpp"
+		"__functional_03": "cpp",
+		"__memory": "cpp",
+		"queue": "cpp"
 	},
 	"C_Cpp.errorSquiggles": "Enabled",
 	"window.title": "Markets"

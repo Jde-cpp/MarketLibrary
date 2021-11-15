@@ -18,67 +18,69 @@ namespace Jde::Markets
 	static const LogTag& _logLevel{ Logging::TagLevel("mrk.hist") };
 
 	using namespace Chrono;
-	using EBarSize=Proto::Requests::BarSize;
-	using EDisplay=Proto::Requests::Display;
 	typedef sp<::Bar> BarPtr;
 	struct DataCache
 	{
-		virtual optional<tuple<DayIndex,DayIndex>> Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize barSize )noexcept=0;
-		virtual VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept=0;
+		β Contains( const flat_set<Day>& days, bool useRth, EBarSize barSize )noexcept->optional<tuple<Day,Day>> =0;
+		β Get( const Contract& contract, Day day, bool useRth, EBarSize barSize )noexcept->VectorPtr<BarPtr> =0;
 
-		virtual EBarSize Size()const noexcept=0;
-		virtual sv CacheIdPrefix()const noexcept=0;
-		string CacheId( ContractPK contractId, EDisplay display )const noexcept{ return format("{}.{}.{}", CacheIdPrefix(), contractId, (uint)display); }
-		static string CacheId( sv prefix, ContractPK contractId, EDisplay display )noexcept{ return format("{}.{}.{}", prefix, contractId, (uint)display); }
+		β Size()const noexcept->EBarSize=0;
+		β CacheIdPrefix()const noexcept->sv=0;
+		α CacheId( ContractPK contractId, EDisplay display )const noexcept->string{ return format("{}.{}.{}", CacheIdPrefix(), contractId, (uint)display); }
+		Ω CacheId( sv prefix, ContractPK contractId, EDisplay display )noexcept->string{ return format("{}.{}.{}", prefix, contractId, (uint)display); }
 	};
 	struct SubDataCache : DataCache
 	{
-		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept override;
-		optional<tuple<DayIndex,DayIndex>> Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize barSize )noexcept override;
-		void Push( const flat_map<DayIndex,vector<BarPtr>>& dayBars, bool extended )noexcept;
+		α Get( const Contract& contract, Day day, bool useRth, EBarSize barSize )noexcept->VectorPtr<BarPtr> override;
+		α Contains( const flat_set<Day>& days, bool useRth, EBarSize barSize )noexcept->optional<tuple<Day,Day>> override;
+		α Push( const flat_map<Day,vector<BarPtr>>& dayBars, bool extended )noexcept->void;
 	private:
-		flat_map<DayIndex,vector<BarPtr>> _rth;	shared_mutex _rthMutex;
-		flat_map<DayIndex,vector<BarPtr>> _extended; shared_mutex _extendedMutex;
+		flat_map<Day,vector<BarPtr>> _rth;	shared_mutex _rthMutex;
+		flat_map<Day,vector<BarPtr>> _extended; shared_mutex _extendedMutex;
 	};
 	struct OptionCache final : SubDataCache
 	{
-		static void Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, DayIndex end, DayIndex subDayCount )noexcept;
-		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
+		Ω Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, Day end, Day subDayCount )noexcept->void;
+		Ω CacheId( ContractPK contractId, EDisplay display )noexcept->string{ return DataCache::CacheId( Prefix, contractId, display); }
 	protected:
-		sv CacheIdPrefix()const noexcept override{ return Prefix; }
+		α CacheIdPrefix()const noexcept->sv override{ return Prefix; }
+		α Size()const noexcept->EBarSize override{ return EBarSize::Hour; }
+
 		constexpr static sv Prefix = "HistoricalDataCacheOption";
-		EBarSize Size()const noexcept override{ return EBarSize::Hour; }
 	};
 
 	struct MinuteCache final: SubDataCache
 	{
-		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept;
+		Ω Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void;
 
-		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
-		sv CacheIdPrefix()const noexcept override{ return Prefix; }
+		Ω CacheId( ContractPK contractId, EDisplay display )noexcept->string{ return DataCache::CacheId( Prefix, contractId, display); }
+		α CacheIdPrefix()const noexcept->sv override{ return Prefix; }
+		α Size()const noexcept->EBarSize override{ return EBarSize::Minute; }
+
 		constexpr static sv Prefix = "HistoricalDataCache";
-
-		EBarSize Size()const noexcept override{ return EBarSize::Minute; }
 	};
 
 	struct DayCache final : DataCache
 	{
-		static void Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept;
-		optional<tuple<DayIndex,DayIndex>> Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize barSize )noexcept override;
-		VectorPtr<BarPtr> Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept override;
+		Ω Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void;
+		α Contains( const flat_set<Day>& days, bool useRth, EBarSize barSize )noexcept->optional<tuple<Day,Day>> override;
+		α Get( const Contract& contract, Day day, bool useRth, EBarSize barSize )noexcept->VectorPtr<BarPtr> override;
+		Ω CacheId( ContractPK contractId, EDisplay display )noexcept->string{ return DataCache::CacheId( Prefix, contractId, display); }
+		α CacheIdPrefix()const noexcept->sv override{ return Prefix; }
+		α Size()const noexcept->EBarSize override{ return EBarSize::Day; }
+		α Push( const flat_map<Day,::Bar>& dayBars, bool rth )noexcept->void;
 
-		static string CacheId( ContractPK contractId, EDisplay display )noexcept{ return DataCache::CacheId( Prefix, contractId, display); }
-		sv CacheIdPrefix()const noexcept override{ return Prefix; }
 		constexpr static sv Prefix = "HistoricalDataCacheDay";
-
-		EBarSize Size()const noexcept override{ return EBarSize::Day; }
-		void Push( const flat_map<DayIndex,::Bar>& dayBars, bool rth )noexcept;
 	private:
-		map<DayIndex,::Bar> _rth;	shared_mutex _rthMutex;
-		map<DayIndex,::Bar> _extended; shared_mutex _extendedMutex;
+		map<Day,::Bar> _rth;	shared_mutex _rthMutex;
+		map<Day,::Bar> _extended; shared_mutex _extendedMutex;
 	};
-
-	void HistoricalDataCache::Push( const Contract& contract, EDisplay display, EBarSize barSize, bool useRth, const vector<::Bar>& bars, DayIndex end, DayIndex subDayCount )noexcept
+	α HistoryCache::Clear( ContractPK contractId, EDisplay display, EBarSize barSize )noexcept->void
+	{
+		ASSERT_DESC( barSize==EBarSize::Minute, "Not implemented" );
+		Cache::Clear( MinuteCache::CacheId(contractId, display) );
+	}
+	α HistoryCache::Set( const Contract& contract, EDisplay display, EBarSize barSize, bool useRth, const vector<::Bar>& bars, Day end, Day subDayCount )noexcept->void
 	{
 		if( barSize==EBarSize::Minute )
 			MinuteCache::Push( contract, display, useRth, bars );
@@ -90,12 +92,12 @@ namespace Jde::Markets
 			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::ToString(barSize) );
 	}
 
-	flat_map<DayIndex,VectorPtr<BarPtr>> HistoricalDataCache::ReqHistoricalData2( const Contract& contract, DayIndex end, uint dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept
+	α HistoryCache::Get( const Contract& contract, Day end, Day tradingDays, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->flat_map<Day,VectorPtr<BarPtr>>
 	{
-		flat_map<DayIndex,VectorPtr<BarPtr>> bars;
-		if( !dayCount ){ ERR("0 daycount sent in."sv); return bars; }
-		flat_set<DayIndex> days;
-		for( DayIndex i = end; days.size()<dayCount; --i )
+		flat_map<Day,VectorPtr<BarPtr>> bars;
+		if( !tradingDays ){ ERR("0 tradingDays sent in."sv); return bars; }
+		flat_set<Day> days;
+		for( Day i = end; days.size()<tradingDays; --i )
 		{
 			if( !IsHoliday(i, contract.Exchange) )//change to Exchanges...080
 				days.emplace_hint( days.begin(), i );
@@ -104,187 +106,28 @@ namespace Jde::Markets
 			? OptionCache::CacheId( contract.Id, display )
 			: barSize==EBarSize::Day ? DayCache::CacheId( contract.Id, display ) : MinuteCache::CacheId( contract.Id, display );
 		sp<DataCache> pCache = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
-			? dynamic_pointer_cast<DataCache>( Cache::Emplace<OptionCache>(cacheId) )
-			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::Emplace<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::Emplace<MinuteCache>(cacheId) );
+			? dynamic_pointer_cast<DataCache>( Jde::Cache::Emplace<OptionCache>(cacheId) )
+			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Jde::Cache::Emplace<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::Emplace<MinuteCache>(cacheId) );
 		auto startEnd = pCache->Contains( days, useRth, barSize );
 		if( startEnd.has_value() )
 		{
 			var [start,end] = startEnd.value();
-			LOG( "{} cache {}-{}", contract.Symbol, Chrono::DateDisplay(start), Chrono::DateDisplay(end) );
+			LOG( "{} cache {}-{} {} {} rth={}", contract.Symbol, DateDisplay(start), DateDisplay(end), BarSize::ToString(barSize), TwsDisplay::ToString(display), useRth );
 			for( var day : days )
 				bars.emplace( day, day>=start && day<=end ? pCache->Get(contract, day, useRth, barSize) : VectorPtr<BarPtr>{} );
 		}
 		else
 		{
-			LOG( "No cache - {} {} {} days", contract.Symbol, Chrono::DateDisplay(end), dayCount );
+			LOG( "({})No cache - {} days={} barSize='{}' {} rth={}", contract.Symbol, DateDisplay(end), days.size(), BarSize::ToString(barSize), TwsDisplay::ToString(display), useRth );
 			for( var day : days )
 				bars.emplace( day, VectorPtr<BarPtr>{} );
 		}
 		return bars;
 	}
-	MapPtr<DayIndex,VectorPtr<BarPtr>> HistoricalDataCache::ReqHistoricalData( const Contract& contract, DayIndex endDay, uint dayCount, EBarSize barSize, EDisplay display, bool useRth )noexcept
-	{
-		MapPtr<DayIndex,VectorPtr<BarPtr>> pBars;
-		if( !dayCount ){ ERR("0 daycount sent in."sv); return pBars; }
-		flat_set<DayIndex> days;
-		for( DayIndex i = endDay; days.size()<dayCount; --i )
-		{
-			if( !IsHoliday(i, contract.Exchange) )//change to Exchanges...080
-				days.emplace( i );
-		}
-		var cacheId = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
-			? OptionCache::CacheId( contract.Id, display )
-			: barSize==EBarSize::Day ? DayCache::CacheId( contract.Id, display ) : MinuteCache::CacheId( contract.Id, display );
-		sp<DataCache> pCache = contract.SecType==SecurityType::Option && barSize==EBarSize::Hour
-			? dynamic_pointer_cast<DataCache>( Cache::Emplace<OptionCache>(cacheId) )
-			: barSize==EBarSize::Day ? dynamic_pointer_cast<DataCache>(Cache::Emplace<DayCache>(cacheId) ) : dynamic_pointer_cast<DataCache>(Cache::Emplace<MinuteCache>(cacheId) );
-		uint missingCount;
-		auto load = [&]()
-		{
-			missingCount = days.size();
-			auto startEnd = pCache->Contains( days, useRth, barSize );
-			if( startEnd.has_value() )
-			{
-				pBars = make_shared<map<DayIndex,VectorPtr<BarPtr>>>();
-				var [start,end] = startEnd.value();
-				for( var day : days )
-				{
-					auto p = day>=start && day<=end ? pCache->Get( contract, day, useRth, barSize ) : VectorPtr<BarPtr>{};
-					pBars->emplace( day, p );
-					if( p )
-						--missingCount;
-				}
-			}
-			return startEnd;
-		};
-		var startEnd = load();
-		if( useRth && display==EDisplay::Trades && missingCount && barSize%EBarSize::Minute==0 && barSize!=EBarSize::Day /*&& BarData::HavePath()*/ && contract.SecType==SecurityType::Stock )//look in files
-		{
-			auto add = [pBars, &days, pMinutes=dynamic_pointer_cast<SubDataCache>(pCache), contract]( const map<DayIndex,VectorPtr<CandleStick>>& additional )mutable
-			{//add to cache so can subsequently load pBars from cache.
-				if( !pBars )
-				{
-					pBars = make_shared<map<DayIndex,VectorPtr<BarPtr>>>();
-					std::for_each( days.begin(), days.end(), [pBars](var day){pBars->emplace(day, VectorPtr<BarPtr>{});} );
-				}
-				flat_map<DayIndex,vector<BarPtr>> bars;
-				for( auto [day,pSticks] : additional )
-				{
-					if( pBars->find(day)->second )
-						ERR("Day {} has value, but loaded again."sv, day );
-					auto& dayBars = bars.emplace( day, vector<BarPtr>{} ).first->second;
-					auto baseTime = RthBegin( contract, day );
-					for( var& stick : *pSticks )
-					{
-						dayBars.push_back( make_shared<::Bar>(stick.ToIB(baseTime)) );
-						baseTime+=1min;
-					}
-				}
-				pMinutes->Push( bars, true );
-			};
-			if( !startEnd.has_value() )
-				add( *BarData::Load(contract, *days.begin(), *days.rbegin()) );
-			else
-			{
-				var [start,end] = startEnd.value();
-				var pEnd = days.find( start );
-				if( pEnd!=days.begin() )
-					add( *BarData::Load( contract, *days.begin(), *std::prev(pEnd)) );
-				var pStart = days.find( end );
-				if( pStart!=days.end() && std::next(pStart)!=days.end() )
-					add( *BarData::Load(contract, *std::next(pStart), *days.rbegin()) );
-			}
-			load();
-		}
-		return pBars;
-	}
-}
-namespace Jde::Markets::HistoricalDataCache
-{
-	α StatAwaitable::Count()const noexcept->DayIndex{ return DayCount( TradingDay{Start, ContractPtr->Exchange}, End ); }
-	α StatAwaitable::await_ready()noexcept->bool
-	{
-		double fullDaysDouble;
-		var minutesInDay = DayLengthMinutes( ContractPtr->Exchange );
-		double partialDays = std::modf( Days, &fullDaysDouble );
-		FullDays = Math::URound<DayIndex>( fullDaysDouble );
-		Minutes = Math::URound<uint16>( partialDays*minutesInDay );
-		if( Minutes==minutesInDay )
-		{
-			Minutes=0;
-			++FullDays;
-		}
-	#pragma region Tests
-		try
-		{
-			THROW_IF( FullDays==0 && Minutes<1, "days '{}' should be at least 1 minute.", Days );
-			THROW_IF( Days>3*365, "days {} should be less than 3 years {}", Days, 3*365 );
-			THROW_IF( End>DaysSinceEpoch(Clock::now()), "end should be < now" );
-			THROW_IF( Count()<Days, "days should be less than end-start." );
-			THROW_IF( End<Start, "end '{}' should be greater than start '{}'.", End, Start );
-	#pragma endregion
-			CacheId = Minutes==0 ? "" : format( "ReqStdDev.{}.{}.{}.{}", ContractPtr->Symbol, FullDays, Start, End );
 
-			if( var pValue = Cache::Get<HistoricalDataCache::StatCount>(CacheId); !CacheId.empty() && pValue )
-				_result = pValue;
-		}
-		catch( std::exception& e )
-		{
-			_result = std::make_exception_ptr( move(e) );
-		}
-		return _result.index() || get<sp<HistoricalDataCache::StatCount>>( _result );
-	}
-	α StatAwaitable::await_suspend( typename base::THandle h )noexcept->void
+	α SubDataCache::Contains( const flat_set<Day>& days, bool useRth, EBarSize barSize )noexcept->optional<tuple<Day,Day>>
 	{
-		base::await_suspend( h );
-		auto f = [this,h]()->Task2
-		{
-			try
-			{
-				var pAllBars = ( co_await TwsClientCo::HistoricalData( ContractPtr, End, Count(), Minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true) ).Get<vector<::Bar>>();
-				THROW_IF( pAllBars->size()==0, "No history" );
-				map<DayIndex,vector<::Bar>> bars;
-				for_each( pAllBars->begin(), pAllBars->end(), [&bars](var bar)
-				{
-					bars.try_emplace( ToDay(ConvertIBDate(bar.time)) ).first->second.push_back(bar);
-				} );
-
-				vector<double> returns;
-				auto pEnd = bars.rbegin();
-				typedef decltype(pEnd) RIterator;
-				const DayIndex diff = FullDays<6 ? TradingDay{pEnd->first, ContractPtr->Exchange}-(FullDays==0 ? 0 : FullDays-1) : pEnd->first-( FullDays-1 );
-				auto pForward = bars.lower_bound( diff );
-				RIterator pStart{ pForward==bars.end() ? pForward : std::next(pForward) };
-				for( ; pStart!=bars.rend() && pEnd!=bars.rend(); ++pStart, ++pEnd )
-				{
-					var index = Minutes==0 ? pStart->second.size()-1 : Minutes<=pStart->second.size() ? pStart->second.size()-Minutes : std::numeric_limits<uint>::max();
-					var pStartBar = pStart->second.size() && index!=std::numeric_limits<uint>::max() ? &pStart->second[index] : nullptr;
-					var pEndBar = pEnd->second.size() ? &pEnd->second.back() : nullptr;
-					if( pStartBar && pEndBar )
-						returns.push_back( 1+(pEndBar->close-pStartBar->open)/pStartBar->open );
-				}
-				auto pValue = make_shared<HistoricalDataCache::StatCount>( Math::Statistics(returns), returns.size() );
-				if( !CacheId.empty() )
-					Cache::Set<HistoricalDataCache::StatCount>( CacheId, pValue );
-				_pPromise->get_return_object().SetResult(  pValue );
-			}
-			catch( std::exception& e )
-			{
-				_pPromise->get_return_object().SetResult( std::make_exception_ptr(e) );
-			}
-		};
-		f();
-	}
-	α StatAwaitable::await_resume()noexcept->TaskResult
-	{
-		return _pPromise ? _pPromise->get_return_object().GetResult() : _result.index() ? TaskResult{ std::get<std::exception_ptr>(_result) } : TaskResult{ std::get<sp<HistoricalDataCache::StatCount>>(_result) };
-	}
-}
-namespace Jde::Markets
-{
-	optional<tuple<DayIndex,DayIndex>> SubDataCache::Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize barSize )noexcept
-	{
-		optional<tuple<DayIndex,DayIndex>> result;
+		optional<tuple<Day,Day>> result;
 		auto contains = Size()>EBarSize::None && ( Size()==EBarSize::Day || Size()<=EBarSize::Hour ) && barSize%Size()==0;
 		if( contains )
 		{
@@ -304,7 +147,7 @@ namespace Jde::Markets
 		}
 		return result;
 	}
-	optional<tuple<DayIndex,DayIndex>> DayCache::Contains( const flat_set<DayIndex>& days, bool useRth, EBarSize )noexcept
+	α DayCache::Contains( const flat_set<Day>& days, bool useRth, EBarSize )noexcept->optional<tuple<Day,Day>>
 	{
 		auto& cache = useRth ? _rth : _extended;
 		auto& mutex = useRth ? _rthMutex : _extendedMutex;
@@ -315,11 +158,11 @@ namespace Jde::Markets
 		var pBegin = cache.lower_bound( start ), pEnd = cache.lower_bound( end );
 		var contains = pBegin!=cache.end() || pEnd!=cache.end();
 
-		return contains ? make_tuple( pBegin->first, pEnd==cache.end() ? cache.rbegin()->first : pEnd->first ) : optional<tuple<DayIndex,DayIndex>>{};
+		return contains ? make_tuple( pBegin->first, pEnd==cache.end() ? cache.rbegin()->first : pEnd->first ) : optional<tuple<Day,Day>>{};
 	}
-	VectorPtr<BarPtr> SubDataCache::Get( const Contract& contract, DayIndex day, bool useRth, EBarSize barSize )noexcept
+	α SubDataCache::Get( const Contract& contract, Day day, bool useRth, EBarSize barSize )noexcept->VectorPtr<BarPtr>
 	{
-		auto pResult = make_shared<vector<BarPtr>>();
+		auto pResult = ms<vector<BarPtr>>();
 		shared_lock l1{_rthMutex};
 		var pRth = _rth.find(day);  if( pRth==_rth.end() ){ ERR("trying to add bars but does not contain {}"sv, DateDisplay(FromDays(day)) ); return pResult; }
 		var& rth = pRth->second;
@@ -348,49 +191,19 @@ namespace Jde::Markets
 		}
 		if( barSize!=Size() )
 		{
-			ASSERT( barSize%Size()==0 );
-			auto pNewResult = make_shared<vector<BarPtr>>();
-			var start = useRth ? RthBegin(contract, day) : ExtendedBegin( contract, day );
-			var end = Min( Clock::now(), useRth ? RthEnd(contract, day) : ExtendedEnd(contract, day) );
-			auto ppBar = pResult->begin();
-			var duration = barSize==EBarSize::Day ? end-start : BarSize::BarDuration( barSize );  ASSERT( barSize<=EBarSize::Day );
-			var minuteCount = std::chrono::duration_cast<std::chrono::minutes>( duration ).count();
-			for( auto barStart = start, barEnd=Clock::from_time_t( (Clock::to_time_t(start)/60+minuteCount)/minuteCount*minuteCount*60 ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
-			{
-				::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
-				double sum = 0;
-				for( ;ppBar!=pResult->end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<barEnd; ++ppBar )
-				{
-					var& bar = **ppBar;
-					combined.high = std::max( combined.high, bar.high );
-					combined.low = std::min( combined.low, bar.low );
-					if( combined.open==0.0 )
-						combined.open = bar.open;
-					combined.close = bar.close;
-					sum = bar.wap*ToDouble( bar.volume );
-					DBG( "bar time={}, volume={}"sv, bar.time, bar.volume );
-					combined.volume += bar.volume;
-					combined.count += bar.count;
-				}
-				if( combined.low!=std::numeric_limits<double>::max() )
-				{
-					combined.wap = ToDecimal( sum/ToDouble(combined.volume) );
-					pNewResult->push_back( make_shared<::Bar>(combined) );
-				}
-			}
-			pResult = pNewResult;
+			pResult = BarData::Combine( contract, day, *pResult, barSize, Size(), useRth );
 		}
 		return pResult;
 	}
-	void MinuteCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept
+	α MinuteCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void
 	{
-		flat_map<DayIndex,vector<BarPtr>> rthBars;
-		flat_map<DayIndex,vector<BarPtr>> extendedBars;
+		flat_map<Day,vector<BarPtr>> rthBars;
+		flat_map<Day,vector<BarPtr>> extendedBars;
 		for( var& bar : bars )
 		{
 			var time = ConvertIBDate( bar.time );
 			auto& saveBars = useRth || IsRth(contract, Clock::from_time_t(time)) ? rthBars : extendedBars;
-			saveBars.try_emplace( Chrono::ToDay(time) ).first->second.push_back( make_shared<::Bar>(bar) );
+			saveBars.try_emplace( Chrono::ToDays(time) ).first->second.push_back( ms<::Bar>(bar) );
 		}
 		auto pValues = dynamic_pointer_cast<SubDataCache>( Cache::Emplace<MinuteCache>(CacheId(contract.Id, display)) );
 		if( rthBars.size() )
@@ -402,35 +215,35 @@ namespace Jde::Markets
 		if( extendedBars.size() )
 			pValues->Push( extendedBars, false );
 	}
-	void DayCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept
+	α DayCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void
 	{
-		flat_map<DayIndex,::Bar> cacheBars;
+		flat_map<Day,::Bar> cacheBars;
 		for( var& bar : bars )
-			cacheBars.emplace( ToDay(ConvertIBDate(bar.time)), bar );
+			cacheBars.emplace( ToDays(ConvertIBDate(bar.time)), bar );
 
 		auto pValues = Cache::Emplace<DayCache>( CacheId(contract.Id, display) );
 		if( cacheBars.size() )
 			pValues->Push( cacheBars, useRth );
 	}
-	void OptionCache::Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, DayIndex end, DayIndex subDayCount )noexcept
+	α OptionCache::Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, Day end, Day subDayCount )noexcept->void
 	{
-		flat_map<DayIndex,vector<BarPtr>> rthBars;
+		flat_map<Day,vector<BarPtr>> rthBars;
 		for( var& bar : bars )
 		{
-			var day = Chrono::ToDay( ConvertIBDate(bar.time) );
+			var day = Chrono::ToDays( ConvertIBDate(bar.time) );
 			auto pDay = rthBars.find( day );
 			if( pDay==rthBars.end() )
 				pDay = rthBars.emplace( day, vector<BarPtr>{} ).first;
-			pDay->second.push_back( make_shared<::Bar>(bar) );
+			pDay->second.push_back( ms<::Bar>(bar) );
 		}
-		for( DayIndex i=0, iDay=end ; i<subDayCount; ++i, iDay=PreviousTradingDay(iDay) )
+		for( Day i=0, iDay=end ; i<subDayCount; ++i, iDay=PreviousTradingDay(iDay) )
 			rthBars.emplace( iDay, vector<BarPtr>{} );
 
 		auto pValues = static_pointer_cast<SubDataCache>( Cache::Emplace<OptionCache>(CacheId(contract.Id, display)) );
 		pValues->Push( rthBars, true );
 	}
 
-	void SubDataCache::Push( const flat_map<DayIndex,vector<BarPtr>>& dayBars, bool rth )noexcept
+	α SubDataCache::Push( const flat_map<Day,vector<BarPtr>>& dayBars, bool rth )noexcept->void
 	{
 		auto& cache = rth ? _rth : _extended ;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
@@ -452,7 +265,7 @@ namespace Jde::Markets
 		}
 	}
 
-	void DayCache::Push( const flat_map<DayIndex,::Bar>& dayBars, bool rth )noexcept
+	α DayCache::Push( const flat_map<Day,::Bar>& dayBars, bool rth )noexcept->void
 	{
 		auto& cache = rth ? _rth : _extended;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
@@ -464,17 +277,17 @@ namespace Jde::Markets
 				result.first->second = bar;
 		}
 	}
-	VectorPtr<BarPtr> DayCache::Get( const Contract& contract, DayIndex day, bool rth, EBarSize barSize )noexcept
+	α DayCache::Get( const Contract& contract, Day day, bool rth, EBarSize barSize )noexcept->VectorPtr<BarPtr>
 	{
 		auto& cache = rth ? _rth : _extended;
 		auto& mutex = rth ? _rthMutex : _extendedMutex;
 		shared_lock l1{ mutex };
-		auto pResult = make_shared<vector<BarPtr>>();
+		auto pResult = ms<vector<BarPtr>>();
 		var p = cache.find( day );
 		if( p==cache.end() )
 			ERR("trying to add bars but does not contain {}"sv, DateDisplay(FromDays(day)) );
 		else
-			pResult->push_back( make_shared<::Bar>(p->second) );
+			pResult->push_back( ms<::Bar>(p->second) );
 
 		return pResult;
 	}

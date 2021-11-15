@@ -216,7 +216,7 @@ namespace Jde::Markets
 
 		case ETickType::BidSize: size( BidSize ); break;
 		case ETickType::AskSize: size( AskSize ); break;
-		case ETickType::Volume: size( (int)Volume ); break;
+		case ETickType::Volume: size( Volume ); break;
 
 		case ETickType::BidExchange: stng( BidExchange ); break;
 		case ETickType::AskExchange: stng( AskExchange ); break;
@@ -471,7 +471,7 @@ namespace Jde::Markets
 					if( dateString.size()==8 )
 					{
 						const DateTime date( stoi(dateString.substr(0,4)), (uint8)stoi(dateString.substr(4,2)), (uint8)stoi(dateString.substr(6,2)) );
-						values.emplace( "DIV_NEXT_DAY", Chrono::DaysSinceEpoch(date.GetTimePoint()) );
+						values.emplace( "DIV_NEXT_DAY", Chrono::ToDays(date.GetTimePoint()) );
 					}
 					else
 						DBG( "Could not read next dividend day '{}'."sv, dateString );

@@ -6,10 +6,10 @@
 
 namespace Jde::Markets
 {
-	TwsClientCo::TwsClientCo( const TwsConnectionSettings& settings, shared_ptr<WrapperCo> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
+	Tws::Tws( const TwsConnectionSettings& settings, sp<WrapperCo> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClient( settings, wrapper, pReaderSignal, clientId )
 	{}
-	sp<WrapperCo> TwsClientCo::WrapperPtr()noexcept{ return dynamic_pointer_cast<WrapperCo>( _pWrapper ); }
+	sp<WrapperCo> Tws::WrapperPtr()noexcept{ return dynamic_pointer_cast<WrapperCo>( _pWrapper ); }
 	/*****************************************************************************************************/
 	void HistoricalNewsAwaitable::await_suspend( typename base::THandle h )noexcept
 	{
@@ -18,7 +18,7 @@ namespace Jde::Markets
 		WrapperPtr()->_newsHandles.MoveIn( id, move(h) );
 		_fnctn( id, _pTws);
 	}
-	α TwsClientCo::HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept->HistoricalNewsAwaitable{ return HistoricalNewsAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept{p->reqHistoricalNews( id, conId, providerCodes, totalResults, start, end );} }; }
+	α Tws::HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept->HistoricalNewsAwaitable{ return HistoricalNewsAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept{p->reqHistoricalNews( id, conId, providerCodes, totalResults, start, end );} }; }
 	/*****************************************************************************************************/
 	bool ContractAwaitable::await_ready()noexcept{ return base::await_ready() || (_id && (bool)(_pCache = Cache::Get<Contract>(CacheId())) ); }
 	void ContractAwaitable::await_suspend( typename base::THandle h )noexcept
@@ -38,13 +38,13 @@ namespace Jde::Markets
 		}
 		return result;
 	}
-	α TwsClientCo::ContractDetails( ContractPK conId )noexcept->ContractAwaitable{ return ContractAwaitable{ conId, [=]( TickerId id, sp<TwsClient> p )noexcept
+	α Tws::ContractDetails( ContractPK conId )noexcept->ContractAwaitable{ return ContractAwaitable{ conId, [=]( TickerId id, sp<TwsClient> p )noexcept
 	{
 		::Contract c; c.conId=conId;
 		p->reqContractDetails( id, c );
 	}};}
 
-	α TwsClientCo::ContractDetails( sp<::Contract> c )noexcept->ContractAwaitable{ return ContractAwaitable{ 0, [=]( TickerId id, sp<TwsClient> p )noexcept
+	α Tws::ContractDetails( sp<::Contract> c )noexcept->ContractAwaitable{ return ContractAwaitable{ 0, [=]( TickerId id, sp<TwsClient> p )noexcept
 	{
 		p->reqContractDetails( id, *c );
 	}};}
@@ -63,7 +63,7 @@ namespace Jde::Markets
 			Cache::Set<map<string,string>>( CacheId(), _pCache = result.Get<map<string,string>>() );
 		return result;
 	}
-	α TwsClientCo::NewsProviders()noexcept->NewsProviderAwaitable{ return NewsProviderAwaitable{ [&]( sp<TwsClient> p )noexcept
+	α Tws::NewsProviders()noexcept->NewsProviderAwaitable{ return NewsProviderAwaitable{ [&]( sp<TwsClient> p )noexcept
 	{
 		p->reqNewsProviders();
 	} 	};}
@@ -73,7 +73,7 @@ namespace Jde::Markets
 	{
 		ADD_REQUEST( _newsArticleHandles );
 	}
-	α TwsClientCo::NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable{ return NewsArticleAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept
+	α Tws::NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable{ return NewsArticleAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept
 	{
 		p->reqNewsArticle( id, providerCode, articleId );
 	} 	};}

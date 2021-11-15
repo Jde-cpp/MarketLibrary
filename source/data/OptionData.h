@@ -17,9 +17,9 @@ namespace Jde::Markets
 	{
 		Option()=default;
 		Option( const ContractDetails& ib );
-		Option( DayIndex expirationDate, Amount Strike, bool isCall, ContractPK UnderlyingId=0 );
+		Option( Day expirationDate, Amount Strike, bool isCall, ContractPK UnderlyingId=0 );
 		ContractPK Id{0};
-		DayIndex ExpirationDay;
+		Day ExpirationDay;
 		bool IsCall{false};
 		Amount Strike;
 		ContractPK UnderlyingId;
@@ -31,12 +31,12 @@ namespace Jde::Markets
 	using OptionSetPtr=sp<OptionSet>;
 	namespace OptionData
 	{
-		JDE_MARKETS_EXPORT OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false);
-		JDE_MARKETS_EXPORT OptionSetPtr Load( ContractPK underlyingId, DayIndex earliestDay=0 )noexcept(false);
-		map<DayIndex,sp<Proto::UnderlyingOIValues>> LoadFiles( const Contract& contract )noexcept;
-		JDE_MARKETS_EXPORT Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
-		JDE_MARKETS_EXPORT DayIndex LoadDiff( const Contract& underlying, const vector<ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
+		ΓM OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false);
+		ΓM OptionSetPtr Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false);
+		map<Day,sp<Proto::UnderlyingOIValues>> LoadFiles( const Contract& contract )noexcept;
+		ΓM Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
+		ΓM Day LoadDiff( const Contract& underlying, const vector<ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
 		void Insert( const Option& value )noexcept(false);
-		JDE_MARKETS_EXPORT fs::path OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept;
+		ΓM fs::path OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept;
 	}
 }

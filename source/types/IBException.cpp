@@ -10,7 +10,8 @@ namespace Jde::Markets
 		ErrorCode{ errorCode },
 		RequestId{ reqId }
 	{
-		Log();
+		if( sl.line() )
+			Log();
 	}
 
 	α IBException::Log()const noexcept->void

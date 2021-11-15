@@ -5,6 +5,7 @@
 	#include <platformspecific.h>
 	#pragma pop_macro("assert")
 #endif
+#pragma clang diagnostic ignored "-Wunused-function"
 #include <EWrapper.h>
 #include <jde/markets/Exports.h>
 #include "../../../Framework/source/collections/UnorderedSet.h"
@@ -18,7 +19,7 @@ namespace Jde::Markets
 		β PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept->bool=0;
 		β AccountDownloadEnd( sv accountName )noexcept->void=0;
 	};
-	struct JDE_MARKETS_EXPORT WrapperLog : public EWrapper
+	struct ΓM WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
 		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib)noexcept override;

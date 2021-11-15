@@ -1,8 +1,10 @@
 ﻿#include "WrapperLog.h"
 #include <CommissionReport.h>
+#include <TwsSocketClientErrors.h>
 #include "../../../Framework/source/Cache.h"
 #include "../OrderManager.h"
 #include "../client/TwsClient.h"
+#include "../types/Bar.h"
 
 #define var const auto
 #define _client auto pClient = TwsClient::InstancePtr(); if( pClient ) (*pClient)
@@ -12,9 +14,9 @@ namespace Jde::Markets
 	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 
 //	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
-	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("wrapper") };
-	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("wrapperHist") };
-	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("wrapperTick") };
+	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws.results") };
+	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws.hist") };
+	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws.tick") };
 
 	bool WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept
 	{
@@ -25,7 +27,8 @@ namespace Jde::Markets
 	{
 		LOG_IFT( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
 		LOG_IF( errorCode!=2106, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
-		LOG_IFL( errorCode==509, ELogLevel::Error, "Disconnected:  {} - {}", errorCode, errorMsg );
+		ERR_IF( errorCode==SOCKET_EXCEPTION.code(), "Disconnected:  {} - {}", errorCode, errorMsg );
+		ERR_IF( errorCode==UNSUPPORTED_VERSION.code(), "Disconnected:  {} - {}", errorCode, errorMsg );
 	}
 	α WrapperLog::connectAck()noexcept->void{ LOG( "WrapperLog::connectAck()"); }
 
@@ -40,7 +43,7 @@ namespace Jde::Markets
 	α WrapperLog::execDetailsEnd( int reqId )noexcept->void{ LOG( "WrapperLog::execDetailsEnd( {} )", reqId ); }
 	α WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )noexcept->void
 	{
-		LOGT( _historicalLevel, "({})WrapperLog::historicalData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, bar.time, bar.count, bar.volume, bar.wap, bar.open, bar.close, bar.high, bar.low );
+		LOGT( _historicalLevel, "({})hstrclData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, bar.time.starts_with("20") ? DateDisplay(DateTime{ConvertIBDate(bar.time)}) : Chrono::Display(ConvertIBDate(bar.time)), bar.count, ToDouble(bar.volume), ToDouble(bar.wap), bar.open, bar.close, bar.high, bar.low );
 	}
 	α WrapperLog::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void
 	{

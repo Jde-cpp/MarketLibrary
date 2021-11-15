@@ -217,7 +217,7 @@ namespace Jde::Markets
 		}
 #define FORX(X,Iter) for( auto Iter=X.find(contractId); Iter!=X.end() && Iter->first==contractId; Iter = X.erase(Iter) )
 #define FOR(X) FORX(X,p)
-#define IBExceptionPtr std::make_exception_ptr(IBException{errorString, errorCode, id})
+//#define IBExceptionPtr make_shared<IBException>( errorString, errorCode, id )
 		{
 			unique_lock l{ _twsSubscriptionMutex };
 			for( auto pSub=_twsSubscriptions.find(contractId); pSub!=_twsSubscriptions.end() && pSub->first==contractId; pSub = _twsSubscriptions.erase(pSub) )
@@ -238,7 +238,7 @@ namespace Jde::Markets
 				{
 					unique_lock l2{ _ratioSubscriptionMutex };
 					FOR( _ratioSubscriptions )
-						get<0>( p->second ).set_exception( IBExceptionPtr );
+						get<0>( p->second ).set_exception( std::make_exception_ptr(IBException{errorString, errorCode, id}) );
 				}
 				else if( s.Source==ESubscriptionSource::Coroutine )
 				{
@@ -247,7 +247,7 @@ namespace Jde::Markets
 					{
 						auto h = p->second.HCoroutine;
 						auto& returnObject = h.promise().get_return_object();
-						returnObject.SetResult( IBExceptionPtr );
+						returnObject.SetResult( std::dynamic_pointer_cast<IException>(make_shared<IBException>(errorString, errorCode, id)) );
 						Coroutine::CoroutinePool::Resume( move(h) );
 					}
 				}

@@ -8,7 +8,7 @@
 namespace Jde::Markets
 {
 	using namespace Proto::Results;
-	ITwsAwaitable::ITwsAwaitable()noexcept:_pTws{ TwsClientCo::InstancePtr() }{}
+	ITwsAwaitable::ITwsAwaitable()noexcept:_pTws{ Tws::InstancePtr() }{}
 	α ITwsAwaitable::WrapperPtr()noexcept->sp<WrapperCo>{ return _pTws->WrapperPtr(); }
 
 	α SecDefOptParamAwaitable::await_ready()noexcept->bool
@@ -24,12 +24,12 @@ namespace Jde::Markets
 		WrapperPtr()->_secDefOptParamHandles.MoveIn( id, move(h) );
 		try
 		{
-			auto pContract = Future<Contract>( TwsClientCo::ContractDetails(_underlyingConId) ).get();
+			auto pContract = Future<Contract>( Tws::ContractDetails(_underlyingConId) ).get();
 			_pTws->reqSecDefOptParams( id, _underlyingConId, pContract->LocalSymbol );
 		}
-		catch( std::exception& e )
+		catch( IException& e )
 		{
-			_pPromise->get_return_object().SetResult( std::make_exception_ptr(move(e)) );
+			_pPromise->get_return_object().SetResult( e.Clone() );
 			h.resume();
 		}
 	}

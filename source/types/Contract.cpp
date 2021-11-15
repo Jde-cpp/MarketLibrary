@@ -26,13 +26,13 @@ namespace Jde::Markets
 		TradingClass{ other.tradingClass }
 	{}
 
-	DayIndex Contract::ToDay( str str )noexcept
+	Day Contract::ToDay( str str )noexcept
 	{
-		DayIndex value = 0;
+		Day value = 0;
 		if( str.size()==8 )
 		{
 			var year  = stoi( str.substr(0,4) ); var month = stoi( str.substr(4,2) ); var day = stoi( str.substr(6,2) );
-			value = Chrono::DaysSinceEpoch( DateTime{(uint16)year, (uint8)month, (uint8)day} );
+			value = Chrono::ToDays( DateTime{(uint16)year, (uint8)month, (uint8)day} );
 		}
 		return value;
 	}
@@ -93,7 +93,7 @@ namespace Jde::Markets
 	}
 	sp<Proto::Contract> Contract::ToProto( bool stupidPointer )const noexcept
 	{
-		auto pProto = stupidPointer ? shared_ptr<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
+		auto pProto = stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
 		pProto->set_id( Id );
 		pProto->set_symbol( Symbol );
 		pProto->set_security_type( SecType );
@@ -190,7 +190,7 @@ namespace Jde::Markets
 	string Contract::Display()const noexcept
 	{
 		return SecType==SecurityType::Option
-			? format("{} - {}@{}", Symbol, Chrono::DateDisplay(Expiration), Strike )
+			? format("{} - {}@{}", Symbol, DateDisplay(Expiration), Strike )
 			: Symbol;
 	}
 
@@ -215,7 +215,7 @@ namespace Jde::Markets
 
 	sp<Proto::DeltaNeutralContract> DeltaNeutralContract::ToProto( bool stupidPointer )const noexcept
 	{
-		auto pProto = stupidPointer ? shared_ptr<Proto::DeltaNeutralContract>( new Proto::DeltaNeutralContract(), [](Proto::DeltaNeutralContract*){} ) : make_shared<Proto::DeltaNeutralContract>();
+		auto pProto = stupidPointer ? sp<Proto::DeltaNeutralContract>( new Proto::DeltaNeutralContract(), [](Proto::DeltaNeutralContract*){} ) : make_shared<Proto::DeltaNeutralContract>();
 		pProto->set_id( Id );
 		pProto->set_delta( Delta );
 		pProto->set_price( Price );

@@ -12,7 +12,7 @@ namespace Jde::Markets
 	sp<TwsClientSync> TwsClientSync::_pSyncInstance;
 	TwsClientSync& TwsClientSync::Instance()noexcept{ ASSERT(_pSyncInstance); return *_pSyncInstance; }
 	bool TwsClientSync::IsConnected()noexcept{ auto p = _pSyncInstance; return p && p->isConnected(); }
-	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
+	sp<TwsClientSync> TwsClientSync::CreateInstance( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)
 	{
 		_pInstance = sp<TwsClientSync>{ new TwsClientSync(settings, wrapper, pReaderSignal, clientId) };
 		_pSyncInstance = static_pointer_cast<TwsClientSync>( _pInstance );
@@ -23,11 +23,11 @@ namespace Jde::Markets
 		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pSyncInstance->_port, clientId );
 		return _pSyncInstance;
 	}
-	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
+	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClientCache( settings, wrapper, pReaderSignal, clientId )
 	{}
 
-	shared_ptr<WrapperSync> TwsClientSync::Wrapper()noexcept
+	sp<WrapperSync> TwsClientSync::Wrapper()noexcept
 	{
 		return std::dynamic_pointer_cast<WrapperSync>(_pWrapper);
 	}
@@ -86,7 +86,7 @@ namespace Jde::Markets
 		return time.value_or( TimePoint{} );
 	}
 
-/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync(const Contract& contract, DayIndex endDay, DayIndex dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache)noexcept(false)
+/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync(const Contract& contract, Day endDay, Day dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache)noexcept(false)
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.ReqHistoricalDataPromise( reqId, barSize==EBarSize::Day && dayCount<3 ? 10s : 5min );
@@ -132,7 +132,7 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol, DayIndex dayIndex, SecurityRight right )noexcept
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol, Day dayIndex, SecurityRight right )noexcept
 	{
 		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
 		if( dayIndex>0 )

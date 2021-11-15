@@ -1,16 +1,18 @@
 ﻿#include "BarData.h"
-#include <jde/io/File.h>
+#include <bar.h>
 #include <jde/Str.h>
 #include <jde/Assert.h>
+#include <jde/io/File.h>
 #include <jde/markets/types/Contract.h>
+
+#include "../../../Framework/source/collections/Collections.h"
+#include "../../../Framework/source/io/ProtoUtilities.h"
+#include "../../../XZ/source/XZ.h"
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
 #pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )
-#include "../../../XZ/source/XZ.h"
-#include "../../../Framework/source/collections/Collections.h"
-#include "../../../Framework/source/io/ProtoUtilities.h"
 
 #define var const auto
 #define _client TwsClientSync::Instance()
@@ -19,10 +21,11 @@ namespace Jde::Markets
 {
 	using namespace Chrono;
 	static var& _logLevel{ Logging::TagLevel("mrk.hist") };
+	using ResultsFunction=function<void(const map<Day,VectorPtr<CandleStick>>&,Day,Day)>;
 
 	fs::path BarData::Path()noexcept(false)
 	{
-		var path = Settings::Global().Get<fs::path>( "barPath" );
+		var path = Settings::Get<fs::path>( "marketHistorian/barPath" );
 		return path.empty() ? IApplication::Instance().ApplicationDataFolder()/"securities" : path;
 	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/Str::ToLower(string{ToString(contract.PrimaryExchange)})/Str::Replace(contract.Symbol, " ", "_"); }
@@ -38,11 +41,12 @@ namespace Jde::Markets
 		{
 			try
 			{
+				LOG( "Reading {}", path.string() );
 				TaskResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
 				var pFile = t.Get<Proto::BarFile>();
-				DayIndex dayCount = pFile->days_size();
-				auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
-				for( DayIndex i=0; i<dayCount; ++i )
+				Day dayCount = pFile->days_size();
+				auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
+				for( Day i=0; i<dayCount; ++i )
 				{
 					var& day = pFile->days(i);
 					var dayIndex = day.day();
@@ -69,25 +73,25 @@ namespace Jde::Markets
 				}
 				h.promise().get_return_object().SetResult( pResults );
 			}
-			catch( const std::exception& e )
+			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
+				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
 		}};
 	}
 
 
-	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	MapPtr<Day,VectorPtr<CandleStick>> BarData::Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
-		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
+		auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
 
 		var pFile = pPartials && pPartials->find(path.string())!=pPartials->end() ? pPartials->find(path.string())->second : Load( path );
 		if( !pFile )
 			return pResults;
 
-		DayIndex dayCount = pFile->days_size();
-		for( DayIndex i=0; i<dayCount; ++i )
+		Day dayCount = pFile->days_size();
+		for( Day i=0; i<dayCount; ++i )
 		{
 			var& day = pFile->days(i);
 			var dayIndex = day.day();
@@ -114,7 +118,7 @@ namespace Jde::Markets
 		}
 		return pResults;
 	}
-	tuple<DayIndex,DayIndex> ExtractTimeframe( path path, TimePoint earliestDate, uint8 yearsToKeep=3 )
+	tuple<Day,Day> ExtractTimeframe( path path, TimePoint earliestDate, uint8 yearsToKeep=3 )
 	{
 		static uint16 currentYear=DateTime().Year();
 		var [year,month,day] = IO::FileUtilities::ExtractDate( path );
@@ -123,16 +127,16 @@ namespace Jde::Markets
 
 		var start = CurrentTradingDay( year==currentYear-yearsToKeep ? earliestDate : ToTimePoint(year, std::max(month,(uint8)1), std::max(day,(uint8)1)) );
 		var end = day ? start+24h-1s : EndOfMonth( ToTimePoint(year, month ? month : 12, 1) );
-		return make_tuple( DaysSinceEpoch(start), DaysSinceEpoch(end) );
+		return make_tuple( ToDays(start), ToDays(end) );
 	}
 
-	vector<tuple<fs::path,DayIndex,DayIndex>> ApplicableFiles( path root, TimePoint issueDate, DayIndex start, DayIndex endInput, sv prefix={} )
+	vector<tuple<fs::path,Day,Day>> ApplicableFiles( path root, TimePoint issueDate, Day start, Day endInput, sv prefix={} )
 	{
-		vector<tuple<fs::path,DayIndex,DayIndex>> paths;
+		vector<tuple<fs::path,Day,Day>> paths;
 		if( !fs::exists(root) )
 			return paths;
 		var pEntries = IO::FileUtilities::GetDirectory( root );
-		var end = endInput ? endInput : std::numeric_limits<DayIndex>::max();
+		var end = endInput ? endInput : std::numeric_limits<Day>::max();
 		for( var& entry : *pEntries )
 		{
 			var path = entry.path();
@@ -150,31 +154,37 @@ namespace Jde::Markets
 	}
 	struct BarFilesAwaitable : IAwaitable
 	{
-		BarFilesAwaitable( const Contract& contract, DayIndex start, DayIndex endInput, function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> f )noexcept(false):
+		using base=IAwaitable;
+		BarFilesAwaitable( const Contract& contract, Day start, Day endInput, ResultsFunction f )noexcept(false):
 			_function{ f },
-			_files{ ApplicableFiles( BarData::Path( contract ), contract.IssueDate, start, endInput) },
+			_files{ ApplicableFiles(BarData::Path(contract), contract.IssueDate, start, endInput) },
 			_symbol{ contract.Symbol }
-		{}
+		{
+			LOG( "({})BarFilesAwaitable::BarFilesAwaitable( {}, {}, fileSize={} )", _symbol, DateDisplay(start), DateDisplay(endInput), _files.size() );
+		}
+		~BarFilesAwaitable(){ LOG( "({})~BarFilesAwaitable()", _symbol ); }
 		bool await_ready()noexcept override{ return _files.empty(); }
 		void await_suspend( typename base::THandle h )noexcept override
 		{
 			base::await_suspend( h );
-			auto f = [files=move(_files), function=_function, symbol=move(_symbol), h2=move(h),this]()->Task2
+			_h = h;
+			//auto f = [files=move(_files), function=_function, symbol=move(_symbol), h2=move(h),this]()mutable->Task2
+			auto f = [this]()mutable->Task2
 			{
-				for( var& [path,start,end] : files )
+				for( var& [path,start,end] : _files )
 				{
 					try
 					{
-						auto pData = ( co_await BarData::Load(path, symbol) ).Get<map<DayIndex,VectorPtr<CandleStick>>>();
-						function( *pData, start, end );
+						auto pData = ( co_await BarData::Load(move(path), _symbol) ).Get<map<Day,VectorPtr<CandleStick>>>();
+						_function( *pData, start, end );
 					}
-					catch( const std::exception& e )
+					catch( IException& e )
 					{
-						_pException = std::make_exception_ptr( e );
+						_pException = e.Clone();
 						break;
 					}
 				}
-				h2.resume();
+				_h.resume();
 			};
 			f();
 		}
@@ -184,19 +194,20 @@ namespace Jde::Markets
 			return _pException ? TaskResult{ _pException } : TaskResult{ sp<void>{} };
 		}
 	private:
-		function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> _function;
-		vector<tuple<fs::path,DayIndex,DayIndex>> _files;
-		std::exception_ptr _pException;
+		ResultsFunction _function;
+		vector<tuple<fs::path,Day,Day>> _files;
+		sp<IException> _pException;
+		Coroutine::HCoroutine _h;
 		string _symbol;
 	};
-	α ForEachFile( const Contract& contract, DayIndex start, DayIndex endInput, function<void(const map<DayIndex,VectorPtr<CandleStick>>&,DayIndex,DayIndex)> f )noexcept{ return BarFilesAwaitable{contract, start, endInput, f}; }
-	void BarData::ForEachFile( const Contract& contract, const function<void(path,DayIndex, DayIndex)>& fnctn, DayIndex start, DayIndex endInput, sv prefix )noexcept//fnctn better not throw
+	α ForEachFile( const Contract& contract, Day start, Day endInput, ResultsFunction f )noexcept{ return BarFilesAwaitable{contract, start, endInput, f}; }
+	void BarData::ForEachFile( const Contract& contract, FileFunction fnctn, Day start, Day endInput, sv prefix )noexcept//fnctn better not throw
 	{
 		for( var& [path,fileStart,fileEnd] : ApplicableFiles(BarData::Path(contract), contract.IssueDate, start, endInput, prefix) )
 			fnctn( path, fileStart, fileEnd );
 	}
 
-	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::TryLoad( const Contract& contract, DayIndex start, DayIndex end )noexcept
+	MapPtr<Day,VectorPtr<CandleStick>> BarData::TryLoad( const Contract& contract, Day start, Day end )noexcept
 	{
 		try
 		{
@@ -204,12 +215,12 @@ namespace Jde::Markets
 		}
 		catch( const IException& )
 		{}
-		return make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
+		return make_shared<map<Day,VectorPtr<CandleStick>>>();
 	}
-	MapPtr<DayIndex,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, DayIndex start, DayIndex end )noexcept(false)
+	MapPtr<Day,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, Day start, Day end )noexcept(false)
 	{
-		auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
-		auto fnctn = [&]( path path, DayIndex, DayIndex )
+		auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
+		auto fnctn = [&]( path path, Day, Day )noexcept
 		{
 			var pFileValues = Load( path, (sv)contract.Symbol );
 			for( var& [day,pBars] : *pFileValues )
@@ -221,13 +232,14 @@ namespace Jde::Markets
 		ForEachFile( contract, fnctn, start, end );
 		return pResults;
 	}
-	α BarData::CoLoad( ContractPtr_ pContract, DayIndex start, DayIndex end )noexcept(false)->AWrapper
+	α BarData::CoLoad( ContractPtr_ pContract, Day start, Day end )noexcept(false)->AWrapper
 	{
-		return AWrapper( [pContract, start,end]( HCoroutine h )->Task2
+		return AWrapper( [pContract, start, end]( HCoroutine h )->Task2
 		{
-			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, Chrono::DateDisplay(start), Chrono::DateDisplay(end) );
-			auto pResults = make_shared<map<DayIndex,VectorPtr<CandleStick>>>();
-			auto fnctn = [pResults,start,end]( const map<DayIndex,VectorPtr<CandleStick>>& bars,DayIndex,DayIndex )
+			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, DateDisplay(start), DateDisplay(end) );
+			//auto p = make_shared<map<Day,VectorPtr<CandleStick>>>();
+			auto p = new map<Day,VectorPtr<CandleStick>>();
+			auto fnctn = [pResults=p,start,end]( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
 			{
 				for( var& dayBars : bars )
 				{
@@ -239,21 +251,21 @@ namespace Jde::Markets
 			try
 			{
 				auto y = ( co_await ForEachFile(*pContract, start, end, fnctn) ).Get<sp<void>>();
-				h.promise().get_return_object().SetResult( pResults );
+				h.promise().get_return_object().SetResult( make_shared<map<Day,VectorPtr<CandleStick>>>(*p) );
 			}
-			catch( const std::exception& e )
+			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
+				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
 		} );
 	}
 
-	void BarData::Save( const Contract& contract, flat_map<DayIndex,vector<sp<::Bar>>>& rthBars )noexcept
+	void BarData::Save( const Contract& contract, flat_map<Day,vector<sp<::Bar>>>& rthBars )noexcept
 	{
 		var current = CurrentTradingDay( contract );
 		var exclude = Clock::now()>ExtendedEnd( contract, current ) ? 0 : current;
-		map<DayIndex,VectorPtr<CandleStick>> days;
+		map<Day,VectorPtr<CandleStick>> days;
 		for( var& [day, bars] : rthBars )
 		{
 			if( day==exclude )
@@ -267,7 +279,7 @@ namespace Jde::Markets
 
 	void BarData::ApplySplit( const Contract& contract, uint multiplier )noexcept
 	{
-		auto fnctn = [&]( path path, DayIndex, DayIndex )
+		auto fnctn = [&]( path path, Day, Day )noexcept
 		{
 			var pExisting = Load( path );//BarFile
 			Proto::BarFile newFile;
@@ -291,7 +303,7 @@ namespace Jde::Markets
 		ForEachFile( contract, fnctn, 0, CurrentTradingDay() );
 	}
 
-	void BarData::Save( const Contract& contract, const map<DayIndex,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,TimePoint_>> pExcluded, bool checkExisting, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	void BarData::Save( const Contract& contract, const map<Day,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,optional<TimePoint>>> pExcluded, bool checkExisting, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
 		const DateTime now{ CurrentTradingDay(Clock::now()) };
 		auto getFileName = [&now]( const DateTime& itemDate )->string
@@ -301,7 +313,7 @@ namespace Jde::Markets
 			auto day = month==0 || now.Month()!=itemDate.Month() ? 0 : itemDate.Day();
 			return IO::FileUtilities::DateFileName( year, month, day );
 		};
-		auto addDay = []( Proto::BarFile& proto, DayIndex day, const vector<CandleStick>& bars )
+		auto addDay = []( Proto::BarFile& proto, Day day, const vector<CandleStick>& bars )
 		{
 			auto pDay = proto.add_days();
 			pDay->set_day( day );
@@ -321,9 +333,9 @@ namespace Jde::Markets
 		for( auto& [fileName,proto] : files )
 		{
 			var barPath = Path( contract );
-			set<DayIndex> existingDays;
+			set<Day> existingDays;
 			set<string> combinedFiles;
-			auto addExisting = [&,&proto2=proto]( path path, DayIndex _=0, DayIndex _2=0)noexcept
+			auto addExisting = [&,&proto2=proto]( path path, Day _=0, Day _2=0)noexcept
 			{
 				combinedFiles.emplace( path.string() );
 				var pExisting = Load( path, contract.Symbol, pPartials );
@@ -352,8 +364,8 @@ namespace Jde::Markets
 					//(AEM) is incomplete because of '01/26/04' 12443
 					for( var& [startEx,endEx] : *pExcluded )
 					{
-						var startExcludedDay = DaysSinceEpoch( startEx );
-						var endExcludedDay = DaysSinceEpoch( endEx.value_or(TimePoint{}) );
+						var startExcludedDay = ToDays( startEx );
+						var endExcludedDay = ToDays( endEx.value_or(TimePoint{}) );
 						excluded = ( !endExcludedDay && startExcludedDay==day ) || ( endExcludedDay && startExcludedDay<=day && endExcludedDay>=day );
 						if( excluded )
 							break;
@@ -397,11 +409,11 @@ namespace Jde::Markets
 		}
 	}
 
-	flat_set<DayIndex> BarData::FindExisting( const Contract& contract, DayIndex start2, DayIndex end2, sv prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	flat_set<Day> BarData::FindExisting( const Contract& contract, Day start2, Day end2, sv prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
 	{
-		flat_set<DayIndex> existing;
+		flat_set<Day> existing;
 		const DateTime today{ DateTime::Today() };
-		auto fnctn = [&]( path path, DayIndex fileStart, DayIndex fileEnd )
+		auto fnctn = [&]( path path, Day fileStart, Day fileEnd )
 		{
 			if( Str::EndsWith(path.stem().stem().string(), "_partial") /*|| (end2==18269 && path.stem().stem().string()=="2019")*/  )
 			{
@@ -431,5 +443,39 @@ namespace Jde::Markets
 		BarData::ForEachFile( contract, fnctn, start2, end2, prefix );
 
 		return existing;
+	}
+
+	α BarData::Combine( const Contract& contract, Day day, vector<sp<Bar>>& fromBars, EBarSize toBarSize, EBarSize fromBarSize, bool useRth )->VectorPtr<sp<::Bar>>
+	{
+		ASSERT( toBarSize%fromBarSize==0 );
+		auto pToBars = ms<vector<sp<Bar>>>();
+		var start = useRth ? RthBegin( contract, day ) : ExtendedBegin( contract, day );
+		var end = Min( Clock::now(), useRth ? RthEnd(contract, day) : ExtendedEnd(contract, day) );
+		auto ppBar = fromBars.begin();
+		var duration = toBarSize==EBarSize::Day ? end-start : BarSize::BarDuration( toBarSize );  ASSERT( toBarSize<=EBarSize::Day );
+		var minuteCount = std::chrono::duration_cast<std::chrono::minutes>( duration ).count();
+		for( auto barStart = start, barEnd=Clock::from_time_t( (Clock::to_time_t(start)/60+minuteCount)/minuteCount*minuteCount*60 ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
+		{
+			::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
+			double sum = 0;
+			for( ;ppBar!=fromBars.end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<barEnd; ++ppBar )
+			{
+				var& bar = **ppBar;
+				combined.high = std::max( combined.high, bar.high );
+				combined.low = std::min( combined.low, bar.low );
+				if( combined.open==0.0 )
+					combined.open = bar.open;
+				combined.close = bar.close;
+				sum = ToDouble( bar.wap )*ToDouble( bar.volume );
+				combined.volume += bar.volume;
+				combined.count += bar.count;
+			}
+			if( combined.low!=std::numeric_limits<double>::max() )
+			{
+				combined.wap = ToDecimal( sum/ToDouble(combined.volume) );
+				pToBars->push_back( ms<::Bar>(combined) );
+			}
+		}
+		return pToBars;
 	}
 }

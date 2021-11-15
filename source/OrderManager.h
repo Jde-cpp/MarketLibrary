@@ -48,7 +48,7 @@ namespace Jde::Markets::OrderManager
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
-	struct JDE_MARKETS_EXPORT Awaitable final : CancelAwaitable<Task2>, CombinedParams
+	struct ΓM Awaitable final : CancelAwaitable<Task2>, CombinedParams
 	{
 		typedef CancelAwaitable<Task2> base;
 		typedef Task2::promise_type PromiseType;
@@ -62,11 +62,11 @@ namespace Jde::Markets::OrderManager
 		void End( Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
 	};
 
-	JDE_MARKETS_EXPORT void Cancel( Handle h )noexcept;
+	ΓM void Cancel( Handle h )noexcept;
 	inline auto Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
-	JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
+	ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 	void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-	JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
+	ΓM void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 	void Push( const ::Order& order, const ::Contract& contract )noexcept;
 
 
@@ -90,10 +90,10 @@ namespace Jde::Markets::OrderManager
 		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
-		friend JDE_MARKETS_EXPORT void Cancel( Handle h )noexcept;
-		friend JDE_MARKETS_EXPORT optional<Cache> GetLatest( ::OrderId orderId )noexcept;
+		friend ΓM void Cancel( Handle h )noexcept;
+		friend ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 		friend void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-		friend JDE_MARKETS_EXPORT void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
+		friend ΓM void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
 		friend void Push( const ::Order& order, const ::Contract& contract )noexcept;
 	};
 }

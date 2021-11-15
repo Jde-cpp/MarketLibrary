@@ -10,7 +10,7 @@
 
 namespace Jde::Markets
 {
-	struct JDE_MARKETS_EXPORT HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
+	struct ΓM HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
 	{
 		HistoricalNewsAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		//bool await_ready()noexcept override;TODO cache results...
@@ -18,7 +18,7 @@ namespace Jde::Markets
 		private:
 			function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
-	struct JDE_MARKETS_EXPORT ContractAwaitable final : ITwsAwaitableImpl//ContractPtr_
+	struct ΓM ContractAwaitable final : ITwsAwaitableImpl//ContractPtr_
 	{
 		using base = ITwsAwaitableImpl;
 		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f},_id{id}{}
@@ -31,7 +31,7 @@ namespace Jde::Markets
 		sp<Contract> _pCache;
 		ContractPK _id;
 	};
-	struct JDE_MARKETS_EXPORT NewsProviderAwaitable final : ITwsAwaitableImpl//<sp<map<string,string>>
+	struct ΓM NewsProviderAwaitable final : ITwsAwaitableImpl//<sp<map<string,string>>
 	{
 		using base = ITwsAwaitableImpl;
 		NewsProviderAwaitable( function<void(sp<TwsClient>)> f )noexcept:_fnctn{f}{}
@@ -43,7 +43,7 @@ namespace Jde::Markets
 		function<void(sp<TwsClient>)> _fnctn;
 		sp<map<string,string>> _pCache;
 	};
-	struct JDE_MARKETS_EXPORT NewsArticleAwaitable final : ITwsAwaitableImpl
+	struct ΓM NewsArticleAwaitable final : ITwsAwaitableImpl
 	{
 		NewsArticleAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		α await_suspend( typename base::THandle h )noexcept->void override;
@@ -51,20 +51,20 @@ namespace Jde::Markets
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
 
-	struct JDE_MARKETS_EXPORT TwsClientCo : TwsClient
+	struct ΓM Tws : TwsClient
 	{
-		TwsClientCo( const TwsConnectionSettings& settings, shared_ptr<WrapperCo> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		Tws( const TwsConnectionSettings& settings, sp<WrapperCo> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		α AddParam( coroutine_handle<>&& h )noexcept->TickerId;
 		α WrapperPtr()noexcept->sp<WrapperCo>;
 
-		Ω HistoricalData( ContractPtr_ pContract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept{ return HistoricalDataAwaitable{pContract, end, dayCount, barSize, display, useRth}; }
+		Ω HistoricalData( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept{ return HistoryAwait{pContract, end, dayCount, barSize, display, useRth}; }
 		Ω HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept->HistoricalNewsAwaitable;
 		Ω ContractDetails( ContractPK conId )noexcept->ContractAwaitable;
 		Ω ContractDetails( sp<::Contract> c )noexcept->ContractAwaitable;
 		Ω NewsProviders()noexcept->NewsProviderAwaitable;
 		Ω NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable;
 		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwaitable{underlyingConId, smart}; }
-		Ω InstancePtr()noexcept->sp<TwsClientCo>{ return dynamic_pointer_cast<TwsClientCo>( TwsClient::InstancePtr() ); }
+		Ω InstancePtr()noexcept->sp<Tws>{ return dynamic_pointer_cast<Tws>( TwsClient::InstancePtr() ); }
 	private:
 		friend ITwsAwaitable;
 	};

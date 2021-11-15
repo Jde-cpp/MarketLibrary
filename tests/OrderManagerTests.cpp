@@ -52,7 +52,7 @@ namespace Jde::Markets
 	TEST_F( OrderManagerTests, Adhoc )
 	{
 		Run2();
-		std::this_thread::sleep_for( 6min );
+		std::this_thread::sleep_for( 30s );//6min
 		/*var reqId = RequestId();
 
 		placeOrder( const ::Contract& contract, const ::Order& order )noexcept;

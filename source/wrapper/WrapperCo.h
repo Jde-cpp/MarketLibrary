@@ -8,7 +8,7 @@ namespace Jde::Markets
 {
 	struct TwsClientCo;
 	using namespace Jde::Coroutine;
-	struct JDE_MARKETS_EXPORT WrapperCo : WrapperLog
+	struct ΓM WrapperCo : WrapperLog
 	{
 		bool error2( int id, int errorCode, str errorMsg )noexcept override;
 		void error( int id, int errorCode, str errorMsg )noexcept override;
@@ -34,9 +34,9 @@ namespace Jde::Markets
 		UnorderedSet<NewsProviderAwaitable::THandle> _newsProviderHandles;
 		UnorderedMapValue<int,NewsArticleAwaitable::THandle> _newsArticleHandles;
 		flat_map<int,up<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<int,HCoroutine> _secDefOptParamHandles;
-		UnorderedMapValue<int,HistoricalDataAwaitable*> _historical;
+		UnorderedMapValue<int,HistoryAwait*> _historical;
 		flat_map<TickerId,vector<::Bar>> _historicalData;
 
-		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoricalDataAwaitable; friend SecDefOptParamAwaitable;
+		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoryAwait; friend SecDefOptParamAwaitable;
 	};
 }

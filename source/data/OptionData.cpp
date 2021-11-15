@@ -28,10 +28,10 @@ namespace Jde::Markets
 			var year = static_cast<uint16>(stoul(date.substr(0,4)) );
 			var month = static_cast<uint8>( stoul(date.substr(4,2)) );
 			var day = static_cast<uint8>( stoul(date.substr(6,2)) );
-			ExpirationDay = Chrono::DaysSinceEpoch( DateTime(year, month, day).GetTimePoint() );
+			ExpirationDay = Chrono::ToDays( DateTime(year, month, day).GetTimePoint() );
 		}
 	}
-	Option::Option( DayIndex ExpirationDay, Amount strike, bool isCall, ContractPK underlyingId ):
+	Option::Option( Day ExpirationDay, Amount strike, bool isCall, ContractPK underlyingId ):
 		ExpirationDay{ ExpirationDay },
 		IsCall{ isCall },
 		Strike{ strike },
@@ -66,7 +66,7 @@ namespace Jde::Markets
 		DB::DataSource()->Execute( sql, {(uint)value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, (uint)value.UnderlyingId} );
 	}
 
-	OptionSetPtr OptionData::Load( ContractPK underlyingId, DayIndex earliestDay )noexcept(false)
+	OptionSetPtr OptionData::Load( ContractPK underlyingId, Day earliestDay )noexcept(false)
 	{
 		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=? and expiration_date>=?";
 		auto pResults = make_shared<flat_set<OptionPtr,SPCompare<const Option>>>();
@@ -109,7 +109,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	DayIndex OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	Day OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
 		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )
@@ -177,7 +177,7 @@ namespace Jde::Markets
 		return to;
 	}
 
-	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, DayIndex from, DayIndex to, bool includeExpired, bool noFromDayOk )noexcept(false)
+	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )noexcept(false)
 	{
 		var pOptions = Load( contract.Id );
 		map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
@@ -271,10 +271,10 @@ namespace Jde::Markets
 		return OptionDir(contract)/(IO::FileUtilities::DateFileName(year,month,day)+".dat.xz");
 	}
 
-	map<DayIndex,sp<Proto::UnderlyingOIValues>> OptionData::LoadFiles( const Contract& contract )noexcept
+	map<Day,sp<Proto::UnderlyingOIValues>> OptionData::LoadFiles( const Contract& contract )noexcept
 	{
 		var pFiles = IO::FileUtilities::GetDirectory( OptionDir(contract) );
-		map<DayIndex,sp<Proto::UnderlyingOIValues>> values;
+		map<Day,sp<Proto::UnderlyingOIValues>> values;
 		for( auto pFile = pFiles->rbegin(); pFile!=pFiles->rend(); ++pFile )
 		{
 			var file = pFile->path().filename().stem().string();
@@ -283,7 +283,7 @@ namespace Jde::Markets
 			var year = stoi( file.substr(0, 4) );
 			var month = stoi( file.substr(5, 2) );
 			var day = stoi( file.substr(8, 2) );
-			var daysSinceEpoch = Chrono::DaysSinceEpoch( DateTime(year,(uint8)month,(uint8)day).GetTimePoint() );
+			var daysSinceEpoch = Chrono::ToDays( DateTime(year,(uint8)month,(uint8)day).GetTimePoint() );
 			values.emplace( daysSinceEpoch, Load(contract, year, month, day) );
 		}
 		return values;

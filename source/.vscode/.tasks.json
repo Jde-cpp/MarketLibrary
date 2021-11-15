@@ -62,8 +62,8 @@
          "type": "shell",
          "label": "compile",
 			"command": "ccache",
-			"args": ["clang++","-DJde_${config:window.title}_EXPORTS","-O0","-g", "-Wall", "-Wno-unknown-pragmas", "-Wno-empty-body","-fsanitize=address",
-				"-I${env:REPO_DIR}/eigen", "-I${env:REPO_DIR}/json/include","-I${env:REPO_DIR}/boostorg/boost_1_74_0","-I${env:REPO_DIR}/spdlog/include", "-I${env:REPO_DIR}/tws-api/source/cppclient/client",
+			"args": ["clang++","-DJde_${config:window.title}_EXPORTS","-O0","-g", "-fsanitize=address", "-Wno-empty-body"
+				"-I${env:REPO_DIR}/json/include","-I${env:BOOST_ROOT}","-I${env:REPO_DIR}/spdlog/include", "-I${env:REPO_DIR}/tws-api/source/cppclient/client","-I${env:JDE_DIR}/Public",
 				"-fno-omit-frame-pointer","-fPIC","-std=c++20", "-stdlib=libc++","-include","${workspaceFolder}/.obj/asan/CMakeFiles/Jde.${config:window.title}.dir/CMakeFiles/Jde.${config:window.title}.dir/cmake_pch.hxx","-o","${workspaceFolder}/.obj/asan/CMakeFiles/Jde.${config:window.title}.dir/${fileBasename}.o","-c", "${file}"],
 			"dependsOrder": "sequence",
 			"dependsOn": ["echo"],

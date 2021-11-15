@@ -7,7 +7,7 @@
 namespace Jde::Markets
 {
 	//
-	struct JDE_MARKETS_EXPORT WrapperCache : public WrapperCo
+	struct ΓM WrapperCache : public WrapperCo
 	{
 		void AddCacheId( ReqId reqId, str cacheId ){ if( cacheId.size() ) _cacheIds.emplace(reqId, cacheId); }//reqContractDetails.OPT.CALL.20230120.330.0.SPY
 		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;

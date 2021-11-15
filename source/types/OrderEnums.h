@@ -6,16 +6,11 @@
 namespace Jde
 {
 	using Markets::Proto::Results::EOrderStatus;
-	// enum class EOrderType : uint8
-	// {
-	// 	Market=0,
-	// 	Limit=1
-	// };
 namespace Markets
 {
 	constexpr std::array<sv,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
-	inline sv ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return Str::FromEnum( EOrderTypeStrings, orderType ); }
-	inline Proto::EOrderType ToOrderType( sv value )noexcept{ return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, value).value_or(Proto::EOrderType::Limit ); }
+	Ξ ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return Str::FromEnum( EOrderTypeStrings, orderType ); }
+	Ξ ToOrderType( sv value )noexcept{ return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, value).value_or(Proto::EOrderType::Limit ); }
 
 	constexpr std::array<sv,7> ETifStrings={ "DAY", "GTC", "IOC", "GTD", "OPG", "FOK", "DTC" };
 	constexpr std::array<sv,9> EOrderStatusStrings={ "PendingSubmit","PendingCancel","PreSubmitted","Submitted","ApiCancelled","Cancelled","Filled","Inactive","UnknownStatus" };
@@ -23,22 +18,19 @@ namespace Markets
 	enum class EAction : uint8
 	{
 		Buy=0,
-		Sell=1/*,
-				Short=2*/
-				//BUY/SELL/SSHORT
+		Sell=1
+		/*,Short=2*///BUY/SELL/SSHORT
 	};
 	constexpr sv EActionStrings[]={ "BUY", "SELL" /*"SSHORT"*/ };
 	constexpr sv ToActionString( EAction action ){ return EActionStrings[(uint)action]; }
 
-	inline EOrderStatus operator& (EOrderStatus a, EOrderStatus b){ return (EOrderStatus)( (uint8)a & (uint8)b ); }
-	inline bool operator!( EOrderStatus a ){ return a==EOrderStatus::None; }
-	inline bool IsComplete( EOrderStatus a ){ return a==EOrderStatus::Filled || a==EOrderStatus::Cancelled; }
-	inline sv ToString( EOrderStatus order )noexcept;
-	inline EOrderStatus ToOrderStatus( sv statusText )noexcept;
-	inline std::ostream& operator<<( std::ostream& os, const EOrderStatus& status )noexcept{ os << ToString(status); return os; }
-// 	JDE_TWS_EXPORT std::string ToString( const ETickType display )noexcept;
+	Ξ operator& (EOrderStatus a, EOrderStatus b){ return (EOrderStatus)( (uint8)a & (uint8)b ); }
+	Ξ operator!( EOrderStatus a ){ return a==EOrderStatus::None; }
+	Ξ IsComplete( EOrderStatus a ){ return a==EOrderStatus::Filled || a==EOrderStatus::Cancelled; }
+	Ξ ToString( EOrderStatus order )noexcept;
+	Ξ ToOrderStatus( sv statusText )noexcept;
 }
-	inline sv Markets::ToString( EOrderStatus orderStatus )noexcept
+	Ξ Markets::ToString( EOrderStatus orderStatus )noexcept
 	{
 		sv result = "None";
 		switch( orderStatus )
@@ -56,7 +48,7 @@ namespace Markets
 		}
 		return result;
 	}
-	inline EOrderStatus Markets::ToOrderStatus( sv statusText )noexcept
+	Ξ Markets::ToOrderStatus( sv statusText )noexcept
 	{
 		EOrderStatus orderStatus = EOrderStatus::None;
 		if( statusText=="PendingSubmit" ) orderStatus = EOrderStatus::PendingSubmit;

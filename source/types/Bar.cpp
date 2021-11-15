@@ -32,13 +32,6 @@ namespace Jde
 }
 namespace Jde::Markets
 {
-/*	sv BarSize::TryToString(const BarSize::Enum barSize )noexcept
-	{
-		auto value = "1 hour"sv;
-		Try( [barSize, &value](){ value = ToString(barSize);} );
-		return value;
-	}
-*/
 	α BarSize::ToString( const BarSize::Enum barSize )noexcept->sv
 	{
 		sv result = "1 hour";
@@ -124,18 +117,18 @@ namespace Jde::Markets
 		High{ minuteBar.highest_traded_price() },
 		Low{ minuteBar.lowest_traded_price() },
 		Close{ minuteBar.last_traded_price() },
-		Volume{ minuteBar.volume() }
+		Volume{ ToDecimal(minuteBar.volume()) }
 	{}
 	CandleStick::CandleStick( const ::Bar& bar )noexcept:
 		Open{ static_cast<CandleStick::Amount>(bar.open) },
 		High{ static_cast<CandleStick::Amount>(bar.high) },
 		Low{ static_cast<CandleStick::Amount>(bar.low) },
 		Close{ static_cast<CandleStick::Amount>(bar.close) },
-		Volume{ static_cast<uint32>(bar.volume) }
+		Volume{ bar.volume }
 	{}
 	α CandleStick::ToIB( TimePoint time )const noexcept->::Bar
 	{
-		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0, ToDecimal(Volume), 0 };
+		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0, Volume, 0 };
 	}
 	α CandleStick::ToProto()const noexcept->Proto::MinuteBar
 	{
@@ -144,7 +137,7 @@ namespace Jde::Markets
 		proto.set_highest_traded_price( static_cast<float>(High) );
 		proto.set_lowest_traded_price( static_cast<float>(Low) );
 		proto.set_last_traded_price( static_cast<float>(Close) );
-		proto.set_volume( Volume );
+		proto.set_volume( ToDouble(Volume) );
 		return proto;
 	}
 
@@ -165,9 +158,4 @@ namespace Jde::Markets
 			THROW( "Unknown TwsDisplay {}", stringValue );
 		return static_cast<TwsDisplay::Enum>( index );
 	}
-	//std::ostream& operator<<( std::ostream& os, const TwsDisplay::Enum& value )
-	//{
-	//	os << TwsDisplay::ToString( value );
-	//	return os;
-	//}
 }

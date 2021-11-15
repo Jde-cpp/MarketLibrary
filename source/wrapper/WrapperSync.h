@@ -12,7 +12,7 @@ struct EReaderSignal;
 namespace Jde::Markets
 {
 	struct TwsClientSync;
-	struct JDE_MARKETS_EXPORT WrapperSync : WrapperCache, std::enable_shared_from_this<WrapperSync>
+	struct ΓM WrapperSync : WrapperCache, std::enable_shared_from_this<WrapperSync>
 	{
 		WrapperSync()noexcept;
 		~WrapperSync();
@@ -65,7 +65,7 @@ namespace Jde::Markets
 		sp<TwsClientSync> _pClient;
 
 	private:
-		shared_ptr<EReaderSignal> _pReaderSignal;
+		sp<EReaderSignal> _pReaderSignal;
 		void SendCurrentTime( const TimePoint& time )noexcept;
 		std::forward_list<CurrentTimeCallback> _currentTimeCallbacks; mutable shared_mutex _currentTimeCallbacksMutex;
 		std::forward_list<DisconnectCallback> _disconnectCallbacks; mutable shared_mutex _disconnectCallbacksMutex;

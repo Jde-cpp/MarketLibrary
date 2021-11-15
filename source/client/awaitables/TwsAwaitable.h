@@ -9,15 +9,15 @@ namespace Jde::Markets
 {
 	namespace Proto::Results{ class OptionExchanges; }
 	using namespace Jde::Coroutine;
-	struct WrapperCo; struct TwsClientCo;
+	struct WrapperCo; struct Tws;
 
 	using namespace Jde::Coroutine;
-	struct JDE_MARKETS_EXPORT ITwsAwaitable
+	struct ΓM ITwsAwaitable
 	{
 		ITwsAwaitable()noexcept;
 	protected:
 		sp<WrapperCo> WrapperPtr()noexcept;
-		sp<TwsClientCo> _pTws;
+		sp<Tws> _pTws;
 	};
 	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable
 	{
@@ -27,7 +27,7 @@ namespace Jde::Markets
 		α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
 	};
 
-	struct JDE_MARKETS_EXPORT SecDefOptParamAwaitable :ITwsAwaitableImpl
+	struct ΓM SecDefOptParamAwaitable :ITwsAwaitableImpl
 	{
 		SecDefOptParamAwaitable( ContractPK conId, bool smart )noexcept:_underlyingConId{conId}, _smart{smart}{};
 		α await_ready()noexcept->bool override;

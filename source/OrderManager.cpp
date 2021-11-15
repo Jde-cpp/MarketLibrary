@@ -6,6 +6,7 @@
 #define var const auto
 namespace Jde::Markets
 {
+	static const LogTag& _logLevel = Logging::TagLevel( "mrk.orders" );
 	void OrderManager::Cancel( Coroutine::Handle h )noexcept
 	{
 		OMInstancePtr->Cancel( h );
@@ -142,7 +143,7 @@ namespace OrderManager
 				if( update.StatePtr )
 					v.StatePtr = update.StatePtr;
 				latest = v;
-				LOGS( ELogLevel::Debug, move(log) );
+				LOGS( move(log) );
 			}
 			else
 			{

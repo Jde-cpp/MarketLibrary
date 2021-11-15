@@ -16,17 +16,17 @@ namespace Jde::Markets
 	struct IBException;
 	struct TwsConnectionSettings;
 	struct OptionsData;
-	struct JDE_MARKETS_EXPORT TwsClientSync : public TwsClientCache
+	struct ΓM TwsClientSync : public TwsClientCache
 	{
 		template<class T> using Container = VectorPtr<T>;
 		template<class T> using Future = std::future<Container<T>>;
-		static sp<TwsClientSync> CreateInstance( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		static sp<TwsClientSync> CreateInstance( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 
 		TimePoint CurrentTime()noexcept;
 		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
 		void CheckTimeouts()noexcept override;
 
-		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, DayIndex end, DayIndex dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
+		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
 
 		Future<::ContractDetails> ReqContractDetails( sv symbol )noexcept;
@@ -54,9 +54,9 @@ namespace Jde::Markets
 
 		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
 		void OnHeadTimestamp( TickerId reqId, TimePoint t );
-		shared_ptr<WrapperSync> Wrapper()noexcept;
+		sp<WrapperSync> Wrapper()noexcept;
 		//static sp<TwsClientSync> _pInstance;
-		TwsClientSync( const TwsConnectionSettings& settings, shared_ptr<WrapperSync> wrapper, shared_ptr<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		TwsClientSync( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		Collections::UnorderedMap<TickerId,std::condition_variable> _conditionVariables;
 		Collections::UnorderedMap<TickerId,IBException> _errors;
 		UnorderedMapValue<TickerId,TimePoint> _headTimestamps;

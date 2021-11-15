@@ -18,7 +18,7 @@
 #pragma warning( default : 4244 )
 #include <jde/markets/types/Tick.h>
 
-#define 🚪 JDE_MARKETS_EXPORT auto
+#define 🚪 ΓM auto
 namespace Jde::Markets
 {
 	using namespace Coroutine;
@@ -28,7 +28,7 @@ namespace Jde::Markets
 	using boost::container::flat_set;
 	using boost::container::flat_multimap;
 	using Proto::Requests::ETickList; using Proto::Results::ETickType;
-	struct JDE_MARKETS_EXPORT TickManager final
+	struct ΓM TickManager final
 	{
 		struct TickParams /*~final*/
 		{
@@ -36,7 +36,7 @@ namespace Jde::Markets
 			Markets::Tick Tick;
 		};
 
-		struct JDE_MARKETS_EXPORT Awaitable final : CancelAwaitable<Task2>, TickParams
+		struct ΓM Awaitable final : CancelAwaitable<Task2>, TickParams
 		{
 			typedef Task2::TResult TResult;
 			typedef CancelAwaitable<Task2> base;
