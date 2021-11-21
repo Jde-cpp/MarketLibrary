@@ -18,7 +18,7 @@ namespace Jde::Markets
 	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws.hist") };
 	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws.tick") };
 
-	bool WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept
+	α WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept->bool
 	{
 		WrapperLog::error( id, errorCode, errorMsg );
 		return id==-1 || _pTickWorker->HandleError( id, errorCode, errorMsg );
@@ -60,7 +60,7 @@ namespace Jde::Markets
 	α WrapperLog::orderStatus( ::OrderId orderId, str status, ::Decimal filled, ::Decimal remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void
 	{
 		OrderManager::Push( orderId, status, ToDouble(filled), ToDouble(remaining), avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice );
-		DBG( "WrapperLog::orderStatus( {}, {}, {}/{} )"sv, orderId, status, filled, filled+remaining );
+		LOG( "WrapperLog::orderStatus( {}, {}, {}/{} )"sv, orderId, status, ToDouble(filled), ToDouble(filled)+ToDouble(remaining) );
 	}
 	α toString( const ::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice ); };
 	α WrapperLog::openOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept->void
@@ -76,7 +76,7 @@ namespace Jde::Markets
 	α WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, ::Decimal /*bidSize*/, ::Decimal /*askSize*/, const TickAttribBidAsk& /*attribs*/)noexcept->void{ LOG( "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )", reqId, time, bidPrice, askPrice); }
 	α WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept->void{ LOG( "WrapperLog::tickByTickMidPoint( {}, {}, {} )", reqId, time, midPoint); }
 	α WrapperLog::tickReqParams( int tickerId, double minTick, str bboExchange, int snapshotPermissions )noexcept->void{ LOGL( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )", tickerId, minTick, bboExchange, snapshotPermissions ); }
-	bool WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept
+	α WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept->bool
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
@@ -243,7 +243,7 @@ namespace Jde::Markets
 	}
 	α WrapperLog::completedOrdersEnd()noexcept->void{LOG( "WrapperLog::completedOrdersEnd()"); }
 	Handle WrapperLog::_accountUpdateHandle{0};
-	tuple<uint,bool> WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept
+	α WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
@@ -267,7 +267,7 @@ namespace Jde::Markets
 		return make_tuple( handle, newCall );
 	}
 
-	bool WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept
+	α WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept->bool
 	{
 		bool cancel = true;
 		var pLock = _pUpdateLock ? up<unique_lock<shared_mutex>>{} : make_unique<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );

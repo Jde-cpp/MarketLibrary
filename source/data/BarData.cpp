@@ -82,9 +82,9 @@ namespace Jde::Markets
 	}
 
 
-	MapPtr<Day,VectorPtr<CandleStick>> BarData::Load( path path, sv symbol, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	α BarData::Load( path path, sv symbol, const flat_map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)->sp<flat_map<Day,VectorPtr<CandleStick>>>
 	{
-		auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
+		auto pResults = ms<flat_map<Day,VectorPtr<CandleStick>>>();
 
 		var pFile = pPartials && pPartials->find(path.string())!=pPartials->end() ? pPartials->find(path.string())->second : Load( path );
 		if( !pFile )
@@ -201,13 +201,13 @@ namespace Jde::Markets
 		string _symbol;
 	};
 	α ForEachFile( const Contract& contract, Day start, Day endInput, ResultsFunction f )noexcept{ return BarFilesAwaitable{contract, start, endInput, f}; }
-	void BarData::ForEachFile( const Contract& contract, FileFunction fnctn, Day start, Day endInput, sv prefix )noexcept//fnctn better not throw
+	α BarData::ForEachFile( const Contract& contract, FileFunction fnctn, Day start, Day endInput, sv prefix )noexcept->void//fnctn better not throw
 	{
 		for( var& [path,fileStart,fileEnd] : ApplicableFiles(BarData::Path(contract), contract.IssueDate, start, endInput, prefix) )
 			fnctn( path, fileStart, fileEnd );
 	}
 
-	MapPtr<Day,VectorPtr<CandleStick>> BarData::TryLoad( const Contract& contract, Day start, Day end )noexcept
+	α BarData::TryLoad( const Contract& contract, Day start, Day end )noexcept->sp<flat_map<Day,VectorPtr<CandleStick>>>
 	{
 		try
 		{
@@ -215,11 +215,11 @@ namespace Jde::Markets
 		}
 		catch( const IException& )
 		{}
-		return make_shared<map<Day,VectorPtr<CandleStick>>>();
+		return ms<flat_map<Day,VectorPtr<CandleStick>>>();
 	}
-	MapPtr<Day,VectorPtr<CandleStick>> BarData::Load( const Contract& contract, Day start, Day end )noexcept(false)
+	α BarData::Load( const Contract& contract, Day start, Day end )noexcept(false)->sp<flat_map<Day,VectorPtr<CandleStick>>>
 	{
-		auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
+		auto pResults = ms<flat_map<Day,VectorPtr<CandleStick>>>();
 		auto fnctn = [&]( path path, Day, Day )noexcept
 		{
 			var pFileValues = Load( path, (sv)contract.Symbol );
@@ -265,7 +265,7 @@ namespace Jde::Markets
 	{
 		var current = CurrentTradingDay( contract );
 		var exclude = Clock::now()>ExtendedEnd( contract, current ) ? 0 : current;
-		map<Day,VectorPtr<CandleStick>> days;
+		flat_map<Day,VectorPtr<CandleStick>> days;
 		for( var& [day, bars] : rthBars )
 		{
 			if( day==exclude )
@@ -303,7 +303,7 @@ namespace Jde::Markets
 		ForEachFile( contract, fnctn, 0, CurrentTradingDay() );
 	}
 
-	void BarData::Save( const Contract& contract, const map<Day,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,optional<TimePoint>>> pExcluded, bool checkExisting, const map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	α BarData::Save( const Contract& contract, const flat_map<Day,VectorPtr<CandleStick>>& days, VectorPtr<tuple<TimePoint,optional<TimePoint>>> pExcluded, bool checkExisting, const flat_map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)->void
 	{
 		const DateTime now{ CurrentTradingDay(Clock::now()) };
 		auto getFileName = [&now]( const DateTime& itemDate )->string
@@ -409,7 +409,7 @@ namespace Jde::Markets
 		}
 	}
 
-	flat_set<Day> BarData::FindExisting( const Contract& contract, Day start2, Day end2, sv prefix, map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)
+	α BarData::FindExisting( const Contract& contract, Day start2, Day end2, sv prefix, flat_map<string,sp<Proto::BarFile>>* pPartials )noexcept(false)->flat_set<Day>
 	{
 		flat_set<Day> existing;
 		const DateTime today{ DateTime::Today() };

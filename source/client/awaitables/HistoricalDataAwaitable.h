@@ -12,7 +12,7 @@ namespace Jde::Markets
 		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoryAwait{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->TaskResult override;
+		α await_resume()noexcept->TaskResult override{ return _dataPtr ? TaskResult{ _dataPtr } : base::await_resume(); }
 
 	private:
 		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:

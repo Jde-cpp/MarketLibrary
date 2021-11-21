@@ -14,9 +14,8 @@ namespace Jde::Markets
 	static const LogTag& _logLevel{ Logging::TagLevel("tick") };
 	α TickManager::Ratios( const ContractPK contractId )noexcept->std::future<Tick>
 	{
-		auto p=TickWorker::Instance();
-		THROW_IF( !p, "Shutting Down" );
-		return p->Ratios( contractId );
+		auto p=TickWorker::Instance(); //THROW_IF( !p, "Shutting Down" );
+		return p ? p->Ratios( contractId ) : std::future<Tick>{};
 	}
 
 	α TickManager::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void

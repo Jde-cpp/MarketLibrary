@@ -7,6 +7,7 @@
 #include "../types/proto/OptionOI.pb.h"
 #pragma warning( default : 4244 )
 
+#define Φ ΓM auto
 struct ContractDetails;
 namespace Jde::Markets
 {
@@ -33,10 +34,11 @@ namespace Jde::Markets
 	{
 		ΓM OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false);
 		ΓM OptionSetPtr Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false);
-		map<Day,sp<Proto::UnderlyingOIValues>> LoadFiles( const Contract& contract )noexcept;
+		α LoadFiles( const Contract& contract )noexcept->flat_map<Day,sp<Proto::UnderlyingOIValues>>;
 		ΓM Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
 		ΓM Day LoadDiff( const Contract& underlying, const vector<ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
-		void Insert( const Option& value )noexcept(false);
-		ΓM fs::path OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept;
+		α Insert( const Option& value )noexcept(false)->void;
+		Φ OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept->fs::path;
 	}
 }
+#undef Φ

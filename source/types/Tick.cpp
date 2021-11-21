@@ -35,11 +35,6 @@ namespace Jde::Markets
 		bool set{ true };
 		switch( type )
 		{
-		//case ETickType::BidSize: BidSize = value; break;
-		//case ETickType::AskSize: AskSize = value; break;
-		//case ETickType::LastSize: LastSize = value; break;
-		//case ETickType::Volume: Volume = value; break;
-		//case ETickType::AverageVolume: AverageVolume = value; break;
 		case ETickType::OPEN_INTEREST: OPEN_INTEREST = value; break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: OPTION_CALL_OPEN_INTEREST = value; break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: OPTION_PUT_OPEN_INTEREST = value; break;
@@ -47,7 +42,6 @@ namespace Jde::Markets
 		case ETickType::OPTION_PUT_VOLUME: OPTION_PUT_VOLUME = value; break;
 		case ETickType::AUCTION_VOLUME: AUCTION_VOLUME = value; break;
 		case ETickType::LastTimestamp: LastTimestamp = value; break;
-		//case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		case ETickType::RT_VOLUME: RT_VOLUME = std::to_string( value ); break;
 		case ETickType::TRADE_COUNT: TRADE_COUNT = value; break;
 		case ETickType::VOLUME_RATE: VOLUME_RATE = value; break;
@@ -63,7 +57,6 @@ namespace Jde::Markets
 		case ETickType::FUTURES_OPEN_INTEREST: FUTURES_OPEN_INTEREST = value; break;
 		case ETickType::AVG_OPT_VOLUME: AVG_OPT_VOLUME = value; break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: DELAYED_LAST_TIMESTAMP = value; break;
-		//case ETickType::SHORTABLE_SHARES: SHORTABLE_SHARES = value; break;
 		case ETickType::NOT_SET: NOT_SET = (int)value; break;
 		default:
 			WARN( "Ticktype {} value {} is not a int."sv, Str::FromEnum(TickTypeStrings, type), value );
@@ -129,10 +122,6 @@ namespace Jde::Markets
 		bool set{ true };
 		switch( type )
 		{
-		//case ETickType::BidSize: BidSize = value; break;
-		//case ETickType::AskSize: AskSize = value; break;
-		//case ETickType::LastSize: LastSize = value; break;
-		//case ETickType::Volume: Volume = value; break;
 		case ETickType::OPTION_BID_EXCH: OPTION_BID_EXCH = value; break;
 		case ETickType::OPTION_ASK_EXCH: OPTION_ASK_EXCH = value; break;
 		case ETickType::INDEX_FUTURE_PREMIUM: INDEX_FUTURE_PREMIUM = value; break;
@@ -202,7 +191,6 @@ namespace Jde::Markets
 	{
 		Proto::Results::MessageUnion msg;
 		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
-		//auto sizeInt  = [type, &msg, id=ContractId](int v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( v ); msg.set_allocated_tick_size(p.release()); };
 		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( ToDouble(v) ); msg.set_allocated_tick_size(p.release()); };
 		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
 		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
@@ -446,9 +434,9 @@ namespace Jde::Markets
 		return _setFields[ETickType::FUNDAMENTAL_RATIOS];
 	}
 
-	map<string,double> Tick::Ratios()const noexcept
+	α Tick::Ratios()const noexcept->flat_map<string,double>
 	{
-		map<string,double> values;
+		flat_map<string,double> values;
 		{
 			var dividendSplit = Str::Split( DividendString, ';' );
 			for( var& subValue : dividendSplit )

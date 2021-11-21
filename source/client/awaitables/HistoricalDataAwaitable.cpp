@@ -140,12 +140,8 @@ namespace Jde::Markets
 			*p=0;
 		if( find_if(_twsRequests.begin(), _twsRequests.end(), [](auto x){return x!=0;})==_twsRequests.end() )
 		{
-			LOG( "({})HistoryAwait::AddTws - resume"sv, _hCoroutine.address() );
+			LOG( "({})HistoryAwait::AddTws - resume", reqId );
 			CoroutinePool::Resume( move(_hCoroutine) );
 		}
-	}
-	α HistoryAwait::await_resume()noexcept->TaskResult
-	{
-		return _dataPtr ? TaskResult{ _dataPtr } : base::await_resume();
 	}
 }

@@ -314,7 +314,7 @@ namespace Jde::Markets
 		return SecurityTypes[ type<(int)SecurityTypes.size() ? type : 0];
 	}
 #pragma endregion
-	ContractPtr_ Find( const map<ContractPK, ContractPtr_>& contracts, sv symbol )noexcept
+	ContractPtr_ Find( const flat_map<ContractPK, ContractPtr_>& contracts, sv symbol )noexcept
 	{
 		ContractPtr_ pContract;
 		for( var& pIdContract : contracts )

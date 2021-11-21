@@ -111,7 +111,7 @@ namespace Jde::Markets
 
 	Day OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
 	{
-		map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
+		flat_map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )
 			options.emplace( contract.contract.conId, make_tuple(Contract{contract},nullptr) );
 
@@ -136,7 +136,7 @@ namespace Jde::Markets
 		if( !pToValues )
 			return 0;
 		var toSize = pToValues->contracts_size();
-		map<uint16,Proto::Results::OptionDay*> values;
+		flat_map<uint16,Proto::Results::OptionDay*> values;
 		flat_set<ContractPK> matchedIds;
 		auto setValue = [&]( const Contract& option, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay )
 		{
@@ -180,7 +180,7 @@ namespace Jde::Markets
 	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )noexcept(false)
 	{
 		var pOptions = Load( contract.Id );
-		map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
+		flat_map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
 		for( var& pOption : *pOptions )
 			options.emplace( pOption->Id, make_tuple(pOption,nullptr) );
 
@@ -208,7 +208,7 @@ namespace Jde::Markets
 		var toSize = pToValues->contracts_size();
 		auto pResults = new Proto::Results::OptionValues();
 		var today = DateTime::Today();
-		map<uint16,Proto::Results::OptionDay*> values;
+		flat_map<uint16,Proto::Results::OptionDay*> values;
 		flat_set<ContractPK> matchedIds;
 		auto setValue = [&]( OptionPtr pOption, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay, bool expired )
 		{
@@ -271,10 +271,10 @@ namespace Jde::Markets
 		return OptionDir(contract)/(IO::FileUtilities::DateFileName(year,month,day)+".dat.xz");
 	}
 
-	map<Day,sp<Proto::UnderlyingOIValues>> OptionData::LoadFiles( const Contract& contract )noexcept
+	α OptionData::LoadFiles( const Contract& contract )noexcept->flat_map<Day,sp<Proto::UnderlyingOIValues>>
 	{
 		var pFiles = IO::FileUtilities::GetDirectory( OptionDir(contract) );
-		map<Day,sp<Proto::UnderlyingOIValues>> values;
+		flat_map<Day,sp<Proto::UnderlyingOIValues>> values;
 		for( auto pFile = pFiles->rbegin(); pFile!=pFiles->rend(); ++pFile )
 		{
 			var file = pFile->path().filename().stem().string();
