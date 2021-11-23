@@ -3,13 +3,20 @@ clean=${1:-0};
 shouldFetch=${2:-1};
 buildFramework=${3:-1};
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-stage=$JDE_DIR/Public/stage
 echo market-build.sh clean=$clean shouldFetch=$shouldFetch buildFramework=$buildFramework
-echo $scriptDir
-echo `pwd`
-if [[ -z $sourceBuild ]]; then source $scriptDir/../Framework/source-build.sh; fi;
+#echo `pwd`
+source $scriptDir/../Framework/common.sh;
+source $scriptDir/../Framework/source-build.sh;
+# if [[ -z $REPO_BASH ]]; then toBashDir $REPO_DIR REPO_BASH; fi;
+# if [[ -z $JDE_DIR ]]; then JDE_BASH=$REPO_BASH/jde; else toBashDir $JDE_DIR JDE_BASH; fi;
+#echo JDE_BASH=$JDE_BASH;
+#if [[ -z $sourceBuild ]]; then source $JDE_BASH/Framework/source-build.sh; fi;
+#cd $JDE_BASH;
+#echo pwd=`pwd`
+#if [[ -z $sourceBuild ]]; then source $JDE_BASH/Framework/source-build.sh; fi;
+stage=$JDE_BASH/Public/stage
 if [ $buildFramework -eq 1 ]; then
- 	$scriptDir/../Framework/framework-build.sh $clean $shouldFetch $buildBoost; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
+ 	$JDE_BASH/Framework/framework-build.sh $clean $shouldFetch $buildBoost; if [ $? -ne 0 ]; then echo framework-build.sh failed - $?; exit 1; fi;
 else
 	findProtoc
 fi;
@@ -21,7 +28,7 @@ function xzBuildLib
 		cd $dir/bin_x86-64;
 		if [ ! -f liblzma.lib ]; then
 			binDir=`pwd`;
-			cd $baseDir/$jdeRoot/Public/stage/release;
+			cd $JDE_BASH/Public/stage/release;
 			mklink liblzma.dll $binDir;
 			cd ../debug;
 			mklink liblzma.dll $binDir;
@@ -42,7 +49,7 @@ function xzBuildLib
 	cd $previousDir;
 }
 if windows; then xzBuildLib; fi;
-cd $scriptDir/..;
+cd $JDE_BASH;
 fetchBuild XZ 0
 function protocBuild()
 {
@@ -50,12 +57,17 @@ function protocBuild()
 	publicDir=${2:-0};
 	if [ $publicDir -eq 1 ]; then
 		prevDir=`pwd`;
-		workDir=$baseDir/$jdeRoot/Public/jde/markets/types/proto;
+		workDir=$JDE_BASH/Public/jde/markets/types/proto;
 		cd $workDir;
 	fi;
 	cmd2="protoc --cpp_out dllexport_decl=JDE_MARKETS_EXPORT:. $1.proto";
+	#ΓM
+	#echo `pwd`
+	#echo $cmd2;
 	$cmd2;
 	if [ $? -ne 0 ]; then echo `pwd`; echo $cmd2; exit 1; fi;
+	sed -i -e 's/JDE_MARKETS_EXPORT/ΓM/g' $1.pb.h;
+	sed -i '1s/^/\xef\xbb\xbf/' $1.pb.h;
 	if [ $publicDir -eq 1 ]; then
 		cd $prevDir;
 		mv $workDir/$1.pb.cc .;
@@ -125,9 +137,9 @@ function marketLibraryProtoc
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT OrderStateDefaultTypeInternal _OrderState_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY OrderStateDefaultTypeInternal _OrderState_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ExchangeContractsDefaultTypeInternal _ExchangeContracts_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ExchangeContractsDefaultTypeInternal _ExchangeContracts_default_instance_;/' results.pb.cc;
 		pushd `pwd` > /dev/null;
-		cd $baseDir/$jdeRoot/Public/jde/markets/types/proto;
-		sed -i 's/class Fundamentals_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT Fundamentals_ValuesEntry_DoNotUse/' results.pb.h;
-		sed -i 's/class StringMap_ValuesEntry_DoNotUse/class JDE_MARKETS_EXPORT StringMap_ValuesEntry_DoNotUse/' results.pb.h;
+		cd $JDE_BASH/Public/jde/markets/types/proto;
+		sed -i 's/class Fundamentals_ValuesEntry_DoNotUse/class ΓM Fundamentals_ValuesEntry_DoNotUse/' results.pb.h;
+		sed -i 's/class StringMap_ValuesEntry_DoNotUse/class ΓM StringMap_ValuesEntry_DoNotUse/' results.pb.h;
 		popd;
 	fi;
 	if protocBuild ib 1 && windows; then
@@ -141,19 +153,29 @@ function marketLibraryProtoc
 	if protocBuild edgar 1 && windows; then
 		echo fix edgar.pb.cc `pwd`
 		#pushd `pwd` > /dev/null;
-		#cd $baseDir/$jdeRoot/Public/jde/markets/types/proto;
+		#cd $JDE_BASH/Public/jde/markets/types/proto;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT InfoTableDefaultTypeInternal _InfoTable_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY InfoTableDefaultTypeInternal _InfoTable_default_instance_;/' edgar.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT CompanyDefaultTypeInternal _Company_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY CompanyDefaultTypeInternal _Company_default_instance_;/' edgar.pb.cc;
 		#popd;
 	fi;
-	cd ../..;
+	#cd ../..;
+	if [ ! -f  $stage/release/libbid.lib ]; then
+		if [ ! -d $REPO_BASH/IntelRDFPMathLib20U2 ]; then echo install intel floating point library; exit 1; fi;
+		cd $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY;
+		nmake -fmakefile.mak CC=cl CALL_BY_REF=0 GLOBAL_RND=0 GLOBAL_FLAGS=0 UNCHANGED_BINARY_FLAGS=0
+		cd $JDE_BASH/Public/stage/debug/
+		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
+		cd ../release/
+		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY		
+	fi;
 	if windows; then
 		twsDir=/c/TWS\ API/source/CppClient/client;
 		if [ -d  "$twsDir" ]; then
 			echo Found:  \"c:\\TWS API\"
 			if [ ! -f "$twsDir/TwsSocketClient64.vcxproj" ]; then
 				cd ..;
-				sourceDir=`pwd`;
+				sourceDir=$JDE_BASH/MarketLibrary;
+				echo sourceDir=$sourceDir
 				cd "$twsDir"
 				mklink TwsSocketClient64.vcxproj $sourceDir
 				cd $sourceDir;

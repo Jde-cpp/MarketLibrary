@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #pragma warning( disable : 4244 )
 #include <boost/container/flat_map.hpp>
 #pragma warning( default : 4244 )
@@ -54,20 +54,20 @@ namespace Jde::Markets::OrderManager
 		typedef Task2::promise_type PromiseType;
 		Awaitable( const CombinedParams& params, Handle& h )noexcept;
 		~Awaitable()=default;
-		bool await_ready()noexcept{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
-		void await_suspend( coroutine_handle<Task2::promise_type> h )noexcept;
+		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
+		α await_suspend( coroutine_handle<Task2::promise_type> h )noexcept->void;
 		Task2::TResult await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().GetResult() : Task2::TResult{}; }
 	private:
 		PromiseType* _pPromise{nullptr};
-		void End( Handle h, const Cache* pCache )noexcept; 	std::once_flag _singleEnd;
+		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
 	};
 
-	ΓM void Cancel( Handle h )noexcept;
+	ΓM α Cancel( Handle h )noexcept->void;
 	inline auto Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
 	ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
-	void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-	ΓM void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
-	void Push( const ::Order& order, const ::Contract& contract )noexcept;
+	α Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept->void;
+	ΓM α Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
+	α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
 
 
 	struct OrderWorker final: TCoWorker<OrderWorker,Awaitable>
@@ -77,12 +77,12 @@ namespace Jde::Markets::OrderManager
 		OrderWorker():base{"OrderWorker"}{};
 	private:
 		static sp<OrderWorker> Instance()noexcept;
-		void Process()noexcept override;
+		α Process()noexcept->void override;
 		optional<Cache> Latest( ::OrderId orderId )noexcept;
-		void Cancel( Handle h )noexcept;
-		void Subscribe( const SubscriptionInfo& params )noexcept;
-		void Push( sp<const OrderStatus> status )noexcept;
-		void Push( sp<const MyOrder> order, const ::Contract& contract, sp<const OrderState> state={} )noexcept;
+		α Cancel( Handle h )noexcept->void;
+		α Subscribe( const SubscriptionInfo& params )noexcept->void;
+		α Push( sp<const OrderStatus> status )noexcept->void;
+		α Push( sp<const MyOrder> order, const ::Contract& contract, sp<const OrderState> state={} )noexcept->void;
 
 		static sp<OrderWorker> _pInstance;
 		static sp<TwsClientSync> _pTws;
@@ -90,10 +90,10 @@ namespace Jde::Markets::OrderManager
 		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
-		friend ΓM void Cancel( Handle h )noexcept;
+		friend ΓM α Cancel( Handle h )noexcept->void;
 		friend ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
-		friend void Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept;
-		friend ΓM void Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept;
-		friend void Push( const ::Order& order, const ::Contract& contract )noexcept;
+		friend α Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept->void;
+		friend ΓM α Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
+		friend α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
 	};
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <future>
 #include <jde/markets/Exports.h>
 #include <jde/markets/types/proto/requests.pb.h>
@@ -19,9 +19,9 @@ namespace Jde::Markets
 	{
 		//static TwsClientCache& Instance()noexcept;//{ ASSERT(_pInstance); return *_pInstance;}
 		TwsClientCache( const TwsConnectionSettings& settings, sp<WrapperCache> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
-		sp<WrapperCache> Wrapper()noexcept;
-		static ::Contract ToContract( sv symbol, Day dayIndex, Proto::SecurityRight isCall, double strike=0 )noexcept;
-		void ReqContractDetails( TickerId reqId, const ::Contract& contract )noexcept;
+		α Wrapper()noexcept->sp<WrapperCache>;
+		Ω ToContract( sv symbol, Day dayIndex, Proto::SecurityRight isCall, double strike=0 )noexcept->::Contract;
+		α ReqContractDetails( TickerId reqId, const ::Contract& contract )noexcept->void;
 		//void ReqSecDefOptParams( TickerId reqId, ContractPK underlyingConId, sv symbol )noexcept;
 		//void ReqHistoricalData( TickerId reqId, const Contract& contract, Day current, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept(false);
 		//void RequestNewsProviders()noexcept;

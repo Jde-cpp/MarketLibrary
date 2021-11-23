@@ -1,4 +1,4 @@
-#include "./OptionData.h"
+﻿#include "./OptionData.h"
 #include "BarData.h"
 #include <jde/markets/types/Contract.h>
 
@@ -109,7 +109,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	Day OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)
+	α OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)->Day
 	{
 		flat_map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var& contract : ibOptions )
@@ -177,7 +177,7 @@ namespace Jde::Markets
 		return to;
 	}
 
-	Proto::Results::OptionValues* OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )noexcept(false)
+	α OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )noexcept(false)->Proto::Results::OptionValues*
 	{
 		var pOptions = Load( contract.Id );
 		flat_map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
@@ -260,13 +260,13 @@ namespace Jde::Markets
 		return pResults;
 	}
 
-	fs::path OptionDir( const Contract& contract )
+	α OptionDir( const Contract& contract )->fs::path
 	{
 		const string exchangeString{ ToString(contract.PrimaryExchange) };
 		return BarData::Path()/Str::ToLower(exchangeString)/Str::ToUpper(contract.Symbol)/"options";
 	}
 
-	fs::path OptionData::OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept
+	α OptionData::OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept->fs::path
 	{
 		return OptionDir(contract)/(IO::FileUtilities::DateFileName(year,month,day)+".dat.xz");
 	}

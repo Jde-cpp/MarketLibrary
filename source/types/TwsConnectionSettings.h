@@ -1,8 +1,9 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/Exports.h>
 #pragma warning( disable : 4715 )
 #include <nlohmann/json.hpp>
 #pragma warning( default : 4715 )
+
 namespace Jde::Markets
 {
 	using nlohmann::json;
@@ -14,11 +15,11 @@ namespace Jde::Markets
 		const bool CommunicationSink{false};
 		uint MaxHistoricalDataRequest{ std::numeric_limits<uint>::max() };
 	};
-	ΓM std::ostream& operator<<( std::ostream& os, const TwsConnectionSettings& settings );
+	ΓM α operator<<( std::ostream& os, const TwsConnectionSettings& settings )noexcept->std::ostream&;
 }
-ΓM void from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& server );
+ΓM α from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& server )noexcept->void;
 
-inline void to_json( nlohmann::json& j, const Jde::Markets::TwsConnectionSettings& settings )
+Ξ to_json( nlohmann::json& j, const Jde::Markets::TwsConnectionSettings& settings )noexcept
 {
 	j = nlohmann::json{};
 	static Jde::Markets::TwsConnectionSettings defaultValues;
@@ -31,5 +32,3 @@ inline void to_json( nlohmann::json& j, const Jde::Markets::TwsConnectionSetting
 	if( settings.MaxHistoricalDataRequest!=defaultValues.MaxHistoricalDataRequest )
 		j["maxHistoricalDataRequest"] = settings.MaxHistoricalDataRequest;
 }
-
-

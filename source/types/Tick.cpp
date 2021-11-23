@@ -1,4 +1,5 @@
-﻿#include <jde/markets/types/Tick.h>
+﻿#include <Decimal.h>
+#include <jde/markets/types/Tick.h>
 #include <jde/Exports.h>
 #pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/results.pb.h>

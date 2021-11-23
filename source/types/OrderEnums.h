@@ -1,13 +1,11 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/types/proto/ib.pb.h>
 #include <jde/markets/types/proto/results.pb.h>
 #include <jde/Str.h>
 
-namespace Jde
+namespace Jde::Markets
 {
-	using Markets::Proto::Results::EOrderStatus;
-namespace Markets
-{
+	using Proto::Results::EOrderStatus;
 	constexpr std::array<sv,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
 	Ξ ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return Str::FromEnum( EOrderTypeStrings, orderType ); }
 	Ξ ToOrderType( sv value )noexcept{ return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, value).value_or(Proto::EOrderType::Limit ); }
@@ -15,12 +13,7 @@ namespace Markets
 	constexpr std::array<sv,7> ETifStrings={ "DAY", "GTC", "IOC", "GTD", "OPG", "FOK", "DTC" };
 	constexpr std::array<sv,9> EOrderStatusStrings={ "PendingSubmit","PendingCancel","PreSubmitted","Submitted","ApiCancelled","Cancelled","Filled","Inactive","UnknownStatus" };
 
-	enum class EAction : uint8
-	{
-		Buy=0,
-		Sell=1
-		/*,Short=2*///BUY/SELL/SSHORT
-	};
+	enum class EAction : uint8{ Buy=0, Sell=1 /*,Short=2 //BUY/SELL/SSHORT*/ };
 	constexpr sv EActionStrings[]={ "BUY", "SELL" /*"SSHORT"*/ };
 	constexpr sv ToActionString( EAction action ){ return EActionStrings[(uint)action]; }
 
@@ -30,6 +23,8 @@ namespace Markets
 	Ξ ToString( EOrderStatus order )noexcept;
 	Ξ ToOrderStatus( sv statusText )noexcept;
 }
+namespace Jde
+{
 	Ξ Markets::ToString( EOrderStatus orderStatus )noexcept
 	{
 		sv result = "None";

@@ -244,17 +244,17 @@ namespace Jde::Markets
 		pProto->set_designated_location( DesignatedLocation );
 		pProto->set_exempt_code( ExemptCode );
 	}
-	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const noexcept
+/*	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const noexcept
 	{
 		os << ConId << Ratio << Action << Exchange;
 		if( isOrder )
 			os << OpenClose << ShortSaleSlot << DesignatedLocation << ExemptCode;
 		return os;
-	}
-	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )noexcept
+	}*/
+/*	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )noexcept
 	{
 		return comboLeg.to_stream( os, false );
-	}
+	}*/
 	namespace Contracts
 	{
 		const Contract Spy{ 756733, Proto::Currencies::UsDollar, "SPY", 0, "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };

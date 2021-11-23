@@ -1,4 +1,4 @@
-#include "./WrapperLog.h"
+﻿#include "./WrapperLog.h"
 #include "../client/TwsClientCo.h"
 #include <jde/markets/types/Contract.h>
 #include "../../../Framework/source/coroutine/Coroutine.h"
@@ -10,23 +10,23 @@ namespace Jde::Markets
 	using namespace Jde::Coroutine;
 	struct ΓM WrapperCo : WrapperLog
 	{
-		bool error2( int id, int errorCode, str errorMsg )noexcept override;
-		void error( int id, int errorCode, str errorMsg )noexcept override;
-		void historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept override;
-		void historicalNewsEnd( int requestId, bool hasMore )noexcept override;
+		α error2( int id, int errorCode, str errorMsg )noexcept->bool override;
+		α error( int id, int errorCode, str errorMsg )noexcept->void override;
+		α historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept->void override;
+		α historicalNewsEnd( int requestId, bool hasMore )noexcept->void override;
 
-		void historicalData( TickerId reqId, const ::Bar& bar )noexcept override{ HistoricalData(reqId, bar); }
-		void historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept override{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
-		bool HistoricalData( TickerId reqId, const ::Bar& bar )noexcept;
-		bool HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept;
+		α historicalData( TickerId reqId, const ::Bar& bar )noexcept->void override{ HistoricalData(reqId, bar); }
+		α historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void override{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
+		α HistoricalData( TickerId reqId, const ::Bar& bar )noexcept->bool;
+		α HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->bool;
 
-		void contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept override;
-		void contractDetailsEnd( int reqId )noexcept override;
-		void newsProviders( const vector<NewsProvider>& providers )noexcept override;
-		void newsArticle( int reqId, int articleType, str articleText )noexcept override;
+		α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
+		α contractDetailsEnd( int reqId )noexcept->void override;
+		α newsProviders( const vector<NewsProvider>& providers )noexcept->void override;
+		α newsArticle( int reqId, int articleType, str articleText )noexcept->void override;
 
-		void securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept override;
-		void securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
+		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void override;
+		α securityDefinitionOptionalParameterEnd( int reqId )noexcept->void override;
 	protected:
 		flat_map<int,vector<sp<Contract>>> _contracts; UnorderedMapValue<int,ContractAwaitable::THandle> _contractSingleHandles;
 	private:

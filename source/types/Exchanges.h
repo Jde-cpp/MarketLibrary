@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/Exports.h>
 #include <jde/markets/TypeDefs.h>
 #pragma warning( disable : 4244 )
@@ -7,42 +7,42 @@
 #pragma warning( default : 4244 )
 namespace Jde::Markets
 {
-	#define Γα ΓM auto
+	#define Φ ΓM auto
 	struct Contract;
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
 
 	constexpr std::array<sv,29> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF" };
-	Γα ToString( Exchanges exchange )noexcept->sv;
-	Γα ToExchange( sv pszName )noexcept->Exchanges;
-	Γα PreviousTradingDay( Day day=0 )noexcept->Day;
-	Γα NextTradingDay( Day day )noexcept->Day;
+	Φ ToString( Exchanges exchange )noexcept->sv;
+	Φ ToExchange( sv pszName )noexcept->Exchanges;
+	Φ PreviousTradingDay( Day day=0 )noexcept->Day;
+	Φ NextTradingDay( Day day )noexcept->Day;
 	Ξ PreviousTradingDay( const TimePoint& time )noexcept{ return Chrono::FromDays( PreviousTradingDay(Chrono::ToDays(time)) ); }
-	Γα PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept->Day;
-	Γα NextTradingDay( TimePoint time )noexcept->TimePoint;
+	Φ PreviousTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept->Day;
+	Φ NextTradingDay( TimePoint time )noexcept->TimePoint;
 
 	Ξ CurrentTradingDay( Day day, Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay(day) ); }
 	Ξ CurrentTradingDay( Exchanges /*exchange*/=Exchanges::Nyse )noexcept{ return NextTradingDay( PreviousTradingDay() ); }
-	Γα CurrentTradingDay( const Markets::Contract& x )noexcept->Day;
+	Φ CurrentTradingDay( const Markets::Contract& x )noexcept->Day;
 	Ξ CurrentTradingDay( const TimePoint& time )noexcept{ return NextTradingDay( PreviousTradingDay(time) ); }
-	Γα CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept->Day;
-	Γα ClosingTime( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept(false)->TimePoint;
+	Φ CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept->Day;
+	Φ ClosingTime( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept(false)->TimePoint;
 	Ξ DayLengthMinutes( Exchanges /*exchange*/=Exchanges::Nyse )noexcept->Day{ return 390; }
 	α IsOpen()noexcept->bool;
-	Γα IsOpen( SecurityType type )noexcept->bool;
-	Γα IsOpen( const Contract& contract )noexcept->bool;
-	Γα IsPreMarket( SecurityType type )noexcept->bool;
+	Φ IsOpen( SecurityType type )noexcept->bool;
+	Φ IsOpen( const Contract& contract )noexcept->bool;
+	Φ IsPreMarket( SecurityType type )noexcept->bool;
 	α IsRth( const Contract& contract, TimePoint time )noexcept->bool;
 	α RthBegin( const Contract& contract, Day day )noexcept->TimePoint;
 	α RthEnd( const Contract& contract, Day day )noexcept->TimePoint;
 	α ExtendedBegin( const Contract& contract, Day day )noexcept->TimePoint;
 	α ExtendedEnd( const Contract& contract, Day day )noexcept->TimePoint;
 
-	Γα IsHoliday( const TimePoint& date )noexcept->bool;
-	Γα IsHoliday( Day day, Exchanges exchange=Exchanges::Nyse )noexcept->bool;
+	Φ IsHoliday( const TimePoint& date )noexcept->bool;
+	Φ IsHoliday( Day day, Exchanges exchange=Exchanges::Nyse )noexcept->bool;
 	namespace ExchangeTime
 	{
-		Γα MinuteCount( Day day )noexcept->MinuteIndex;
+		Φ MinuteCount( Day day )noexcept->MinuteIndex;
 	}
 	struct TradingDay
 	{
@@ -58,4 +58,4 @@ namespace Jde::Markets
 	α DayCount( TradingDay start, Day end )noexcept->Day;
 	α operator-( TradingDay copy, Day x )noexcept->TradingDay;
 }
-#undef Γα
+#undef Φ

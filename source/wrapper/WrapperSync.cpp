@@ -12,8 +12,8 @@ namespace Jde::Markets
 {
 	WrapperSync::WrapperSync()noexcept:
 		_pReaderSignal{ make_shared<EReaderOSSignal>(1000) }
-	{
-	}
+	{}
+
 	sp<TwsClientSync> WrapperSync::CreateClient( uint twsClientId )noexcept(false)
 	{
 		TwsConnectionSettings twsSettings;

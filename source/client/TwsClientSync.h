@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <future>
 //#include <.h>
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
@@ -22,9 +22,9 @@ namespace Jde::Markets
 		template<class T> using Future = std::future<Container<T>>;
 		static sp<TwsClientSync> CreateInstance( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 
-		TimePoint CurrentTime()noexcept;
-		TimePoint HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false);
-		void CheckTimeouts()noexcept override;
+		α CurrentTime()noexcept->TimePoint;
+		α HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false)->TimePoint;
+		α CheckTimeouts()noexcept->void override;
 
 		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
@@ -38,7 +38,7 @@ namespace Jde::Markets
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
 //		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false);
 //		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
-		//void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
+		//α reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
 		std::future<sp<string>> ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept;
 		//Future<NewsProvider> RequestNewsProviders()noexcept;
 		std::future<VectorPtr<Proto::Results::Position>> RequestPositions()noexcept(false);
@@ -48,12 +48,12 @@ namespace Jde::Markets
 		//vector<ActiveOrderPtr> ReqAllOpenOrders()noexcept(false);//timeout
 		static TwsClientSync& Instance()noexcept;//{ ASSERT(_pInstance); return *_pInstance;}
 		static bool IsConnected()noexcept;
-		void ReqIds()noexcept;
+		α ReqIds()noexcept->void;
 	private:
 		Future<::ContractDetails> ReqContractDetailsInst( ContractPK id )noexcept;
 
-		void OnError( TickerId id, int errorCode, const std::string& errorMsg );
-		void OnHeadTimestamp( TickerId reqId, TimePoint t );
+		α OnError( TickerId id, int errorCode, const std::string& errorMsg )->void;
+		α OnHeadTimestamp( TickerId reqId, TimePoint t )->void;
 		sp<WrapperSync> Wrapper()noexcept;
 		//static sp<TwsClientSync> _pInstance;
 		TwsClientSync( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);

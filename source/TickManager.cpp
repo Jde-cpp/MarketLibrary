@@ -246,7 +246,8 @@ namespace Jde::Markets
 					{
 						auto h = p->second.HCoroutine;
 						auto& returnObject = h.promise().get_return_object();
-						returnObject.SetResult( std::dynamic_pointer_cast<IException>(make_shared<IBException>(errorString, errorCode, id)) );
+						IBException e{ errorString, errorCode, id };//separate on 2 lines for msvc
+						returnObject.SetResult( e.Clone() );
 						Coroutine::CoroutinePool::Resume( move(h) );
 					}
 				}

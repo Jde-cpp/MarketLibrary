@@ -1,4 +1,4 @@
-#include "StatAwait.h"
+﻿#include "StatAwait.h"
 #include <bar.h>
 #include <jde/markets/types/Contract.h>
 #include "../../../Framework/source/Cache.h"

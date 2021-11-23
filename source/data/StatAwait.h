@@ -1,8 +1,6 @@
-#include "../../../Framework/source/coroutine/Awaitable.h"
+﻿#include "../../../Framework/source/coroutine/Awaitable.h"
 #include "../../../Framework/source/math/MathUtilities.h"
 #include "../types/Exchanges.h"
-
-#define Γα ΓM auto
 
 namespace Jde::Markets
 {
@@ -11,16 +9,15 @@ namespace Jde::Markets
 }
 namespace Jde::Markets::HistoricalDataCache
 {
-	struct StatAwait final : IAwaitable
+	struct ΓM StatAwait final : IAwaitable
 	{
 		using base=IAwaitable;
 		StatAwait( ContractPtr_ pContract, double days, Day start, Day end )noexcept;
 		~StatAwait();
-		Γα await_ready()noexcept->bool override;
-		Γα await_suspend( HCoroutine h )noexcept->void override;
-		Γα await_resume()noexcept->Task2::TResult override;
+		α await_ready()noexcept->bool override;
+		α await_suspend( HCoroutine h )noexcept->void override;
+		α await_resume()noexcept->Task2::TResult override;
 	private:
-		//α Count()const noexcept->Day;
 		ContractPtr_ ContractPtr; double Days; Day Start, End, FullDays; uint16 Minutes; string CacheId; Day Count;
 		std::variant<sp<StatCount>,sp<IException>> _result;
 		HCoroutine _h;
@@ -30,4 +27,3 @@ namespace Jde::Markets
 {
 	Ξ ReqStats( ContractPtr_ pContract, double days, Day start, Day end=CurrentTradingDay() )noexcept{ return HistoricalDataCache::StatAwait{ pContract, days, start, end }; }
 }
-#undef Γα

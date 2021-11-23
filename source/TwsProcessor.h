@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/Exports.h>
 class  EClientSocket;
 struct EReaderSignal;
@@ -11,12 +11,12 @@ namespace Jde::Markets
 	struct ΓM TwsProcessor final
 	{
 		~TwsProcessor();
-		static void CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept;
-		static bool IsConnected()noexcept{ return _pInstance && _pInstance->_isConnected; }
-		static void Stop()noexcept;
+		Ω CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept->void;
+		Ω IsConnected()noexcept->bool{ return _pInstance && _pInstance->_isConnected; }
+		Ω Stop()noexcept->void;
 	private:
 		TwsProcessor( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept;
-		void ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept;
+		α ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept->void;
 
 		sp<Threading::InterruptibleThread> _pThread;
 		static sp<TwsProcessor> _pInstance;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <jde/markets/TypeDefs.h>
 #include <jde/markets/Exports.h>
 #include "../../../Framework/source/collections/Collections.h"

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifdef _MSC_VER
 	#pragma push_macro("assert")
 	#undef assert
@@ -7,6 +7,7 @@
 #endif
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wreorder-ctor"
+#include <Decimal.h>
 #include <EClientSocket.h>
 #pragma clang diagnostic pop
 
@@ -32,45 +33,45 @@ namespace Jde::Markets
 
 	struct ΓM TwsClient : private EClientSocket
 	{
-		virtual void CheckTimeouts()noexcept{};
-		static void CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
+		virtual α CheckTimeouts()noexcept->void{};
+		static α CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)->void;
 		static TwsClient& Instance()noexcept{return *_pInstance;}//ASSERT(_pInstance);
 		static sp<TwsClient> InstancePtr()noexcept{ return _pInstance; }
 		static bool HasInstance()noexcept{ return _pInstance!=nullptr;}
 		ibapi::OrderId RequestId()noexcept{ return _requestId++; }
 		bool isConnected()const noexcept{ return EClientSocket::isConnected(); }
-		void SetRequestId( TickerId id )noexcept;
+		α SetRequestId( TickerId id )noexcept->void;
 
-		void cancelMktData( TickerId reqId, bool log=true )noexcept{ if( log )LOG( "({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
-		void cancelOrder( TickerId reqId )noexcept{ LOG( "({})cancelOrder()", reqId); EClientSocket::cancelOrder(reqId); }
-		void cancelPositionsMulti(TickerId reqId)noexcept{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
-		void cancelRealTimeBars( TickerId reqId )noexcept{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }
-		void reqIds( int _=1 )noexcept{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
+		α cancelMktData( TickerId reqId, bool log=true )noexcept->void{ if( log )LOG( "({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
+		α cancelOrder( TickerId reqId )noexcept->void{ LOG( "({})cancelOrder()", reqId); EClientSocket::cancelOrder(reqId); }
+		α cancelPositionsMulti(TickerId reqId)noexcept->void{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
+		α cancelRealTimeBars( TickerId reqId )noexcept->void{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }
+		α reqIds( int _=1 )noexcept->void{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
 		Handle RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept;
-		static void CancelAccountUpdates( sv acctCode, Handle handle )noexcept;
-		void reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept;
-		void reqExecutions( int reqId, const ExecutionFilter& filter )noexcept;
-		void ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept;
-		void reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
-		void reqPositions()noexcept{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
-		void reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept;
+		static α CancelAccountUpdates( sv acctCode, Handle handle )noexcept->void;
+		α reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept->void;
+		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
+		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void;
+		α reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
+		α reqPositions()noexcept->void{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
+		α reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept->void;
 
-		void cancelPositions()noexcept{ LOG( "cancelPositions()" ); EClientSocket::cancelPositions(); }
-		void reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept;
-		void reqManagedAccts()noexcept{ LOG( "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
-		virtual void reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept;
-		void reqContractDetails( int reqId, const ::Contract& contract )noexcept;
-		void reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept;
-		void reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept;
-		void reqNewsProviders()noexcept;	static constexpr uint32 ReqNewsProvidersLogId = 159697286;
+		α cancelPositions()noexcept->void{ LOG( "cancelPositions()" ); EClientSocket::cancelPositions(); }
+		α reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept->void;
+		α reqManagedAccts()noexcept->void{ LOG( "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
+		virtual α reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept->void;
+		α reqContractDetails( int reqId, const ::Contract& contract )noexcept->void;
+		α reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept->void;
+		α reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept->void;
+		α reqNewsProviders()noexcept->void;	static constexpr uint32 ReqNewsProvidersLogId = 159697286;
 
-		void reqNewsArticle( TickerId requestId, str providerCode, str articleId )noexcept;
-		void reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept;
+		α reqNewsArticle( TickerId requestId, str providerCode, str articleId )noexcept->void;
+		α reqHistoricalNews( TickerId requestId, ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start={}, TimePoint end={} )noexcept->void;
 
-		void reqCurrentTime()noexcept;
-		void reqOpenOrders()noexcept;
-		void reqAllOpenOrders()noexcept;
-		void placeOrder( const ::Contract& contract, const ::Order& order )noexcept;
+		α reqCurrentTime()noexcept->void;
+		α reqOpenOrders()noexcept->void;
+		α reqAllOpenOrders()noexcept->void;
+		α placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void;
 	protected:
 		sp<EWrapper> _pWrapper;
 		sp<WrapperLog> WrapperLogPtr()noexcept;
@@ -78,7 +79,7 @@ namespace Jde::Markets
 		TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static sp<TwsClient> _pInstance;
 	private:
-		void reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions) noexcept;
+		α reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions)noexcept->void;
 		TwsConnectionSettings _settings;
 		std::atomic<TickerId> _requestId{1};
 		static const LogTag& _logLevel;

@@ -1,4 +1,5 @@
 #include "TwsProcessor.h"
+#include <Decimal.h>
 #include <EClientSocket.h>
 #include <EReaderSignal.h>
 #include <EReader.h>

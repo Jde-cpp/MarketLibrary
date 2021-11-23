@@ -1,8 +1,9 @@
-#include "TwsConnectionSettings.h"
+﻿#include "TwsConnectionSettings.h"
 #define var const auto
+
 namespace Jde::Markets
 {
-	std::ostream& operator<<( std::ostream& os, const TwsConnectionSettings& settings )
+	α operator<<( std::ostream& os, const TwsConnectionSettings& settings )noexcept->std::ostream&
 	{
 		os << settings.Host <<  ":[";
 		bool start=true;
@@ -16,7 +17,7 @@ namespace Jde::Markets
 	}
 }
 
-void from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& settings )
+α from_json( const nlohmann::json& j, Jde::Markets::TwsConnectionSettings& settings )noexcept->void
 {
 	//if( j.find("clientId")!=j.end() )
 	//	j.at("clientId").get_to( settings.ClientId );
