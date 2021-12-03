@@ -15,7 +15,7 @@ namespace Jde::Markets
 
 //	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
 	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws.results") };
-	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws.hist") };
+	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws-hist") };
 	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws.tick") };
 
 	α WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept->bool
@@ -54,8 +54,8 @@ namespace Jde::Markets
 		else
 			LOGT( _historicalLevel, "({})WrapperLog::historicalDataEnd(){}", reqId, size, startDateStr, endDateStr );
 	}
-	α WrapperLog::managedAccounts( str accountsList )noexcept->void{ DBG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
-	α WrapperLog::nextValidId( ::OrderId orderId )noexcept->void{ LOGL( ELogLevel::Information, "WrapperLog::nextValidId( '{}' )", orderId ); }
+	α WrapperLog::managedAccounts( str accountsList )noexcept->void{ LOG( "WrapperLog::managedAccounts( {} )"sv, accountsList ); }
+	α WrapperLog::nextValidId( ::OrderId orderId )noexcept->void{ LOG( "WrapperLog::nextValidId( '{}' )", orderId ); }
 #pragma region Order
 	α WrapperLog::orderStatus( ::OrderId orderId, str status, ::Decimal filled, ::Decimal remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void
 	{

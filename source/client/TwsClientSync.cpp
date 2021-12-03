@@ -20,7 +20,7 @@ namespace Jde::Markets
 		while( !_pInstance->isConnected() ) //while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
 
-		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pSyncInstance->_port, clientId );
+		INFO( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pSyncInstance->_port, clientId );
 		return _pSyncInstance;
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):

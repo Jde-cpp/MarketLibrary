@@ -9,7 +9,7 @@
 
 namespace Jde::Markets
 {
-	static var& _logLevel{ Logging::TagLevel("mrk.hist") };
+	static var& _logLevel{ Logging::TagLevel("mrk-hist") };
 	α HistoryAwait::SetData( bool force )noexcept->bool
 	{
 		var set = _cache.size() && _cache.begin()->second && _cache.rbegin()->second && ( _cache.rbegin()->first!=CurrentTradingDay(*_pContract) || !IsOpen(*_pContract) );
@@ -84,7 +84,6 @@ namespace Jde::Markets
 							baseTime+=1min;
 						}
 						_cache[day] = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine( *_pContract, day, *pDayBars, _barSize );
-
 					}
 				}
 				if( bars.size() && SetData() )

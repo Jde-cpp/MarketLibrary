@@ -24,21 +24,22 @@ namespace Jde::Markets
 
 	using namespace Chrono;
 
-	Coroutine::Task2 Run2()
+	Coroutine::Task2 Run2( Duration d )
 	{
 		var& contract = Contracts::Spy;
 		var priceFields = Tick::PriceFields();
 		Tick tick{ contract.Id };
-		for( ;; )
+		
+		for( var start = Clock::now(); start+d>Clock::now(); )
 		{
 			Coroutine::Handle handle;
 			const TickManager::TickParams params{ priceFields, tick };
 			auto result = co_await TickManager::Subscribe( params, handle );
-			DBG( "HasError = {}"sv, result.HasError() );
+			//DBG( "HasError = {}"sv, result.HasError() );
 			try
 			{
 				auto pNewTick = result.Get<Tick>();
-				DBG( "bid={}"sv, pNewTick->Bid );
+				//DBG( "bid={}"sv, pNewTick->Bid );
 				tick = *pNewTick;
 			}
 			catch( const Exception& e )
@@ -51,8 +52,9 @@ namespace Jde::Markets
 
 	TEST_F( OrderManagerTests, Adhoc )
 	{
-		Run2();
-		std::this_thread::sleep_for( 30s );//6min
+		Duration d = 30s;
+		Run2( d );
+		std::this_thread::sleep_for( d );//6min
 		/*var reqId = RequestId();
 
 		placeOrder( const ::Contract& contract, const ::Order& order )noexcept;

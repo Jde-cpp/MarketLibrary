@@ -1,12 +1,12 @@
 {
 	"testing":
 	{
-		"_tests":  "HistoricalDataCacheTest.SaveToFile",
+		"xtests":  "HistoricalDataCacheTest.CombineMinuteBars",
 		"tests":  "*"
 	},
 	"logging":
 	{
-		"tags": [ "sql", "_tws.hist", "mrk.hist" ],
+		"tags": [ "_sql", "_tws-requests", "_tws-hist", "_mrk-hist" ],
 		"console":{},
 		"file":{ "path": ".." },
 		"memory": true,
@@ -15,13 +15,19 @@
 	"wakeDuration": "PT5S",
 	"db":
 	{
-		"driver": "libJde.MySql.so",
-		"connectionString": "Jde_UM_Connection",
+		"xdriver": "libJde.MySql.so",
+		"driver": "Jde.DB.Odbc.dll",
+		"xconnectionString": "Jde_UM_Connection",
+		"connectionString": "DSN=Jde_TWS_Connection",
 		"meta": "../../TwsWebSocket/meta.json"
 	},
 	"_marketHistorian":
 	{
 		"_barPath": ""
+	},
+	"workers": 
+	{
+		"drive":{ "threads":  1 }
 	},
 	"tws":
 	{

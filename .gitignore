@@ -50,3 +50,5 @@ tests/.vscode/c_cpp_properties.json
 tests/.bin/*
 tests/Debug/*
 tests/packages/*
+*.log
+*.aps

@@ -20,7 +20,7 @@
 namespace Jde::Markets
 {
 	using namespace Chrono;
-	static var& _logLevel{ Logging::TagLevel("mrk.hist") };
+	static var& _logLevel{ Logging::TagLevel("mrk-hist") };
 	using ResultsFunction=function<void(const map<Day,VectorPtr<CandleStick>>&,Day,Day)>;
 
 	fs::path BarData::Path()noexcept(false)
@@ -118,15 +118,16 @@ namespace Jde::Markets
 		}
 		return pResults;
 	}
+	static uint16 currentYear=DateTime{}.Year();
 	tuple<Day,Day> ExtractTimeframe( path path, TimePoint earliestDate, uint8 yearsToKeep=3 )
 	{
-		static uint16 currentYear=DateTime().Year();
 		var [year,month,day] = IO::FileUtilities::ExtractDate( path );
 		if( year==0 )
 			return make_tuple( 0, 0 );
 
 		var start = CurrentTradingDay( year==currentYear-yearsToKeep ? earliestDate : ToTimePoint(year, std::max(month,(uint8)1), std::max(day,(uint8)1)) );
 		var end = day ? start+24h-1s : EndOfMonth( ToTimePoint(year, month ? month : 12, 1) );
+		ASSERT( start<end );
 		return make_tuple( ToDays(start), ToDays(end) );
 	}
 
@@ -163,12 +164,11 @@ namespace Jde::Markets
 			LOG( "({})BarFilesAwaitable::BarFilesAwaitable( {}, {}, fileSize={} )", _symbol, DateDisplay(start), DateDisplay(endInput), _files.size() );
 		}
 		~BarFilesAwaitable(){ LOG( "({})~BarFilesAwaitable()", _symbol ); }
-		bool await_ready()noexcept override{ return _files.empty(); }
-		void await_suspend( typename base::THandle h )noexcept override
+		α await_ready()noexcept->bool override{ return _files.empty(); }
+		α await_suspend( HCoroutine h )noexcept->void override
 		{
 			base::await_suspend( h );
-			_h = h;
-			//auto f = [files=move(_files), function=_function, symbol=move(_symbol), h2=move(h),this]()mutable->Task2
+			_h = move( h );
 			auto f = [this]()mutable->Task2
 			{
 				for( var& [path,start,end] : _files )
@@ -188,7 +188,7 @@ namespace Jde::Markets
 			};
 			f();
 		}
-		typename base::TResult await_resume()noexcept override
+		α await_resume()noexcept->TaskResult override
 		{
 			AwaitResume();
 			return _pException ? TaskResult{ _pException } : TaskResult{ sp<void>{} };
@@ -237,9 +237,8 @@ namespace Jde::Markets
 		return AWrapper( [pContract, start, end]( HCoroutine h )->Task2
 		{
 			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, DateDisplay(start), DateDisplay(end) );
-			//auto p = make_shared<map<Day,VectorPtr<CandleStick>>>();
 			auto p = new map<Day,VectorPtr<CandleStick>>();
-			auto fnctn = [pResults=p,start,end]( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
+			auto f = [pResults=p,start,end]( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
 			{
 				for( var& dayBars : bars )
 				{
@@ -250,7 +249,7 @@ namespace Jde::Markets
 			};
 			try
 			{
-				auto y = ( co_await ForEachFile(*pContract, start, end, fnctn) ).Get<sp<void>>();
+				( co_await ForEachFile(*pContract, start, end, f) ).Get<sp<void>>();
 				h.promise().get_return_object().SetResult( make_shared<map<Day,VectorPtr<CandleStick>>>(*p) );
 			}
 			catch( IException& e )

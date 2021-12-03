@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
 #include "../../Framework/source/log/server/ServerSink.h"
 #include "../../Framework/source/math/MathUtilities.h"
 #include "../../MarketLibrary/source/client/TwsClientSync.h"
@@ -75,15 +75,23 @@ namespace Jde::Markets
 		var dates = BarData::FindExisting( Contracts::Aig, testFrom );
 		bool tested = false;
 		var start = IsOpen( contract ) ? PreviousTradingDay() : CurrentTradingDay();
+		var month = DateTime{ FromDays(start) }.Month();
 		for( auto day = start; !tested && day>testFrom; day=PreviousTradingDay(day) )
 		{
 			var file = BarData::File( contract, day );
-			tested = !fs::exists( file );
-			if( !tested )
+			if( fs::exists(file) )
 				continue;
+			var testMonth = DateTime{ FromDays(day) }.Month();
+			if( testMonth<month )
+			{
+				fs::remove( BarData::File(contract, start) );
+				day = NextTradingDay( start );
+				continue;
+			}
+			tested = true;
 			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
-			True( fs::exists(file), file );//needs to work on prior month
+			True( fs::exists(file), file.string() );//needs to work on prior month
 		}
 		EXPECT_TRUE( tested );
 	}
@@ -99,7 +107,7 @@ namespace Jde::Markets
 		ASSERT_NEAR( actual.close, expected.close, .0001 );
 		//ASSERT_NEAR( actual.wap, expected.wap, .0001 );
 		if( compareVolume )
-			ASSERT_EQ( Math::URound(actual.volume), Math::URound(expected.volume) );
+			ASSERT_EQ( Math::URound(ToDouble(actual.volume)), Math::URound(ToDouble(expected.volume)) );
 		//DBG( "actual.time={}, actual={}, expected={}, diff={}"sv, actual.time, ToDouble(actual.volume), ToDouble(expected.volume), ToDouble(Subtract(actual.volume,expected.volume)) );
 		//ASSERT_EQ( actual.count, expected.count );
 		_testCompareBar = true;
@@ -124,7 +132,13 @@ namespace Jde::Markets
 	{
 		var& contract = Contracts::Aig;
 		constexpr auto Display = EDisplay::Trades;
-		var dates = BarData::FindExisting( contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
+		var prev = PreviousTradingDay();
+		auto dates = BarData::FindExisting( contract, prev-30 );
+		if( dates.size()==0 )
+		{
+			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), prev, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
+			dates = BarData::FindExisting( contract, prev-30 ); ASSERT_GT( dates.size(), 0 );
+		}
 		var day = *dates.rbegin();
 		ClearMemoryLog();
 		auto pFileCache = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
@@ -148,14 +162,14 @@ namespace Jde::Markets
 		ASSERT_EQ( logs.size(), 0 );
 	}
 
-//Test 3 days of SPY.
-//Test a week of SPY.
-α Near( double actual, double expected, double near, SRCE )->void
-{
-	ASSERT_NEAR( actual, expected, near );
-	if( abs(actual-expected)>near )
-		ERR( "x={}", abs(actual-expected) );
-}
+	//Test 3 days of SPY.
+	//Test a week of SPY.
+	α Near( double actual, double expected, double value, SRCE )->void
+	{
+		ASSERT_NEAR( actual, expected, value );
+		if( abs(actual-expected)>value )
+			ERR( "x={}", abs(actual-expected) );
+	}
 	TEST_F(HistoricalDataCacheTest, StdDev)
 	{
 		var test = []( const StatCount& actual, const StatCount& expected )

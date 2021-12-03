@@ -7,10 +7,11 @@
 
 namespace Jde::Markets
 {
+	static const LogTag& _logLevel{ Logging::TagLevel("threads") };
 	sp<TwsProcessor> TwsProcessor::_pInstance{nullptr};
 	void TwsProcessor::CreateInstance( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
-		DBG( "TwsProcessor::CreateInstance"sv );
+		LOG( "TwsProcessor::CreateInstance" );
 		Stop();
 		_pInstance = sp<TwsProcessor>{ new TwsProcessor{pTwsClient, pReaderSignal} };
 	}
@@ -30,16 +31,16 @@ namespace Jde::Markets
 
 	void TwsProcessor::Stop()noexcept
 	{
-		DBG( "TwsProcessor::Stop _pInstance={}"sv, _pInstance!=nullptr );
+		LOG( "TwsProcessor::Stop _pInstance={}"sv, _pInstance!=nullptr );
 		if( _pInstance )
 		{
-			DBG( "TwsProcessor::Stop - AddThread"sv );
+			LOG( "TwsProcessor::Stop - AddThread"sv );
 			IApplication::AddThread( _pInstance->_pThread );
 			_pInstance->_pThread->Interrupt();
 			if( TwsClient::HasInstance() )
 				TwsClient::Instance().reqCurrentTime();
 		}
-		DBG( "Leaving TwsProcessor::Stop"sv );
+		LOG( "Leaving TwsProcessor::Stop"sv );
 	}
 	void TwsProcessor::ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept
 	{
@@ -48,15 +49,15 @@ namespace Jde::Markets
 		reader.start();
 		Threading::SetThreadDscrptn( "TwsProc" );
 		_isConnected = true;
-		DBG( "Enter TwsProcessor::ProcessMessages IsConnected = {}, Threading::GetThreadInterruptFlag().IsSet={}"sv, (bool)pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
+		LOG( "Enter TwsProcessor::ProcessMessages IsConnected = {}, Threading::GetThreadInterruptFlag().IsSet={}"sv, (bool)pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
 		while( pTwsClient->isConnected() && !Threading::GetThreadInterruptFlag().IsSet() )
 		{
 			pReaderSignal->waitForSignal();
 			reader.processMsgs();
 			pTwsClient->CheckTimeouts();
 		}
-		DBG( "pTwsClient->isConnected={}, Threading::GetThreadInterruptFlag().IsSet={}"sv, pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
+		LOG( "pTwsClient->isConnected={}, Threading::GetThreadInterruptFlag().IsSet={}"sv, pTwsClient->isConnected(), Threading::GetThreadInterruptFlag().IsSet() );
 		_isConnected = false;
-		DBG( "Leaving TwsProcessor::ProcessMessages IsConnected = {}"sv, (bool)_isConnected );
+		LOG( "Leaving TwsProcessor::ProcessMessages IsConnected = {}"sv, (bool)_isConnected );
 	}
 }

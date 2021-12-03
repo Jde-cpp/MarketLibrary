@@ -410,10 +410,8 @@ namespace Jde
 	}
 	TimePoint Markets::NextTradingDay( TimePoint time )noexcept
 	{
-		DateTime t2{ time-Timezone::EasternTimezoneDifference(time) };
-		if( t2.Hour()<4 )
-			time -= 4h;
-		return FromDays( NextTradingDay(ToDays(t2)) );
+		DateTime t{ time-Timezone::EasternTimezoneDifference(time) };
+		return FromDays( NextTradingDay(ToDays(t)) );
 	}
 	mutex _lock;
 	namespace Markets

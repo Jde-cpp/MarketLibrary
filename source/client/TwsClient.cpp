@@ -21,7 +21,7 @@ namespace Jde::Markets
 		TwsProcessor::CreateInstance( _pInstance, pReaderSignal );
 		while( !_pInstance->isConnected() ) //Make sure thread is still alive, ie not shutting down.  while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
-		DBG( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pInstance->_port, clientId );
+		INFO( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pInstance->_port, clientId );
 	}
 
 	TwsClient::TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> pWrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
@@ -34,7 +34,7 @@ namespace Jde::Markets
 			TRACE( "Attempt to connect to Tws:  {}", port );
 			if( eConnect(_settings.Host.c_str(), port, (int)clientId, false) )
 			{
-				INFO( "connected to Tws:  {}.", port );
+				//INFO( "connected to Tws:  {}.", port );
 				_port = port;
 				break;
 			}

@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
 #include "../source/wrapper/WrapperSync.h"
 #include "../../Framework/source/Settings.h"
 #define var const auto
@@ -33,12 +33,12 @@ namespace Jde::Markets
 	auto result = EXIT_FAILURE;
 	if( auto p = Markets::Startup(argc, argv); p )
 	{
+		ASSERT( Settings::TryGet<uint>("workers/drive/threads") );//main thread busy with tests
 		var pFilter=Settings::TryGet<string>( "testing/tests" );
 		::testing::GTEST_FLAG( filter ) = pFilter ? *pFilter : "*";
 	   result = RUN_ALL_TESTS();
 		p->Shutdown();
 	}
-	//IApplication::Instance().Wait();
 	IApplication::CleanUp();
 
 	return result;

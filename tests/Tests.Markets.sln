@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests.Markets", "Tests.Markets.vcxproj", "{AF6B1166-2EFC-4E3A-945C-5FCE6E45C169}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7FC3CC33-B345-423E-99B6-5D499E531FBF} = {7FC3CC33-B345-423E-99B6-5D499E531FBF}
+		{8B49D7A7-4CB3-4610-8028-E9A179AE86F3} = {8B49D7A7-4CB3-4610-8028-E9A179AE86F3}
 		{B001A9CB-6EBC-470A-9760-4BFF763D9A16} = {B001A9CB-6EBC-470A-9760-4BFF763D9A16}
 	EndProjectSection
 EndProject
@@ -15,6 +16,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MarketLibrary", "..\source\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Framework", "..\..\Framework\source\Framework.vcxproj", "{7FC3CC33-B345-423E-99B6-5D499E531FBF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XZ", "..\..\XZ\source\XZ.vcxproj", "{8B49D7A7-4CB3-4610-8028-E9A179AE86F3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7FC3CC33-B345-423E-99B6-5D499E531FBF} = {7FC3CC33-B345-423E-99B6-5D499E531FBF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +40,10 @@ Global
 		{7FC3CC33-B345-423E-99B6-5D499E531FBF}.Debug|x64.Build.0 = Debug|x64
 		{7FC3CC33-B345-423E-99B6-5D499E531FBF}.Release|x64.ActiveCfg = Release|x64
 		{7FC3CC33-B345-423E-99B6-5D499E531FBF}.Release|x64.Build.0 = Release|x64
+		{8B49D7A7-4CB3-4610-8028-E9A179AE86F3}.Debug|x64.ActiveCfg = Debug|x64
+		{8B49D7A7-4CB3-4610-8028-E9A179AE86F3}.Debug|x64.Build.0 = Debug|x64
+		{8B49D7A7-4CB3-4610-8028-E9A179AE86F3}.Release|x64.ActiveCfg = Release|x64
+		{8B49D7A7-4CB3-4610-8028-E9A179AE86F3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
