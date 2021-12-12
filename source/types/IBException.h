@@ -9,6 +9,7 @@ namespace Jde::Markets
 		IBException( const IBException& ) = default;
 		IBException( IBException&& ) = default;
 		IBException( sv message, int errorCode, long reqId, SRCE )noexcept;
+		~IBException();
 		template<class... Args> IBException( const source_location& sl, int errorCode, long reqId, sv value, Args&&... args )noexcept;
 		Ω SP( sv m, int c, long id )noexcept->sp<IException>{ return std::dynamic_pointer_cast<IException>(std::make_shared<IBException>(m, c, id, source_location{})); }
 		α Clone()noexcept->sp<IException> override{ return std::make_shared<IBException>(move(*this)); }

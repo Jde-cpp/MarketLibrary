@@ -44,4 +44,49 @@ namespace Jde::Markets
 			: _dataPtr;
 		return TaskResult{ p };
 	}
+
+	vector<HCoroutine> AllOpenOrdersAwait::_handles;
+	std::mutex AllOpenOrdersAwait::_mutex;
+	sp<Proto::Results::Orders> AllOpenOrdersAwait::_pData;
+
+	α AllOpenOrdersAwait::await_suspend( HCoroutine h )noexcept->void
+	{
+		ITwsAwaitableImpl::await_suspend( h );
+		lock_guard l{ _mutex };
+		_handles.push_back( h );
+		if( _handles.size()==1 )
+		{
+			_pData = make_shared<Proto::Results::Orders>();
+			_pTws->reqAllOpenOrders();
+		}
+	}
+	α AllOpenOrdersAwait::Push( up<OpenOrder> p )noexcept->void
+	{
+		lock_guard l{ _mutex };
+		if( _pData )
+			*_pData->add_orders() = move(*p.release());
+	}
+	α AllOpenOrdersAwait::Push( up<OrderStatus> p )noexcept->void
+	{
+		lock_guard l{ _mutex };
+		if( _pData )
+			*_pData->add_statuses() = move(*p.release());
+	}
+
+	α AllOpenOrdersAwait::Finish()noexcept->void
+	{
+		lock_guard l{ _mutex };
+		for( auto&& h : _handles )
+		{
+			h.promise().get_return_object().SetResult( _pData );
+			CoroutinePool::Resume( move(h) );
+		}
+		_pData = nullptr;
+		_handles.clear();
+	}
+	α AllOpenOrdersAwait::await_resume()noexcept->TaskResult
+	{
+		base::AwaitResume();
+		return TaskResult{ _pPromise->get_return_object().GetResult() };
+	}
 }

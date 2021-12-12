@@ -65,4 +65,5 @@ target_precompile_headers(Tests.MarketLibrary PRIVATE
 	<jde/TypeDefs.h>
 	"../../Framework/source/DateTime.h"
 	<jde/markets/TypeDefs.h>
+	<Order.h>
 )

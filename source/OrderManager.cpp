@@ -6,7 +6,7 @@
 #define var const auto
 namespace Jde::Markets
 {
-	static const LogTag& _logLevel = Logging::TagLevel( "mrk.orders" );
+	static const LogTag& _logLevel = Logging::TagLevel( "tws-orders" );
 	void OrderManager::Cancel( Coroutine::Handle h )noexcept
 	{
 		OMInstancePtr->Cancel( h );
@@ -19,7 +19,7 @@ namespace Jde::Markets
 	void OrderManager::Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int /*clientId*/, const std::string& whyHeld, double mktCapPrice )noexcept
 	{
 		var eOrderStatus = ToOrderStatus( status );
-		OrderStatus x{orderId, eOrderStatus, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, whyHeld, mktCapPrice};
+		OrderStatus x{ orderId, eOrderStatus, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, whyHeld, mktCapPrice };
 		OMInstancePtr->Push( make_shared<const OrderStatus>(x) );
 	}
 	void OrderManager::Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept
@@ -51,13 +51,13 @@ namespace OrderManager
 		unique_lock l{ _subscriptionMutex };
 		if( auto p = std::find_if(_subscriptions.begin(), _subscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_subscriptions.end() )
 		{
-			DBG( "({})OrderWorker::Cancel({})"sv, p->first, h );
+			LOG( "({})OrderWorker::Cancel({})"sv, p->first, h );
 
 			p->second.HCoroutine.destroy();
 			_subscriptions.erase( p );
 		}
 		else
-			DBG( "OrderWorker - Could not find handle {}."sv, h );
+			LOG( "OrderWorker - Could not find handle {}."sv, h );
 	}
 
 	void OrderWorker::Subscribe( const SubscriptionInfo& params )noexcept
@@ -65,7 +65,7 @@ namespace OrderManager
 		ASSERT( params.Params.OrderPtr );
 		unique_lock l{ _subscriptionMutex };
 		//--------------------------------------------------
-		DBG( "({})OrderManager add subscription."sv, params.Params.OrderPtr->orderId );
+		LOG( "({})OrderManager add subscription."sv, params.Params.OrderPtr->orderId );
 		_subscriptions.emplace( params.Params.OrderPtr->orderId, params );
 	}
 	void OrderWorker::Push( sp<const OrderStatus> pStatus )noexcept
@@ -96,7 +96,7 @@ namespace OrderManager
 		}
 		else
 			_incoming.try_emplace( pOrder->orderId, Cache{pOrder, pContract = make_shared<Contract>(contract), {}, pState} );
-		DBG( "({})added order -{} limit={}"sv, pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
+		LOG( "({})added order -{} limit={}"sv, pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
 		std::unique_lock<std::mutex> lk( _mtx );
 		l.unlock();
 		_cv.notify_one();
@@ -147,7 +147,7 @@ namespace OrderManager
 			}
 			else
 			{
-				DBG( "OrderManager add {} to cache."sv, id );
+				LOG( "OrderManager add {} to cache."sv, id );
 				_cache.emplace( id, update );
 				latest = update;
 			}
@@ -157,14 +157,14 @@ namespace OrderManager
 			auto range = _subscriptions.equal_range( id );
 			for( auto p = range.first; p!=_subscriptions.end() && p->first==id; )
 			{
-				DBG( "OrderManager have subscription."sv );
+				LOG( "OrderManager have subscription."sv );
 				auto& original = p->second.Params;
 				var orderChange = (!original.OrderPtr && latest.OrderPtr) || (original.OrderPtr && latest.OrderPtr && latest.OrderPtr->Changes( *original.OrderPtr, original.OrderFields)!=MyOrder::Fields::None );
 				var statusChange = orderChange || (!original.StatusPtr && latest.StatusPtr) || (original.StatusPtr && latest.StatusPtr && latest.StatusPtr->Changes( *original.StatusPtr, original.StatusFields)!=OrderStatus::Fields::None );
 				var stateChange = statusChange || (!original.StatePtr && latest.StatePtr) || (original.StatePtr && latest.StatePtr && latest.StatePtr->Changes( *original.StatePtr, original.StateFields)!=OrderState::Fields::None );
 				if( stateChange )
 				{
-					DBG( "OrderManager changes. {} {}"sv, _subscriptions.size(), Threading::GetThreadId() );
+					LOG( "OrderManager changes. {} {}"sv, _subscriptions.size(), Threading::GetThreadId() );
 					auto& h = p->second.HCoroutine;
 					h.promise().get_return_object().SetResult( make_shared<Cache>(latest) );
 					Coroutine::CoroutinePool::Resume( move(h) );
@@ -172,7 +172,7 @@ namespace OrderManager
 				}
 				else
 				{
-					DBG( "OrderManager no changes."sv );
+					LOG( "OrderManager no changes."sv );
 					++p;
 				}
 			}
@@ -191,7 +191,7 @@ namespace OrderManager
 	{
 		std::call_once( _singleThread, []()
 		{
-			DBG( "Creating OrderWroker"sv );
+			LOG( "Creating OrderWroker"sv );
 			OrderWorker::_pInstance = make_shared<OrderWorker>();
 			OrderWorker::_pInstance->Start();
 			_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );

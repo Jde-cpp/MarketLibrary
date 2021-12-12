@@ -52,3 +52,4 @@ tests/Debug/*
 tests/packages/*
 *.log
 *.aps
+source/.vscode/settings.json

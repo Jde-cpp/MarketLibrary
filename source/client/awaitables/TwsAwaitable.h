@@ -7,7 +7,7 @@
 
 namespace Jde::Markets
 {
-	namespace Proto::Results{ class OptionExchanges; }
+	namespace Proto::Results{ class OptionExchanges; class OpenOrder; class OrderStatus; class Orders; }
 	using namespace Jde::Coroutine;
 	struct WrapperCo; struct Tws;
 
@@ -19,11 +19,12 @@ namespace Jde::Markets
 		sp<WrapperCo> WrapperPtr()noexcept;
 		sp<Tws> _pTws;
 	};
+
 	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable
 	{
 		using base=IAwaitable;
 		α await_ready()noexcept->bool override{ return !_pTws; }
-		α await_suspend( typename base::THandle h )noexcept->void override{ base::await_suspend( h ); _pPromise = &h.promise(); };
+		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); _pPromise = &h.promise(); };
 		α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
 	};
 
@@ -38,5 +39,18 @@ namespace Jde::Markets
 		const ContractPK _underlyingConId;
 		const bool _smart;
 		sp<Proto::Results::OptionExchanges> _dataPtr;
+	};
+
+	struct ΓM AllOpenOrdersAwait : ITwsAwaitableImpl
+	{
+		α await_suspend( HCoroutine h )noexcept->void override;
+		α await_resume()noexcept->TaskResult override;
+		Ω Finish()noexcept->void;
+		Ω Push( up<Proto::Results::OpenOrder> order )noexcept->void;
+		Ω Push( up<Proto::Results::OrderStatus> status )noexcept->void;
+	private:
+		HCoroutine _h;
+		static vector<HCoroutine> _handles; static std::mutex _mutex;
+		static sp<Proto::Results::Orders> _pData;
 	};
 }

@@ -35,9 +35,9 @@ namespace Jde::Markets
 		return Future<Proto::BarFile>( IO::Zip::XZ::ReadProto<Proto::BarFile>(path) ).get();
 	}
 
-	α BarData::Load( fs::path path2, string symbol2 )noexcept->AWrapper
+	α BarData::Load( fs::path path_, string symbol2 )noexcept->AWrapper
 	{
-		return AWrapper{ [path=move(path2), symbol=move(symbol2)]( HCoroutine h )->Task2
+		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task2
 		{
 			try
 			{
@@ -180,8 +180,16 @@ namespace Jde::Markets
 					}
 					catch( IException& e )
 					{
-						_pException = e.Clone();
-						break;
+						try
+						{
+							if( IO::FileSize(path)>0 ) e.Throw();
+							fs::remove( path ); INFO( "{} empty removing", path );
+						}
+						catch( IException& e )
+						{
+							_pException = e.Clone();
+							break;
+						}
 					}
 				}
 				_h.resume();

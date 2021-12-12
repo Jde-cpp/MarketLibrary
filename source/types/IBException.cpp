@@ -9,17 +9,21 @@ namespace Jde::Markets
 		IException{ ELogLevel::Debug, message, sl },
 		ErrorCode{ errorCode },
 		RequestId{ reqId }
+	{}
+
+	IBException::~IBException()
 	{
-		if( sl.line() )
-			Log();
+		Log();
+		_level = ELogLevel::NoLog;
 	}
 
 	α IBException::Log()const noexcept->void
 	{
 		std::ostringstream os;
 		var message = format( "({})[{}] - {}", RequestId, ErrorCode, what() );
-		Logging::Default().log( spdlog::source_loc{FileName(_sl.file_name()).c_str(),(int)_sl.line(),_sl.function_name()}, (spdlog::level::level_enum)_level, message );
+		var& sl = _stack.front();
+		Logging::Default().log( spdlog::source_loc{FileName(sl.file_name()).c_str(),(int)sl.line(),sl.function_name()}, (spdlog::level::level_enum)_level, message );
 		if( _level>=Logging::ServerLevel() )
-			LogServer( Logging::Messages::ServerMessage{Logging::Message{_level, message, _sl}} );
+			LogServer( Logging::Messages::ServerMessage{Logging::Message{_level, message, sl}} );
 	}
 }

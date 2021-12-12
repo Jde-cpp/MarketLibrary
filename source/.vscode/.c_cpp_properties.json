@@ -6,20 +6,22 @@
 					 "${workspaceFolder}",
 					 "${env:REPO_DIR}/tws-api/source/cppclient/client",
 					 "${env:REPO_DIR}/spdlog/include",
-					 "${env:REPO_DIR}/json/include"
+					 "${env:REPO_DIR}/json/include",
+					 "${workspaceFolder}/../../Public"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
             "browse": { "path": ["${workspaceFolder}", "${env:REPO_DIR}/llvm-project/libcxx/include" ], "limitSymbolsToIncludedHeaders": true, "databaseFilename": "" },
 				"forcedInclude": ["pc.h"],
-            "compilerPath": "/usr/local/bin/clang-12",
+            "compilerPath": "/usr/local/bin/clang-13",
             "cppStandard": "c++20"
         },
         {
             "name": "Win32",
             "includePath": [
-                "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
-                "${workspaceFolder}"
+               "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
+               "${workspaceFolder}",
+					"${workspaceFolder}../../Public"
             ],
             "defines": [
                 "_DEBUG",

@@ -7,12 +7,12 @@
 #pragma warning( default : 4244 )
 namespace Jde::Markets
 {
-	#define Φ ΓM auto
+	#define Φ ΓM α
 	struct Contract;
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
 
-	constexpr std::array<sv,29> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF" };
+	constexpr std::array<sv,30> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF", "LSE" };
 	Φ ToString( Exchanges exchange )noexcept->sv;
 	Φ ToExchange( sv pszName )noexcept->Exchanges;
 	Φ PreviousTradingDay( Day day=0 )noexcept->Day;

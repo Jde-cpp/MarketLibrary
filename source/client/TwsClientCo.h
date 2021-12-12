@@ -65,6 +65,7 @@ namespace Jde::Markets
 		Ω NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwaitable;
 		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwaitable{underlyingConId, smart}; }
 		Ω InstancePtr()noexcept->sp<Tws>{ return dynamic_pointer_cast<Tws>( TwsClient::InstancePtr() ); }
+		Ω RequestAllOpenOrders()noexcept{ return AllOpenOrdersAwait{}; }
 	private:
 		friend ITwsAwaitable;
 	};

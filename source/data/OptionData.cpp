@@ -38,7 +38,7 @@ namespace Jde::Markets
 		UnderlyingId{ underlyingId }
 	{}
 
-	bool Option::operator<( const Option& op2 )const noexcept
+	α Option::operator<( const Option& op2 )const noexcept->bool
 	{
 		bool less =
 			  UnderlyingId!=op2.UnderlyingId ? UnderlyingId<op2.UnderlyingId
@@ -48,7 +48,7 @@ namespace Jde::Markets
 		return less;
 	}
 
-	OptionSetPtr OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )noexcept(false)
+	α OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )noexcept(false)->OptionSetPtr
 	{
 		auto pExisting = Load( pContract->Id );
 		for( var& detail : details )
@@ -60,13 +60,13 @@ namespace Jde::Markets
 		return pExisting;
 	}
 
-	void OptionData::Insert( const Option& value )noexcept(false)
+	α OptionData::Insert( const Option& value )noexcept(false)->void
 	{
 		var sql = "insert into sec_option_contracts( id, expiration_date, flags, strike, under_contract_id ) values( ?, ?, ?, ?, ? )";
-		DB::DataSource()->Execute( sql, {(uint)value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, (uint)value.UnderlyingId} );
+		DB::DataSource().Execute( sql, {(uint)value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, (uint)value.UnderlyingId} );
 	}
 
-	OptionSetPtr OptionData::Load( ContractPK underlyingId, Day earliestDay )noexcept(false)
+	α OptionData::Load( ContractPK underlyingId, Day earliestDay )noexcept(false)->OptionSetPtr
 	{
 		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=? and expiration_date>=?";
 		auto pResults = make_shared<flat_set<OptionPtr,SPCompare<const Option>>>();
@@ -84,11 +84,11 @@ namespace Jde::Markets
 
 			pResults->emplace( pOption );
 		};
-		DB::DataSource()->Select( sql, result, {(uint)underlyingId, (uint)earliestDay} );
+		DB::DataSource().Select( sql, result, {(uint)underlyingId, (uint)earliestDay} );
 		return pResults;
 	}
 
-	sp<Proto::UnderlyingOIValues> Load( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept(false)
+	α Load( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept(false)->sp<Proto::UnderlyingOIValues>
 	{
 		var file = OptionData::OptionFile( contract, year, month, day );
 		sp<Proto::UnderlyingOIValues> pUnderlying;

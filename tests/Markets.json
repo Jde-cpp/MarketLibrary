@@ -1,12 +1,12 @@
 {
 	"testing":
 	{
-		"xtests":  "HistoricalDataCacheTest.CombineMinuteBars",
-		"tests":  "*"
+		"tests":  "Permissions.*",
+		"xtests":  "*"
 	},
 	"logging":
 	{
-		"tags": [ "_sql", "_tws-requests", "_tws-hist", "_mrk-hist" ],
+		"tags": [ "threads", "_sql", "_tws-requests", "_tws-hist", "_mrk-hist" ],
 		"console":{},
 		"file":{ "path": ".." },
 		"memory": true,
@@ -25,7 +25,7 @@
 	{
 		"_barPath": ""
 	},
-	"workers": 
+	"workers":
 	{
 		"drive":{ "threads":  1 }
 	},

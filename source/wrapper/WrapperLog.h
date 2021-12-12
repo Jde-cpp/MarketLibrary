@@ -22,7 +22,7 @@ namespace Jde::Markets
 	struct ΓM WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
-		void tickPrice( TickerId tickerId, TickType field, double price, const TickAttrib& attrib )noexcept override;
+		void tickPrice( TickerId tickerId, TickType field, double price, const ::TickAttrib& attrib )noexcept override;
 		void tickSize( TickerId tickerId, TickType field, ::Decimal size )noexcept override;
 		void tickGeneric( TickerId tickerId, TickType tickType, double value )noexcept override;
 		void tickString( TickerId tickerId, TickType tickType, str value )noexcept override;

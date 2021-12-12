@@ -13,7 +13,7 @@ add_library( Jde.Markets SHARED TwsProcessor.cpp OrderManager.cpp TickManager.cp
 	client/TwsClient.cpp client/TwsClientCo.cpp client/TwsClientSync.cpp client/TwsClientCache.cpp
 	client/awaitables/TwsAwaitable.cpp client/awaitables/HistoricalDataAwaitable.cpp
 	wrapper/WrapperLog.cpp wrapper/WrapperCo.cpp wrapper/WrapperSync.cpp wrapper/WrapperCache.cpp
-	data/BarData.cpp data/HistoricalDataCache.cpp data/OptionData.cpp data/StatAwait.cpp
+	data/Accounts.cpp data/BarData.cpp data/HistoricalDataCache.cpp data/OptionData.cpp data/StatAwait.cpp
 	types/Bar.cpp types/Contract.cpp types/Currencies.cpp types/Exchanges.cpp types/IBException.cpp types/MyOrder.cpp types/Tick.cpp types/TwsConnectionSettings.cpp
 	types/proto/ib.pb.cc types/proto/bar.pb.cc types/proto/edgar.pb.cc types/proto/OptionOI.pb.cc types/proto/requests.pb.cc types/proto/results.pb.cc types/proto/watch.pb.cc )
 #############################################################

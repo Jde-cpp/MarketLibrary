@@ -61,7 +61,7 @@ namespace Jde::Markets
 	}
 	α HistoryAwait::AsyncFetch( HCoroutine h )noexcept->Task2
 	{
-		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth )
+		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize!=EBarSize::Month )
 		{
 			try
 			{
@@ -71,7 +71,7 @@ namespace Jde::Markets
 					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).Get<map<Day,VectorPtr<CandleStick>>>();
 					if( !pBars->size() )
 						continue;
-					LOG( "HistoryAwait::AsyncFetch have files {}-{}", DateDisplay(start), DateDisplay(end)  );
+					LOG( "({})HistoryAwait::AsyncFetch have files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );
 					for( var& [day,pSticks] : *pBars )
 					{
 						CONTINUE_IF( _cache.find(day)->second, "Day {} has value, but loaded again.", day );
