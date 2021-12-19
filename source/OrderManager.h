@@ -48,17 +48,16 @@ namespace Jde::Markets::OrderManager
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
-	struct ΓM Awaitable final : CancelAwaitable<Task2>, CombinedParams
+	struct ΓM Awaitable final : CancelAwaitable, CombinedParams
 	{
-		typedef CancelAwaitable<Task2> base;
-		typedef Task2::promise_type PromiseType;
+		typedef CancelAwaitable base;
 		Awaitable( const CombinedParams& params, Handle& h )noexcept;
 		~Awaitable()=default;
 		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
-		α await_suspend( coroutine_handle<Task2::promise_type> h )noexcept->void;
+		α await_suspend( HCoroutine h )noexcept->void;
 		Task2::TResult await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().GetResult() : Task2::TResult{}; }
 	private:
-		PromiseType* _pPromise{nullptr};
+		Task2::promise_type* _pPromise{nullptr};
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
 	};
 

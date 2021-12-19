@@ -24,7 +24,7 @@ namespace Jde::Markets
 	{
 		using base=IAwaitable;
 		α await_ready()noexcept->bool override{ return !_pTws; }
-		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); _pPromise = &h.promise(); };
+		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); };
 		α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
 	};
 

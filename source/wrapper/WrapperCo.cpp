@@ -1,14 +1,16 @@
-#include "WrapperCo.h"
+﻿#include "WrapperCo.h"
+#include <jde/markets/types/Contract.h>
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/collections/Collections.h"
+#include "../client/awaitables/HistoricalDataAwaitable.h"
+#include "../data/Accounts.h"
 #include "../types/Exchanges.h"
 #include "../types/IBException.h"
-
 #define var const auto
 
 namespace Jde::Markets
 {
-	void Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, sp<void> pResult )
+	α Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, sp<void> pResult )->void
 	{
 		auto p = handles.MoveOut( reqId ); RETURN_IF( !p, "({})Could not get co-handle", reqId );
 		p->promise().get_return_object().SetResult( pResult );
@@ -41,14 +43,14 @@ namespace Jde::Markets
 		}
 		return handled;
 	}
-	void WrapperCo::error( int id, int errorCode, str errorMsg )noexcept
+	α WrapperCo::error( int id, int errorCode, str errorMsg )noexcept->void
 	{
 		error2( id, errorCode, errorMsg );
 	}
 
 	bool error2( int id, int errorCode, str errorMsg )noexcept;
 
-	void WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )noexcept
+	α WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )noexcept->void
 	{
 		WrapperLog::historicalNews( reqId, time, providerCode, articleId, headline );
 		auto& existing = Collections::InsertShared( _news, reqId );
@@ -60,7 +62,7 @@ namespace Jde::Markets
 		pNew->set_article_id( articleId );
 		pNew->set_headline( headline );
 	}
-	void WrapperCo::historicalNewsEnd( int reqId, bool hasMore )noexcept
+	α WrapperCo::historicalNewsEnd( int reqId, bool hasMore )noexcept->void
 	{
 		WrapperLog::historicalNewsEnd( reqId, hasMore );
 		sp<Proto::Results::NewsCollection> pCollection;
@@ -81,12 +83,12 @@ namespace Jde::Markets
 		}
 	}
 
-	void WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept
+	α WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
 	{
 		WrapperLog::contractDetails( reqId, contractDetails );
-		_contracts.try_emplace( reqId ).first->second.push_back( make_shared<Contract>(contractDetails) );
+		_contracts.try_emplace( reqId ).first->second.push_back( ms<Contract>(contractDetails) );
 	}
-	void WrapperCo::contractDetailsEnd( int reqId )noexcept
+	α WrapperCo::contractDetailsEnd( int reqId )noexcept->void
 	{
 		WrapperLog::contractDetailsEnd( reqId );
 
@@ -109,8 +111,14 @@ namespace Jde::Markets
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 	}
-
-	void WrapperCo::newsProviders( const std::vector<NewsProvider>& providers )noexcept
+	α WrapperCo::managedAccounts( str x )noexcept->void
+	{
+		WrapperLog::managedAccounts( x );
+		Accounts::Set( Str::Split(x) );
+		if( _accountHandle )
+			Coroutine::CoroutinePool::Resume( move(_accountHandle) );
+	}
+	α WrapperCo::newsProviders( const std::vector<NewsProvider>& providers )noexcept->void
 	{
 		auto p = make_shared<map<string,string>>();
 		for_each( providers.begin(), providers.end(), [p](auto x){p->emplace(x.providerCode, x.providerName);} );
@@ -121,7 +129,7 @@ namespace Jde::Markets
 		} );
 	}
 
-	void WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept
+	α WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept->void
 	{
 		auto p = make_shared<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
@@ -166,14 +174,14 @@ namespace Jde::Markets
 		return y;
 	}
 
-	void WrapperCo::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<string>& expirations, const std::set<double>& strikes )noexcept
+	α WrapperCo::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<string>& expirations, const std::set<double>& strikes )noexcept->void
 	{
 		WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		if( CIString{exchange}=="SMART"sv )
 			*Collections::InsertUnique( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
 
-	void WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )noexcept
+	α WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )noexcept->void
 	{
 		WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
 		var pParams = _optionParams.find( reqId );

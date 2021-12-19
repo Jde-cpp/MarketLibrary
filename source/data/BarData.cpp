@@ -10,6 +10,7 @@
 #include "../../../XZ/source/XZ.h"
 #include "../client/TwsClientSync.h"
 #include "../types/Bar.h"
+#include "../types/Exchanges.h"
 #pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )

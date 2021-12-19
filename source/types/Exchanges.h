@@ -35,7 +35,7 @@ namespace Jde::Markets
 	α IsRth( const Contract& contract, TimePoint time )noexcept->bool;
 	α RthBegin( const Contract& contract, Day day )noexcept->TimePoint;
 	α RthEnd( const Contract& contract, Day day )noexcept->TimePoint;
-	α ExtendedBegin( const Contract& contract, Day day )noexcept->TimePoint;
+	Φ ExtendedBegin( const Contract& contract, Day day )noexcept->TimePoint;
 	α ExtendedEnd( const Contract& contract, Day day )noexcept->TimePoint;
 
 	Φ IsHoliday( const TimePoint& date )noexcept->bool;

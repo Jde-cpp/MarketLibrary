@@ -1,9 +1,9 @@
 ﻿#include "TickManager.h"
-#include "client/TwsClientSync.h"
+#include <jde/markets/types/proto/requests.pb.h>
+#include <jde/markets/types/proto/results.pb.h>
 #include "../../Framework/source/collections/Vector.h"
-#include <jde/Str.h>
 #include "types/IBException.h"
-
+#include "client/TwsClient.h"
 
 #define WorkerPtr if( auto p=TickWorker::Instance(); p ) p
 #define TwsClientPtr if( _pTwsClient ) _pTwsClient
@@ -11,6 +11,7 @@
 
 namespace Jde::Markets
 {
+	using Proto::Results::ETickType;
 	static const LogTag& _logLevel{ Logging::TagLevel("tick") };
 	α TickManager::Ratios( const ContractPK contractId )noexcept->std::future<Tick>
 	{
@@ -50,7 +51,7 @@ namespace Jde::Markets
 
 	α TickManager::Awaitable::await_suspend( coroutine_handle<Task2::promise_type> h )noexcept->void
 	{
-		base::await_suspend( h );
+		AwaitSuspend();
 		_pPromise = &h.promise();
 		if( auto p=TickWorker::Instance(); p )
 			p->Subscribe( TickWorker::SubscriptionInfo{ {h, _hClient}, *this} );

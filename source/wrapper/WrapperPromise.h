@@ -13,10 +13,10 @@ namespace Jde::Markets
 
 		bool Contains( ReqId id )const noexcept{ shared_lock l{_promiseMutex}; return _promises.find(id)!=_promises.end(); }
 		template<typename E>
-		bool Error( ReqId id, const E& e )noexcept;
+		bool Error( ReqId id, E&& e )noexcept;
 		Future Promise( ReqId id, Duration timeout )noexcept;
 		virtual void End( ReqId reqId )noexcept;
-//		uint Size()const noexcept{ shared_lock l{_promiseMutex}; return _promises.size(); }
+
 	protected:
 		flat_map<ReqId,TimePoint> _timeouts; mutable shared_mutex _timeoutMutex;
 		flat_map<ReqId,PromiseType> _promises; mutable shared_mutex _promiseMutex;
@@ -35,7 +35,7 @@ namespace Jde::Markets
 	{
 		typedef vector<T> Collection;
 		typedef WrapperPromise<Collection> Base;
-		bool Error( ReqId id, const IBException& e )noexcept;
+		bool Error( ReqId id, IBException&& e )noexcept;
 
 		void Push( ReqId id, const T& value )noexcept;
 		void End( ReqId id )noexcept;
@@ -61,7 +61,7 @@ namespace Jde::Markets
 	}
 
 	template<typename T>
-	bool WrapperData<T>::Error( ReqId reqId, const IBException& e )noexcept
+	bool WrapperData<T>::Error( ReqId reqId, IBException&& e )noexcept
 	{
 		{
 			lock_guard<std::mutex> l{ _dataMutex };
@@ -87,7 +87,6 @@ namespace Jde::Markets
 			std::unique_lock l{ _timeoutMutex };
 			for( auto p=_timeouts.begin(); p!=_timeouts.end() && !reqId; ++p )
 			{
-				//DBG( "timeout={} Clock::now()={}"sv, ToIsoString(timeout), ToIsoString(Clock::now()) );
 				if( Clock::now()>p->second )
 					reqId = p->first;
 			}
@@ -101,7 +100,7 @@ namespace Jde::Markets
 
 	template<typename T>
 	template<typename E>
-	bool WrapperPromise<T>::Error( ReqId reqId, const E& e )noexcept
+	bool WrapperPromise<T>::Error( ReqId reqId, E&& e )noexcept
 	{
 		unique_lock l{ _promiseMutex };
 		var pValue = _promises.find( reqId );
@@ -110,7 +109,7 @@ namespace Jde::Markets
 		{
 			e.Log();
 			auto& promise = pValue->second;
-			promise.set_exception( std::make_exception_ptr(e) );
+			promise.set_exception( e.Ptr() );
 			DBG( "({}) erase exception"sv, reqId );
 			_promises.erase( pValue );
 		}

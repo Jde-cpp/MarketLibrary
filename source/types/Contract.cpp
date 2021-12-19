@@ -194,19 +194,6 @@ namespace Jde::Markets
 			: Symbol;
 	}
 
-	std::ostream& Contract::to_stream( std::ostream& os, bool includePrimaryExchange )const noexcept
-	{
-		os << Id << Symbol << SecType << Expiration << Strike << ToString(Right) << Multiplier << Exchange;
-		if( includePrimaryExchange )
-			os  << ToString(PrimaryExchange);
-		os << Currency << LocalSymbol << TradingClass;
-		return os;
-	}
-	ostream& operator<<( ostream& os, const Contract& contract )noexcept
-	{
-		return contract.to_stream( os );
-	}
-
 	DeltaNeutralContract::DeltaNeutralContract( const Proto::DeltaNeutralContract& proto )noexcept:
 		Id{ proto.id() },
 		Delta{ proto.delta() },
@@ -244,17 +231,6 @@ namespace Jde::Markets
 		pProto->set_designated_location( DesignatedLocation );
 		pProto->set_exempt_code( ExemptCode );
 	}
-/*	std::ostream& ComboLeg::to_stream( std::ostream& os, bool isOrder )const noexcept
-	{
-		os << ConId << Ratio << Action << Exchange;
-		if( isOrder )
-			os << OpenClose << ShortSaleSlot << DesignatedLocation << ExemptCode;
-		return os;
-	}*/
-/*	std::ostream& operator<<( std::ostream& os, const ComboLeg& comboLeg )noexcept
-	{
-		return comboLeg.to_stream( os, false );
-	}*/
 	namespace Contracts
 	{
 		const Contract Spy{ 756733, Proto::Currencies::UsDollar, "SPY", 0, "SPDR S&P 500 ETF TRUST", Exchanges::Arca, "SPY", "SPY", DateTime(2004,1,23,14,30).GetTimePoint() };
@@ -390,7 +366,6 @@ namespace Jde::Markets
 
 		proto.set_ev_rule( details.evRule );
 		proto.set_ev_multiplier( details.evMultiplier );
-		//proto.set_md_size_multiplier( details.mdSizeMultiplier );
 		proto.set_agg_group( details.aggGroup );
 		proto.set_under_symbol( details.underSymbol );
 		proto.set_under_sec_type( details.underSecType );

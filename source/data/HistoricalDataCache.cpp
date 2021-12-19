@@ -6,6 +6,7 @@
 #include "../data/BarData.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/math/MathUtilities.h"
+#include "../types/Exchanges.h"
 #pragma warning( disable : 4244 )
 #include "../types/proto/bar.pb.h"
 #pragma warning( default : 4244 )

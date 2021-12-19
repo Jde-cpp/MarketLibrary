@@ -1,33 +1,17 @@
 ﻿#pragma once
-//#include <experimental/coroutine>
-#include <boost/container/flat_set.hpp>
-#include <boost/container/flat_map.hpp>
-
-#include "../../Framework/source/threading/Worker.h"
-#include "../../Framework/source/coroutine/Awaitable.h"
-#include "../../Framework/source/coroutine/Coroutine.h"
-#include <jde/coroutine/Task.h>
-#include "../../Framework/source/coroutine/CoWorker.h"
-#include "../../Framework/source/collections/Map.h"
-#include "../../Framework/source/collections/UnorderedSet.h"
-#include "../../Framework/source/collections/UnorderedMapValue.h"
 #include <jde/markets/Exports.h>
-#pragma warning( disable : 4244 )
-#include <jde/markets/types/proto/requests.pb.h>
-#include <jde/markets/types/proto/results.pb.h>
-#pragma warning( default : 4244 )
 #include <jde/markets/types/Tick.h>
+#include "../../Framework/source/collections/Map.h"
+#include "../../Framework/source/coroutine/Awaitable.h"
+#include "../../Framework/source/coroutine/CoWorker.h"
 
-#define 🚪 ΓM auto
+
+#define Φ ΓM auto
 namespace Jde::Markets
 {
-	using namespace Coroutine;
 	struct TwsClient; class EventManagerTests; class OptionTests;
 
-	using boost::container::flat_map;
-	using boost::container::flat_set;
 	using boost::container::flat_multimap;
-	using Proto::Requests::ETickList; using Proto::Results::ETickType;
 	struct ΓM TickManager final
 	{
 		struct TickParams /*~final*/
@@ -36,9 +20,9 @@ namespace Jde::Markets
 			Markets::Tick Tick;
 		};
 
-		struct ΓM Awaitable final : CancelAwaitable<Task2>, TickParams
+		struct ΓM Awaitable final : CancelAwaitable, TickParams
 		{
-			using base=CancelAwaitable<Task2>;
+			using base=CancelAwaitable;
 			Awaitable( const TickParams& params, Handle& h )noexcept;
 			α await_ready()noexcept->bool override;
 			α await_suspend( HCoroutine h )noexcept->void override;
@@ -69,12 +53,12 @@ namespace Jde::Markets
 			α Push( TickerId id, ETickType type, double v )noexcept->void;
 			α Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept->void;
 			α Push( TickerId id, time_t timeStamp, const std::string& providerCode, const std::string& articleId, const std::string& headline, const std::string& extraData )noexcept->void;
-			🚪 PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept->void;
+			Φ PushPrice( TickerId id, ETickType type, double v/*, const TickAttrib& attribs*/ )noexcept->void;
 			α Push( TickerId id, ETickType type, long long v )noexcept->void;
 			α Push( TickerId id, ETickType type, const std::string& v )noexcept->void;
 			α HandleError( int id, int errorCode, const std::string& errorString )noexcept->bool;
 		private:
-			🚪 Process()noexcept->void override;
+			Φ Process()noexcept->void override;
 			α Cancel( Handle h )noexcept->void;
 			α CancelProto( uint hClient, ContractPK contractId, unique_lock<mutex>* pLock=nullptr )noexcept->void;
 			α Subscribe( const SubscriptionInfo& params )noexcept->void;
@@ -144,4 +128,4 @@ namespace Jde::Markets
 		_cv.notify_one();
 	}
 }
-#undef 🚪
+#undef Φ

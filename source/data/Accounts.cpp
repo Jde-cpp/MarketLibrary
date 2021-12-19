@@ -1,14 +1,15 @@
-#include "Accounts.h"
+﻿#include "Accounts.h"
 #include "../../../Framework/source/db/Database.h"
-#include "../../../Framework/source/db/GraphQL.h"
 #include "../../../Framework/source/db/Syntax.h"
+#include "../../../Framework/source/db/GraphQL.h"
+#include "../wrapper/WrapperCo.h"
+#include "../client/TwsClientCo.h"
 
 #define var const auto
 namespace Jde::Markets
 {
 	AccountAuthorizer _authorizer;
 	flat_map<uint,Account> _accounts; shared_mutex _accountMutex; flat_set<uint> _deletedAccounts; flat_map<UserPK,UM::EAccess> _minimumAccess;
-	//up<AccountAuthorizer> AccountAuthorizer::_pInstance;
 	α AccountAccess( UM::EAccess requested, UserPK userId, AccountPK accountId, bool allowDeleted=true )noexcept(false)->bool;
 
 	struct GroupAuthorizer final: UM::IAuthorize
@@ -17,6 +18,23 @@ namespace Jde::Markets
 
 		α CanRead( uint pk, UserPK userId )noexcept->bool override{ return true; }
 	};
+	α AccountsAwait::await_ready()noexcept->bool{ return base::await_ready() || !_accounts.empty() || !WrapperPtr()->_accountHandle; }
+	α AccountsAwait::await_suspend( HCoroutine h )noexcept->void//will never get called, accounts gets setup initially.
+	{
+		base::await_suspend( h );
+		WrapperPtr()->_accountHandle = h;
+		_pTws->reqManagedAccts();
+	}
+	α AccountsAwait::await_resume()noexcept->TaskResult
+	{
+		while( WrapperPtr()->_accountHandle )
+			std::this_thread::yield();
+		sl l{ _accountMutex };
+		auto accounts = make_shared<vector<Account>>(); accounts->reserve( _accounts.size() );
+		for( var& p : _accounts )
+			accounts->push_back( p.second );
+		return TaskResult{ accounts };
+	}
 
 #define db DB::DataSource()
 	α LoadAccess()noexcept->void
@@ -71,11 +89,11 @@ namespace Jde::Markets
 		LoadMinimumAccess();
 	}
 
-	α AccountAuthorizer::CanRead( UserPK userId, uint pk )noexcept->bool
+	α AccountAuthorizer::CanRead( uint pk, UserPK userId )noexcept->bool
 	{
 		try
 		{
-			return AccountAccess( UM::EAccess::Read, userId, pk );
+			return AccountAccess( UM::EAccess::Read, userId, (AccountPK)pk );
 		}
 		catch( IException& )
 		{
@@ -104,26 +122,42 @@ namespace Jde::Markets
 		return haveAccess;
 	}
 
+	α Accounts::Set( const vector<string>& accounts )noexcept->void
+	{
+		for( auto&& ibName : accounts )
+		{
+			if( auto p = Accounts::Find( ibName ); !p )
+				Accounts::TryInsert( ibName );
+		}
+	}
+
 	α Accounts::Find( str ibName )noexcept->optional<Account>
 	{
 		ul l{ _accountMutex };
 		auto p = std::find_if( _accounts.begin(), _accounts.end(), [&ibName](var& x)->bool{ return x.second.IbName==ibName; } );
 		return p==_accounts.end() ? nullopt : optional{ p->second };
 	}
-	α Accounts::Insert( string ibName )noexcept(false)->Account
+	α Accounts::TryInsert( string ibName )noexcept->optional<Account>
 	{
-		DB::DataSource().ExecuteProc( "ib_account_insert( ?, 0, ?, ? )", {ibName,ibName,ibName} );
-		INFO( "inserted account '{}'."sv, ibName );
-		var id = *Future<uint>(DB::IdFromName("ib_accounts", ibName) ).get();
-		const Account y{ id, move(ibName) };
-		ul l{ _accountMutex };
-		_accounts.emplace( id, y );
+		optional<Account> y;
+		try
+		{
+			DB::DataSource().ExecuteProc( "ib_account_insert( ?, 0, ?, ? )", {ibName,ibName,ibName} );
+			INFO( "inserted account '{}'."sv, ibName );
+			var id = *Future<uint>(DB::IdFromName("ib_accounts", ibName) ).get();
+			y = Account{ id, move(ibName) };
+			ul l{ _accountMutex };
+			_accounts.emplace( id, y.value() );
+		}
+		catch( const IException& )
+		{}
 		return y;
 	}
 
 	α Accounts::CanRead( str ibName, UserPK userPK )noexcept->bool
 	{
-		var pk = Find( ibName ).value_or( Account{} ).Id;
-		return pk && _authorizer.CanRead( userPK, pk );
+		return true;//TODO Fix this.
+		//var pk = Find( ibName ).value_or( Account{} ).Id;
+		//return pk && _authorizer.CanRead( userPK, pk );
 	}
 }

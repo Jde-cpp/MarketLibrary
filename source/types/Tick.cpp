@@ -112,7 +112,7 @@ namespace Jde::Markets
 		else if( type==ETickType::AskSize )  AskSize = value;
 		else if( type==ETickType::LastSize )  LastSize = value;
 		else if( type==ETickType::Volume )  Volume = value;
-		else if( type==ETickType::AverageVolume ) AverageVolume = value;
+		else if( type==ETickType::AverageVolume_ ) AverageVolume = value;
 		else if( type==ETickType::ShortableShares ) ShortableShares = value;
 		else set = false;
 		ASSERT( set );
@@ -211,7 +211,7 @@ namespace Jde::Markets
 		case ETickType::AskExchange: stng( AskExchange ); break;
 		case ETickType::LastExchange: stng( LastExchange ); break;
 
-		case ETickType::AverageVolume: size( AverageVolume ); break;
+		case ETickType::AverageVolume_: size( AverageVolume ); break;
 		case ETickType::OPEN_INTEREST: size( (int)OPEN_INTEREST ); break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: size( (int)OPTION_CALL_OPEN_INTEREST ); break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: size( (int)OPTION_PUT_OPEN_INTEREST ); break;
@@ -332,7 +332,7 @@ namespace Jde::Markets
 		case ETickType::BidSize: result = BidSize; break;
 		case ETickType::AskSize: result = AskSize; break;
 		case ETickType::Volume: result = Volume; break;
-		case ETickType::AverageVolume: result = AverageVolume; break;
+		case ETickType::AverageVolume_: result = AverageVolume; break;
 		case ETickType::OPEN_INTEREST: result = OPEN_INTEREST; break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: result = OPTION_CALL_OPEN_INTEREST; break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: result = OPTION_PUT_OPEN_INTEREST; break;

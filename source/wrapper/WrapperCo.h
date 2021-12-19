@@ -1,12 +1,11 @@
-﻿#include "./WrapperLog.h"
-#include "../client/TwsClientCo.h"
-#include <jde/markets/types/Contract.h>
+﻿#include <jde/markets/Exports.h>
 #include "../../../Framework/source/coroutine/Coroutine.h"
+#include "./WrapperLog.h"
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
 
 namespace Jde::Markets
 {
-	struct TwsClientCo;
+	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwaitable; struct ContractAwaitable; struct NewsProviderAwaitable; struct NewsArticleAwaitable; struct SecDefOptParamAwaitable; struct AccountsAwait;
 	using namespace Jde::Coroutine;
 	struct ΓM WrapperCo : WrapperLog
 	{
@@ -22,21 +21,24 @@ namespace Jde::Markets
 
 		α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
 		α contractDetailsEnd( int reqId )noexcept->void override;
+		α managedAccounts( str accountsList )noexcept->void override;
+
 		α newsProviders( const vector<NewsProvider>& providers )noexcept->void override;
 		α newsArticle( int reqId, int articleType, str articleText )noexcept->void override;
 
 		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void override;
 		α securityDefinitionOptionalParameterEnd( int reqId )noexcept->void override;
 	protected:
-		flat_map<int,vector<sp<Contract>>> _contracts; UnorderedMapValue<int,ContractAwaitable::THandle> _contractSingleHandles;
+		flat_map<int,vector<sp<Markets::Contract>>> _contracts; UnorderedMapValue<int,HCoroutine> _contractSingleHandles;
 	private:
-		flat_map<int,sp<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HistoricalNewsAwaitable::THandle> _newsHandles;
-		UnorderedSet<NewsProviderAwaitable::THandle> _newsProviderHandles;
-		UnorderedMapValue<int,NewsArticleAwaitable::THandle> _newsArticleHandles;
+		flat_map<int,sp<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HCoroutine> _newsHandles;
+		UnorderedSet<HCoroutine> _newsProviderHandles;
+		UnorderedMapValue<int,HCoroutine> _newsArticleHandles;
 		flat_map<int,up<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<int,HCoroutine> _secDefOptParamHandles;
 		UnorderedMapValue<int,HistoryAwait*> _historical;
 		flat_map<TickerId,vector<::Bar>> _historicalData;
+		HCoroutine _accountHandle;
 
-		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoryAwait; friend SecDefOptParamAwaitable;
+		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoryAwait; friend SecDefOptParamAwaitable; friend AccountsAwait;//todo Awaitable to Await
 	};
 }

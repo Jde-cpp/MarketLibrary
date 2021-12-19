@@ -1,5 +1,7 @@
 ﻿#include "HistoricalDataAwaitable.h"
+#include <jde/markets/types/Contract.h>
 #include "../../../../Framework/source/Cache.h"
+#include "../TwsClientCo.h"
 #include "../../data/HistoricalDataCache.h"
 #include "../../data/BarData.h"
 #include "../../types/Exchanges.h"

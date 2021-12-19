@@ -9,9 +9,9 @@ namespace Jde::Markets
 	Tws::Tws( const TwsConnectionSettings& settings, sp<WrapperCo> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClient( settings, wrapper, pReaderSignal, clientId )
 	{}
-	sp<WrapperCo> Tws::WrapperPtr()noexcept{ return dynamic_pointer_cast<WrapperCo>( _pWrapper ); }
+	α Tws::WrapperPtr()noexcept->sp<WrapperCo>{ return dynamic_pointer_cast<WrapperCo>( _pWrapper ); }
 	/*****************************************************************************************************/
-	void HistoricalNewsAwaitable::await_suspend( typename base::THandle h )noexcept
+	α HistoricalNewsAwaitable::await_suspend( typename HCoroutine h )noexcept->void
 	{
 		ITwsAwaitableImpl::await_suspend( h );
 		var id = _pTws->RequestId();
@@ -20,17 +20,17 @@ namespace Jde::Markets
 	}
 	α Tws::HistoricalNews( ContractPK conId, const vector<string>& providerCodes, uint totalResults, TimePoint start, TimePoint end )noexcept->HistoricalNewsAwaitable{ return HistoricalNewsAwaitable{ [=]( ibapi::OrderId id, sp<TwsClient> p )noexcept{p->reqHistoricalNews( id, conId, providerCodes, totalResults, start, end );} }; }
 	/*****************************************************************************************************/
-	bool ContractAwaitable::await_ready()noexcept{ return base::await_ready() || (_id && (bool)(_pCache = Cache::Get<Contract>(CacheId())) ); }
-	void ContractAwaitable::await_suspend( typename base::THandle h )noexcept
+	α ContractAwaitable::await_ready()noexcept->bool{ return base::await_ready() || (_id && (bool)(_pCache = Cache::Get<Contract>(CacheId())) ); }
+	α ContractAwaitable::await_suspend( HCoroutine h )noexcept->void
 	{
 		ITwsAwaitableImpl::await_suspend( h );
 		var id = _pTws->RequestId();
 		WrapperPtr()->_contractSingleHandles.MoveIn( id, move(h) );
 		_fnctn( id, _pTws );
 	}
-	α ContractAwaitable::await_resume()noexcept->typename ContractAwaitable::TResult
+	α ContractAwaitable::await_resume()noexcept->TaskResult
 	{
-		ContractAwaitable::TResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
+		TaskResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
 		if( _pPromise && result.HasValue() )
 		{
 			_pCache = result.Get<Contract>();
@@ -49,16 +49,16 @@ namespace Jde::Markets
 		p->reqContractDetails( id, *c );
 	}};}
 	/*****************************************************************************************************/
-	bool NewsProviderAwaitable::await_ready()noexcept{ return base::await_ready() || (bool)(_pCache = Cache::Get<map<string,string>>(CacheId()) ); }
-	void NewsProviderAwaitable::await_suspend( typename base::THandle h )noexcept
+	α NewsProviderAwaitable::await_ready()noexcept->bool{ return base::await_ready() || (bool)(_pCache = Cache::Get<map<string,string>>(CacheId()) ); }
+	α NewsProviderAwaitable::await_suspend( HCoroutine h )noexcept->void
 	{
 		ITwsAwaitableImpl::await_suspend( h );
 		WrapperPtr()->_newsProviderHandles.MoveIn( move(h) );
 		_fnctn( _pTws );
 	}
-	α NewsProviderAwaitable::await_resume()noexcept->typename NewsProviderAwaitable::TResult
+	α NewsProviderAwaitable::await_resume()noexcept->typename TaskResult
 	{
-		NewsProviderAwaitable::TResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
+		TaskResult result = _pPromise ? base::await_resume() : TaskResult{ _pCache };
 		if( _pPromise && result.HasValue() )
 			Cache::Set<map<string,string>>( CacheId(), _pCache = result.Get<map<string,string>>() );
 		return result;
@@ -69,7 +69,7 @@ namespace Jde::Markets
 	} 	};}
 	/*****************************************************************************************************/
 	#define ADD_REQUEST(x) ITwsAwaitableImpl::await_suspend( h );	var id = _pTws->RequestId(); WrapperPtr()->x.MoveIn( id, move(h) ); _fnctn( id, _pTws );
-	void NewsArticleAwaitable::await_suspend( typename base::THandle h )noexcept
+	α NewsArticleAwaitable::await_suspend( HCoroutine h )noexcept->void
 	{
 		ADD_REQUEST( _newsArticleHandles );
 	}

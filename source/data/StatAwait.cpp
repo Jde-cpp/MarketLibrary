@@ -21,8 +21,8 @@ namespace Jde::Markets::HistoricalDataCache
 		double fullDaysDouble;
 		var minutesInDay = DayLengthMinutes( ContractPtr->Exchange );
 		double partialDays = std::modf( Days, &fullDaysDouble );
-		FullDays = Math::URound<Day>( fullDaysDouble );
-		Minutes = Math::URound<uint16>( partialDays*minutesInDay );
+		FullDays = Round<Day>( fullDaysDouble );
+		Minutes = Round<uint16>( partialDays*minutesInDay );
 		if( Minutes==minutesInDay )
 		{
 			Minutes=0;
@@ -66,13 +66,12 @@ namespace Jde::Markets::HistoricalDataCache
 
 				vector<double> returns;
 				auto pEnd = bars.rbegin();
-				//typedef decltype(pEnd) RIterator;
 				var diff = FullDays<6 ? TradingDay{pEnd->first, ContractPtr->Exchange}-(FullDays==0 ? 0 : FullDays-1) : pEnd->first-( FullDays-1 );
 				auto pForward = bars.lower_bound( diff );
 				decltype(pEnd) pStart{ pForward==bars.end() ? pForward : std::next(pForward) };
 				for( ; pStart!=bars.rend() && pEnd!=bars.rend(); ++pStart, ++pEnd )
 				{
-					var index = Minutes==0 ? 0/*pStart->second.size()-1*/ : Minutes<=pStart->second.size() ? pStart->second.size()-Minutes : std::numeric_limits<uint>::max();
+					var index = Minutes==0 ? 0 : Minutes<=pStart->second.size() ? pStart->second.size()-Minutes : std::numeric_limits<uint>::max();
 					var pStartBar = pStart->second.size() && index!=std::numeric_limits<uint>::max() ? &pStart->second[index] : nullptr;
 					var pEndBar = pEnd->second.size() ? &pEnd->second.back() : nullptr;
 					if( pStartBar && pEndBar )

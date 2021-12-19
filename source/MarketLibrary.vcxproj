@@ -21,14 +21,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -132,6 +132,7 @@
     <ClCompile Include="client\TwsClientCache.cpp" />
     <ClCompile Include="client\TwsClientCo.cpp" />
     <ClCompile Include="client\TwsClientSync.cpp" />
+    <ClCompile Include="data\Accounts.cpp" />
     <ClCompile Include="data\BarData.cpp" />
     <ClCompile Include="data\HistoricalDataCache.cpp" />
     <ClCompile Include="data\OptionData.cpp" />
@@ -258,6 +259,11 @@
     <ClInclude Include="client\TwsClientCache.h" />
     <ClInclude Include="client\TwsClientCo.h" />
     <ClInclude Include="client\TwsClientSync.h" />
+    <ClInclude Include="data\Accounts.h" />
+    <ClInclude Include="data\BarData.h" />
+    <ClInclude Include="data\HistoricalDataCache.h" />
+    <ClInclude Include="data\OptionData.h" />
+    <ClInclude Include="data\StatAwait.h" />
     <ClInclude Include="Exports.h" />
     <ClInclude Include="TwsProcessor.h" />
     <ClInclude Include="types\Bar.h" />

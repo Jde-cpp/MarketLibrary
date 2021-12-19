@@ -6,20 +6,20 @@
 #pragma warning( default : 4244 )
 struct Bar;
 
-#define Γα ΓM α
+#define Φ ΓM α
 namespace Jde::Markets
 {
-	Γα ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept->time_t;
-	Γα ToIBDate( TimePoint time )noexcept->string;
+	Φ ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept->time_t;
+	Φ ToIBDate( TimePoint time )noexcept->string;
 	
 	using EBarSize=Proto::Requests::BarSize;
 	namespace BarSize
 	{
 		using Enum=Proto::Requests::BarSize;
 
-		Γα BarDuration( const BarSize::Enum barSize )noexcept->Duration;
-		Γα BarsPerDay( const BarSize::Enum barSize )noexcept->uint16;
-		Γα ToString( const BarSize::Enum barSize )noexcept->sv;
+		Φ BarDuration( const BarSize::Enum barSize )noexcept->Duration;
+		Φ BarsPerDay( const BarSize::Enum barSize )noexcept->uint16;
+		Φ ToString( const BarSize::Enum barSize )noexcept->sv;
 	};
 
 	namespace Proto{ class MinuteBar; }
@@ -41,9 +41,9 @@ namespace Jde::Markets
 	namespace TwsDisplay
 	{
 		using Enum=Proto::Requests::Display;
-		static constexpr array<sv,9> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE"};
-		Γα ToString( const TwsDisplay::Enum display )noexcept->string;
-		Γα FromString( sv stringValue )noexcept(false)->TwsDisplay::Enum;
+		static constexpr array<sv,10> StringValues = {"TRADES", "MIDPOINT", "BID", "ASK", "BID_ASK", "HISTORICAL_VOLATILITY", "OPTION_IMPLIED_VOLATILITY", "FEE_RATE", "REBATE_RATE", "ADJUSTED_LAST"};
+		Φ ToString( const TwsDisplay::Enum display )noexcept->string;
+		Φ FromString( sv stringValue )noexcept(false)->TwsDisplay::Enum;
 	};
 }
-#undef Γα
+#undef Φ

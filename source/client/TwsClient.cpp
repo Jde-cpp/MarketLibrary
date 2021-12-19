@@ -1,4 +1,4 @@
-#include "TwsClient.h"
+﻿#include "TwsClient.h"
 #include "../TwsProcessor.h"
 #include "../wrapper/WrapperLog.h"
 #include "../types/Bar.h"

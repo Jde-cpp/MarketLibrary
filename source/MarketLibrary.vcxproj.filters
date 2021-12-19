@@ -42,6 +42,9 @@
     <Filter Include="Source Files\client\awaitables">
       <UniqueIdentifier>{34fb6b44-bbe0-47e3-bb4d-49e09f616080}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\data">
+      <UniqueIdentifier>{32c76d62-5b54-4b22-a49d-65f7ea7829c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exports.h">
@@ -130,6 +133,21 @@
     </ClInclude>
     <ClInclude Include="..\..\Public\jde\markets\types\proto\ib.pb.h">
       <Filter>Header Files\types\proto</Filter>
+    </ClInclude>
+    <ClInclude Include="data\Accounts.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\BarData.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\HistoricalDataCache.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\OptionData.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\StatAwait.h">
+      <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -233,6 +251,9 @@
       <Filter>Source Files\client\awaitables</Filter>
     </ClCompile>
     <ClCompile Include="data\StatAwait.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\Accounts.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
   </ItemGroup>

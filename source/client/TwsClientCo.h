@@ -5,6 +5,7 @@
 #include "../../../Framework/source/coroutine/Awaitable.h"
 #include "awaitables/TwsAwaitable.h"
 #include "awaitables/HistoricalDataAwaitable.h"
+#include "../data/Accounts.h"
 #include "../types/Bar.h"
 #include "TwsClient.h"
 
@@ -13,8 +14,7 @@ namespace Jde::Markets
 	struct ΓM HistoricalNewsAwaitable final : ITwsAwaitableImpl//<sp<Proto::Results::HistoricalNewsCollection>>
 	{
 		HistoricalNewsAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
-		//bool await_ready()noexcept override;TODO cache results...
-		α await_suspend( typename base::THandle h )noexcept->void override;
+		α await_suspend( HCoroutine h )noexcept->void override;
 		private:
 			function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
@@ -23,8 +23,8 @@ namespace Jde::Markets
 		using base = ITwsAwaitableImpl;
 		ContractAwaitable( ContractPK id, function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f},_id{id}{}
 		bool await_ready()noexcept override;
-		α await_suspend( typename base::THandle h )noexcept->void override;
-		typename base::TResult await_resume()noexcept override;
+		α await_suspend( HCoroutine h )noexcept->void override;
+		typename TaskResult await_resume()noexcept override;
 	private:
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 		string CacheId()noexcept{ return format("ContractDetails.{}", _id); }
@@ -36,7 +36,7 @@ namespace Jde::Markets
 		using base = ITwsAwaitableImpl;
 		NewsProviderAwaitable( function<void(sp<TwsClient>)> f )noexcept:_fnctn{f}{}
 		bool await_ready()noexcept override;
-		α await_suspend( typename base::THandle h )noexcept->void override;
+		α await_suspend( HCoroutine h )noexcept->void override;
 		TaskResult await_resume()noexcept override;
 	private:
 		string CacheId()noexcept{ return "NewsProviders"; }
@@ -46,7 +46,7 @@ namespace Jde::Markets
 	struct ΓM NewsArticleAwaitable final : ITwsAwaitableImpl
 	{
 		NewsArticleAwaitable( function<void(ibapi::OrderId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
-		α await_suspend( typename base::THandle h )noexcept->void override;
+		α await_suspend( HCoroutine h )noexcept->void override;
 	private:
 		function<void(ibapi::OrderId, sp<TwsClient>)> _fnctn;
 	};
@@ -66,6 +66,7 @@ namespace Jde::Markets
 		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwaitable{underlyingConId, smart}; }
 		Ω InstancePtr()noexcept->sp<Tws>{ return dynamic_pointer_cast<Tws>( TwsClient::InstancePtr() ); }
 		Ω RequestAllOpenOrders()noexcept{ return AllOpenOrdersAwait{}; }
+		Ω ReqManagedAccts()noexcept{ return AccountsAwait{}; }
 	private:
 		friend ITwsAwaitable;
 	};

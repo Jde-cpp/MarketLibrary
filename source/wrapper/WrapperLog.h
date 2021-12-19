@@ -1,16 +1,11 @@
 ﻿#pragma once
-#ifdef _MSC_VER
-	#pragma push_macro("assert")
-	#undef assert
-	#include <platformspecific.h>
-	#pragma pop_macro("assert")
-#endif
-#pragma clang diagnostic ignored "-Wunused-function"
 #include <EWrapper.h>
 #include <jde/markets/Exports.h>
+#include <jde/markets/types/proto/results.pb.h>
 #include "../../../Framework/source/collections/UnorderedSet.h"
 #include "../TickManager.h"
 
+namespace Jde{ struct LogTag;}
 namespace Jde::Markets
 {
 	struct IAccountUpdateHandler

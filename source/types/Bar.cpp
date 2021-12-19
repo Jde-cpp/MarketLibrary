@@ -7,6 +7,7 @@
 #include <jde/Exception.h>
 #include <jde/Log.h>
 #include <jde/Str.h>
+#include "../../../Framework/source/math/MathUtilities.h"
 
 
 #define var const auto
@@ -137,7 +138,7 @@ namespace Jde::Markets
 		proto.set_highest_traded_price( static_cast<float>(High) );
 		proto.set_lowest_traded_price( static_cast<float>(Low) );
 		proto.set_last_traded_price( static_cast<float>(Close) );
-		proto.set_volume( ToDouble(Volume) );
+		proto.set_volume( Round<uint32>(ToDouble(Volume)) );
 		return proto;
 	}
 

@@ -33,13 +33,13 @@ namespace Jde::Markets
 
 	struct ΓM TwsClient : private EClientSocket
 	{
-		virtual α CheckTimeouts()noexcept->void{};
-		static α CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)->void;
-		static TwsClient& Instance()noexcept{return *_pInstance;}//ASSERT(_pInstance);
-		static sp<TwsClient> InstancePtr()noexcept{ return _pInstance; }
-		static bool HasInstance()noexcept{ return _pInstance!=nullptr;}
-		ibapi::OrderId RequestId()noexcept{ return _requestId++; }
-		bool isConnected()const noexcept{ return EClientSocket::isConnected(); }
+		β CheckTimeouts()noexcept->void{};
+		Ω CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)->void;
+		Ω Instance()noexcept->TwsClient&{return *_pInstance;}//ASSERT(_pInstance);
+		Ω InstancePtr()noexcept->sp<TwsClient>{ return _pInstance; }
+		Ω HasInstance()noexcept->bool{ return _pInstance!=nullptr;}
+		α RequestId()noexcept->ibapi::OrderId{ return _requestId++; }
+		α isConnected()const noexcept->bool{ return EClientSocket::isConnected(); }
 		α SetRequestId( TickerId id )noexcept->void;
 
 		α cancelMktData( TickerId reqId, bool log=true )noexcept->void{ if( log )LOG( "({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
@@ -47,8 +47,8 @@ namespace Jde::Markets
 		α cancelPositionsMulti(TickerId reqId)noexcept->void{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		α cancelRealTimeBars( TickerId reqId )noexcept->void{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }
 		α reqIds( int _=1 )noexcept->void{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
-		Handle RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept;
-		static α CancelAccountUpdates( sv acctCode, Handle handle )noexcept->void;
+		α RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept->Handle;
+		Ω CancelAccountUpdates( sv acctCode, Handle handle )noexcept->void;
 		α reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept->void;
 		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
 		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void;
@@ -59,7 +59,7 @@ namespace Jde::Markets
 		α cancelPositions()noexcept->void{ LOG( "cancelPositions()" ); EClientSocket::cancelPositions(); }
 		α reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept->void;
 		α reqManagedAccts()noexcept->void{ LOG( "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
-		virtual α reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept->void;
+		β reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept->void;
 		α reqContractDetails( int reqId, const ::Contract& contract )noexcept->void;
 		α reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept->void;
 		α reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept->void;

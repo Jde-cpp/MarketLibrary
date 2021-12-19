@@ -78,7 +78,7 @@ namespace Jde::Markets
 		{
 			auto pError = _errors.Find(reqId);
 			_errors.erase( reqId );
-			throw *pError;
+			throw move( *pError );
 		}
 		var time = _headTimestamps.Find( reqId );
 		_headTimestamps.erase( reqId );
