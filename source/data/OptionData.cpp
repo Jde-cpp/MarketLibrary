@@ -109,18 +109,18 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	α OptionData::LoadDiff( const Contract& underlying, const vector<ContractDetails>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)->Day
+	α OptionData::LoadDiff( const Contract& underlying, const vector<sp<::ContractDetails>>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)->Day
 	{
 		flat_map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
-		for( var& contract : ibOptions )
-			options.emplace( contract.contract.conId, make_tuple(Contract{contract},nullptr) );
+		for( var p : ibOptions )
+			options.emplace( p->contract.conId, make_tuple(Contract{*p},nullptr) );
 
 	//load tws details for day.
 		var currentTradingDay = IsOpen() ? CurrentTradingDay() : PreviousTradingDay(); // ;
 		var to = PreviousTradingDay( currentTradingDay );
 		var from = PreviousTradingDay( to );
-		const DateTime toDate( Chrono::FromDays(to) );
-		const DateTime fromDate( Chrono::FromDays(from) );
+		const DateTime toDate{ Chrono::FromDays(to) };
+		const DateTime fromDate{ Chrono::FromDays(from) };
 		//DBG( "current={}, to={}, from={}"sv, DateTime(Chrono::FromDays(currentTradingDay)).DateDisplay(), toDate.DateDisplay(), fromDate.DateDisplay() );
 		var pFromValues = Load( underlying, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
 		var fromSize = pFromValues ? pFromValues->contracts_size() : 0;

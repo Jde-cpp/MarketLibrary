@@ -38,13 +38,13 @@ namespace Jde::Markets
 
 	α BarData::Load( fs::path path_, string symbol2 )noexcept->AWrapper
 	{
-		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task2
+		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task
 		{
 			try
 			{
 				LOG( "Reading {}", path.string() );
-				TaskResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
-				var pFile = t.Get<Proto::BarFile>();
+				AwaitResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
+				var pFile = t.UP<Proto::BarFile>();
 				Day dayCount = pFile->days_size();
 				auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
 				for( Day i=0; i<dayCount; ++i )
@@ -154,9 +154,9 @@ namespace Jde::Markets
 		}
 		return paths;
 	}
-	struct BarFilesAwaitable : IAwaitable
+	struct BarFilesAwaitable : IAwait
 	{
-		using base=IAwaitable;
+		using base=IAwait;
 		BarFilesAwaitable( const Contract& contract, Day start, Day endInput, ResultsFunction f )noexcept(false):
 			_function{ f },
 			_files{ ApplicableFiles(BarData::Path(contract), contract.IssueDate, start, endInput) },
@@ -170,13 +170,13 @@ namespace Jde::Markets
 		{
 			base::await_suspend( h );
 			_h = move( h );
-			auto f = [this]()mutable->Task2
+			auto f = [this]()mutable->Task
 			{
 				for( var& [path,start,end] : _files )
 				{
 					try
 					{
-						auto pData = ( co_await BarData::Load(move(path), _symbol) ).Get<map<Day,VectorPtr<CandleStick>>>();
+						auto pData = ( co_await BarData::Load(move(path), _symbol) ).UP<map<Day,VectorPtr<CandleStick>>>();
 						_function( *pData, start, end );
 					}
 					catch( IException& e )
@@ -197,10 +197,10 @@ namespace Jde::Markets
 			};
 			f();
 		}
-		α await_resume()noexcept->TaskResult override
+		α await_resume()noexcept->AwaitResult override
 		{
 			AwaitResume();
-			return _pException ? TaskResult{ _pException } : TaskResult{ sp<void>{} };
+			return _pException ? AwaitResult{ _pException } : AwaitResult{ sp<void>{} };
 		}
 	private:
 		ResultsFunction _function;
@@ -243,7 +243,7 @@ namespace Jde::Markets
 	}
 	α BarData::CoLoad( ContractPtr_ pContract, Day start, Day end )noexcept(false)->AWrapper
 	{
-		return AWrapper( [pContract, start, end]( HCoroutine h )->Task2
+		return AWrapper( [pContract, start, end]( HCoroutine h )->Task
 		{
 			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, DateDisplay(start), DateDisplay(end) );
 			auto p = new map<Day,VectorPtr<CandleStick>>();
@@ -258,7 +258,7 @@ namespace Jde::Markets
 			};
 			try
 			{
-				( co_await ForEachFile(*pContract, start, end, f) ).Get<sp<void>>();
+				( co_await ForEachFile(*pContract, start, end, f) ).CheckError();
 				h.promise().get_return_object().SetResult( make_shared<map<Day,VectorPtr<CandleStick>>>(*p) );
 			}
 			catch( IException& e )

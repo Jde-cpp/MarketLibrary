@@ -17,6 +17,10 @@ namespace Jde::Markets{ struct TwsClientSync; }
 
 namespace Jde::Markets::OrderManager
 {
+	struct IListener
+	{
+		β OnOrderChange( sp<const MyOrder> OrderPtr, sp<const Markets::Contract> ContractPtr, sp<const OrderStatus> StatusPtr, sp<const OrderState> StatePtr )noexcept->void=0;
+	};
 	using namespace Coroutine;
 	struct OrderParams /*~final*/
 	{
@@ -30,8 +34,8 @@ namespace Jde::Markets::OrderManager
 	};
 	struct StateParams /*~final*/
 	{
-		sp<const OrderState> StatePtr;
-		OrderState::Fields StateFields{OrderState::Fields::None};
+		sp<const ::OrderState> StatePtr;
+		OrderStateFields StateFields{OrderStateFields::None};
 	};
 	struct CombinedParams /*~final*/ : OrderParams, StatusParams, StateParams
 	{
@@ -42,30 +46,31 @@ namespace Jde::Markets::OrderManager
 		sp<const MyOrder> OrderPtr;
 		sp<const Markets::Contract> ContractPtr;
 		sp<const OrderStatus> StatusPtr;
-		sp<const OrderState> StatePtr;
+		sp<const ::OrderState> StatePtr;
 	};
 
 	using boost::container::flat_multimap;
 	using boost::container::flat_map;
 
-	struct ΓM Awaitable final : CancelAwaitable, CombinedParams
+	struct ΓM Awaitable final : CancelAwait, CombinedParams
 	{
-		typedef CancelAwaitable base;
+		typedef CancelAwait base;
 		Awaitable( const CombinedParams& params, Handle& h )noexcept;
 		~Awaitable()=default;
-		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderState::Fields::None; }
+		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
 		α await_suspend( HCoroutine h )noexcept->void;
-		Task2::TResult await_resume()noexcept{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().GetResult() : Task2::TResult{}; }
+		α await_resume()noexcept->AwaitResult{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().Result() : Task::TResult{}; }
 	private:
-		Task2::promise_type* _pPromise{nullptr};
+		Task::promise_type* _pPromise{nullptr};
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
 	};
-
-	ΓM α Cancel( Handle h )noexcept->void;
-	inline auto Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
-	ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
-	α Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept->void;
-	ΓM α Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
+#define Φ ΓM α
+	Φ Cancel( Handle h )noexcept->void;
+	Ξ Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
+	α Listen( sp<IListener> p )noexcept->void;
+	Φ GetLatest( ::OrderId orderId )noexcept->optional<Cache>;
+	α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void;
+	Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
 	α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
 
 
@@ -87,12 +92,12 @@ namespace Jde::Markets::OrderManager
 		static sp<TwsClientSync> _pTws;
 		flat_map<::OrderId,Cache> _incoming; mutex _incomingMutex;
 		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
-		flat_multimap<::OrderId,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;
 		friend Awaitable;
-		friend ΓM α Cancel( Handle h )noexcept->void;
+		friend Φ Cancel( Handle h )noexcept->void;
 		friend ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
-		friend α Push( ::OrderId orderId, const std::string& status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, const std::string& whyHeld, double mktCapPrice )noexcept->void;
-		friend ΓM α Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
+		friend α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void;
+		friend Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
 		friend α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
 	};
 }
+#undef Φ

@@ -25,7 +25,7 @@ namespace Jde::Markets
 		WrapperPtr()->_accountHandle = h;
 		_pTws->reqManagedAccts();
 	}
-	α AccountsAwait::await_resume()noexcept->TaskResult
+	α AccountsAwait::await_resume()noexcept->AwaitResult
 	{
 		while( WrapperPtr()->_accountHandle )
 			std::this_thread::yield();
@@ -33,7 +33,7 @@ namespace Jde::Markets
 		auto accounts = make_shared<vector<Account>>(); accounts->reserve( _accounts.size() );
 		for( var& p : _accounts )
 			accounts->push_back( p.second );
-		return TaskResult{ accounts };
+		return AwaitResult{ accounts };
 	}
 
 #define db DB::DataSource()

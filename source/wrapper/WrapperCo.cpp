@@ -10,10 +10,10 @@
 
 namespace Jde::Markets
 {
-	α Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, sp<void> pResult )->void
+	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )->void
 	{
 		auto p = handles.MoveOut( reqId ); RETURN_IF( !p, "({})Could not get co-handle", reqId );
-		p->promise().get_return_object().SetResult( pResult );
+		p->promise().get_return_object().SetResult<T>( move(pResult) );
 		Coroutine::CoroutinePool::Resume( move(*p) );
 	}
 
@@ -26,16 +26,16 @@ namespace Jde::Markets
 			auto pHandle = handles.MoveOut( id );
 			if( pHandle )
 			{
-				pHandle->promise().get_return_object().SetResult( IBException::SP(errorMsg, errorCode, id) );
+				pHandle->promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id} );
 				Coroutine::CoroutinePool::Resume( move(*pHandle) );
 			}
 			return pHandle.has_value();
 		};
-		bool handled = r(_contractSingleHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		bool handled = r( _contractHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
 		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
-			h.promise().get_return_object().SetResult( IBException::SP(errorMsg, errorCode, id) );
+			h.promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id} );
 			_historical.erase( id );
 			_historicalData.erase( id );
 			Coroutine::CoroutinePool::Resume( move(h) );
@@ -53,8 +53,7 @@ namespace Jde::Markets
 	α WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )noexcept->void
 	{
 		WrapperLog::historicalNews( reqId, time, providerCode, articleId, headline );
-		auto& existing = Collections::InsertShared( _news, reqId );
-		auto pNew = existing.add_historical();
+		auto pNew = EmplaceUnique( _news, reqId )->add_historical();
 		if( time.size()==21 )
 			pNew->set_time( (uint32)DateTime((uint16)stoi(time.substr(0,4)), (uint8)stoi(time.substr(5,2)), (uint8)stoi(time.substr(8,2)), (uint8)stoi(time.substr(11,2)), (uint8)stoi(time.substr(14,2)), (uint8)stoi(time.substr(17,2)) ).TimeT() );//missing tenth seconds.
 
@@ -65,20 +64,19 @@ namespace Jde::Markets
 	α WrapperCo::historicalNewsEnd( int reqId, bool hasMore )noexcept->void
 	{
 		WrapperLog::historicalNewsEnd( reqId, hasMore );
-		sp<Proto::Results::NewsCollection> pCollection;
+		up<Proto::Results::NewsCollection> pCollection;
 		if( auto pExisting = _news.find(reqId); pExisting!=_news.end() )
 		{
-			pCollection = pExisting->second;
+			pCollection = move( pExisting->second );
 			_news.erase( pExisting );
 		}
 		else
-			pCollection = make_shared<Proto::Results::NewsCollection>();
+			pCollection = mu<Proto::Results::NewsCollection>();
 		pCollection->set_has_more( hasMore );
 		auto pHandle = _newsHandles.MoveOut( reqId );
 		if( pHandle )
 		{
-			auto& returnObject = pHandle->promise().get_return_object();
-			returnObject.SetResult( pCollection );
+			pHandle->promise().get_return_object().SetResult( pCollection.release() );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 	}
@@ -86,28 +84,24 @@ namespace Jde::Markets
 	α WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
 	{
 		WrapperLog::contractDetails( reqId, contractDetails );
-		_contracts.try_emplace( reqId ).first->second.push_back( ms<Contract>(contractDetails) );
+		EmplaceUnique( _requestContracts, reqId )->push_back( ms<::ContractDetails>(contractDetails) );
 	}
 	α WrapperCo::contractDetailsEnd( int reqId )noexcept->void
 	{
 		WrapperLog::contractDetailsEnd( reqId );
 
-		auto pExisting = _contracts.find( reqId ); var have = pExisting!=_contracts.end();
-		vector<sp<Contract>> contracts = have ? move( pExisting->second ) : vector<sp<Contract>>{};
-		if( have )
-			_contracts.erase( pExisting );
-
-		for( auto& p : contracts )
-			Cache::Set( format(Contract::CacheFormat, p->Id), p );
-
-		auto pHandle = _contractSingleHandles.MoveOut( reqId );
-		if( pHandle )
+		AwaitResult::Value v;
+		if( auto p = _requestContracts.find(reqId); p!=_requestContracts.end() && p->second )
 		{
-			auto& returnObject = pHandle->promise().get_return_object(); WARN_IF( contracts.size()>1, "({}) returned {} contracts, expected 1", reqId, contracts.size() );
-			if( contracts.size()==0 )
-				returnObject.SetResult( IBException::SP("no contracts returned", -1, reqId) );
-			else
-				returnObject.SetResult( contracts.front() );
+			v = p->second.release();
+			_requestContracts.erase( p );
+		}
+		else
+			v = IBException::SP( "no contracts returned", -1, reqId );
+
+		if( auto pHandle = _contractHandles.MoveOut( reqId ); pHandle )
+		{
+			pHandle->promise().get_return_object().SetResult( move(v) );
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 	}
@@ -120,21 +114,21 @@ namespace Jde::Markets
 	}
 	α WrapperCo::newsProviders( const std::vector<NewsProvider>& providers )noexcept->void
 	{
-		auto p = make_shared<map<string,string>>();
+		auto p = ms<map<string,string>>();
 		for_each( providers.begin(), providers.end(), [p](auto x){p->emplace(x.providerCode, x.providerName);} );
 		_newsProviderHandles.ForEach( [p](auto h)
 		{
-			h.promise().get_return_object().SetResult( make_shared<map<string,string>>(*p) );
+			h.promise().get_return_object().SetResult( ms<map<string,string>>(*p) );
 			Coroutine::CoroutinePool::Resume( move(h) );
 		} );
 	}
 
 	α WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept->void
 	{
-		auto p = make_shared<Proto::Results::NewsArticle>();
+		auto p = mu<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
 		p->set_value( articleText );
-		Resume( _newsArticleHandles, reqId, p );
+		Resume( _newsArticleHandles, reqId, move(p) );
 	}
 
 	bool WrapperCo::HistoricalData( TickerId reqId, const ::Bar& bar )noexcept

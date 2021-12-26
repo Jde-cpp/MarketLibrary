@@ -32,11 +32,11 @@ namespace Jde::Markets
 	using OptionSetPtr=sp<OptionSet>;
 	namespace OptionData
 	{
-		ΓM OptionSetPtr SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false);
-		ΓM OptionSetPtr Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false);
+		Φ SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false)->OptionSetPtr;
+		Φ Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false)->OptionSetPtr;
 		α LoadFiles( const Contract& contract )noexcept->flat_map<Day,sp<Proto::UnderlyingOIValues>>;
-		ΓM Proto::Results::OptionValues* LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false);
-		ΓM Day LoadDiff( const Contract& underlying, const vector<ContractDetails>& options, Proto::Results::OptionValues& results )noexcept(false);
+		Φ LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false)->Proto::Results::OptionValues*;
+		Φ LoadDiff( const Contract& underlying, const vector<sp<ContractDetails>>& options, Proto::Results::OptionValues& results )noexcept(false)->Day;
 		α Insert( const Option& value )noexcept(false)->void;
 		Φ OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept->fs::path;
 	}

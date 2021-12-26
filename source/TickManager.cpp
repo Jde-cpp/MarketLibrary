@@ -49,7 +49,7 @@ namespace Jde::Markets
 		TickParams{ params }
 	{}
 
-	α TickManager::Awaitable::await_suspend( coroutine_handle<Task2::promise_type> h )noexcept->void
+	α TickManager::Awaitable::await_suspend( coroutine_handle<Task::promise_type> h )noexcept->void
 	{
 		AwaitSuspend();
 		_pPromise = &h.promise();
@@ -238,17 +238,17 @@ namespace Jde::Markets
 				{
 					unique_lock l2{ _ratioSubscriptionMutex };
 					FOR( _ratioSubscriptions )
-						get<0>( p->second ).set_exception( std::make_exception_ptr(IBException{errorString, errorCode, id}) );
+						get<0>( p->second ).set_exception( Jde::make_exception_ptr(IBException{errorString, errorCode, id}) );
 				}
 				else if( s.Source==ESubscriptionSource::Coroutine )
 				{
 					unique_lock l2{ _subscriptionMutex };
 					FOR( _subscriptions )
 					{
-						auto h = p->second.HCoroutine;
+						auto h = p->second.HCo;
 						auto& returnObject = h.promise().get_return_object();
 						IBException e{ errorString, errorCode, id };//separate on 2 lines for msvc
-						returnObject.SetResult( e.Clone() );
+						returnObject.SetResult( e.Move() );
 						Coroutine::CoroutinePool::Resume( move(h) );
 					}
 				}
@@ -306,14 +306,14 @@ namespace Jde::Markets
 					bool resume = Test( clientTick, clientFields, tick );
 					if( resume )
 					{
-						auto h = p->second.HCoroutine;
+						auto h = p->second.HCo;
 						var hClient = p->second.HClient;
 						{
 							unique_lock ul2{ _delayMutex };
 							_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, hClient, contractId) );
 						}
 						auto& returnObject = h.promise().get_return_object();
-						returnObject.SetResult( make_shared<Tick>(tick) );
+						returnObject.SetResult<Tick>( mu<Tick>(tick) );
 						LOG( "({})TickManager - Calling resume()."sv, hClient );
 						Coroutine::CoroutinePool::Resume( move(h)/*, move(p->second.ThreadParam)*/ );
 						p = _subscriptions.erase( p );
@@ -395,7 +395,7 @@ namespace Jde::Markets
 				{
 					LOG( "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
 					LOG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(p->second), p->first );
-					get<0>(value).set_exception( std::make_exception_ptr(Exception("Timeout")) );
+					get<0>(value).set_exception( Jde::make_exception_ptr(Exception("Timeout")) );
 					unique_lock ul2{ _delayMutex };
 					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), p->first) );
 				}
@@ -475,7 +475,7 @@ namespace Jde::Markets
 		if( auto p = std::find_if(_subscriptions.begin(), _subscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_subscriptions.end() )
 		{
 			LOG( "Cancel({})"sv, h );
-			p->second.HCoroutine.destroy();
+			p->second.HCo.destroy();
 			var contractId = p->first;
 			_subscriptions.erase( p );
 			l.unlock();

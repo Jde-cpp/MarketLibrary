@@ -8,11 +8,11 @@ namespace Jde::Markets
 {
 	struct Account{ PK Id{0}; string Display/*Name*/; string IbName/*Target*/; string Description; flat_map<UserPK, UM::EAccess> Access; };//TODO
 
-	struct ΓM AccountsAwait final:ITwsAwaitableImpl//sp<vector<Account>>
+	struct ΓM AccountsAwait final:ITwsAwaitShared//sp<vector<Account>>
 	{
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->TaskResult override;
+		α await_resume()noexcept->AwaitResult override;
 	};
 
 	struct ΓM AccountAuthorizer final: UM::IAuthorize

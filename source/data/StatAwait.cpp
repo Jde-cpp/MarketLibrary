@@ -10,7 +10,7 @@ namespace Jde::Markets::HistoricalDataCache
 {
 	static const LogTag& _logLevel{ Logging::TagLevel("mrk.hist") };
 
-	StatAwait::StatAwait( ContractPtr_ pContract, double days, Day start, Day end )noexcept:IAwaitable{"ReqStats"}, ContractPtr{pContract}, Days{days}, Start{start}, End{end}, Count{ DayCount(TradingDay{Start, ContractPtr->Exchange}, End) }
+	StatAwait::StatAwait( ContractPtr_ pContract, double days, Day start, Day end )noexcept:IAwait{"ReqStats"}, ContractPtr{pContract}, Days{days}, Start{start}, End{end}, Count{ DayCount(TradingDay{Start, ContractPtr->Exchange}, End) }
 	{
 		LOG( "StatAwait" );
 	}
@@ -52,11 +52,11 @@ namespace Jde::Markets::HistoricalDataCache
 	{
 		base::await_suspend( h );
 		_h = move(h);
-		auto f = [this]()->Task2//mutable
+		auto f = [this]()->Task//mutable
 		{
 			try
 			{
-				var pAllBars = ( co_await Tws::HistoricalData( ContractPtr, End, Count, Minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true) ).Get<vector<::Bar>>();
+				var pAllBars = ( co_await Tws::HistoricalData( ContractPtr, End, Count, Minutes==0 ? EBarSize::Day : EBarSize::Minute, Proto::Requests::Display::Trades, true) ).SP<vector<::Bar>>();
 				THROW_IF( pAllBars->size()==0, "No history" );
 				map<Day,vector<::Bar>> bars;
 				for_each( pAllBars->begin(), pAllBars->end(), [&bars](var bar)
@@ -92,8 +92,8 @@ namespace Jde::Markets::HistoricalDataCache
 		};
 		f();
 	}
-	α StatAwait::await_resume()noexcept->TaskResult
+	α StatAwait::await_resume()noexcept->AwaitResult
 	{
-		return _pPromise ? _pPromise->get_return_object().GetResult() : _result.index() ? TaskResult{ std::get<sp<IException>>(_result) } : TaskResult{ std::get<sp<StatCount>>(_result) };
+		return _pPromise ? _pPromise->get_return_object().Result() : _result.index() ? AwaitResult{ std::get<sp<IException>>(_result) } : AwaitResult{ std::get<sp<StatCount>>(_result) };
 	}
 }

@@ -91,9 +91,9 @@ namespace Jde::Markets
 		if( contract.has_delta_neutral() )
 			DeltaNeutral = DeltaNeutralContract{ contract.delta_neutral() };
 	}
-	sp<Proto::Contract> Contract::ToProto( bool stupidPointer )const noexcept
+	up<Proto::Contract> Contract::ToProto()const noexcept
 	{
-		auto pProto = stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
+		auto pProto = make_unique<Proto::Contract>();//  stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
 		pProto->set_id( Id );
 		pProto->set_symbol( Symbol );
 		pProto->set_security_type( SecType );
@@ -343,10 +343,10 @@ namespace Jde::Markets
 		return pHours;
 	}
 
-
-	void ToProto( const ::ContractDetails& details, Proto::Results::ContractDetail& proto )noexcept
+	ΓM α ToProto( const ::ContractDetails& details )noexcept->Proto::Results::ContractDetail
 	{
-		proto.set_allocated_contract( Contract(details.contract).ToProto(true).get() );
+		Proto::Results::ContractDetail proto;
+		proto.set_allocated_contract( Contract{details.contract}.ToProto().release() );
 		proto.set_market_name( details.marketName );
 		proto.set_min_tick( details.minTick );
 		proto.set_order_types( details.orderTypes );
@@ -395,5 +395,7 @@ namespace Jde::Markets
 		proto.set_next_option_type( details.nextOptionType );
 		proto.set_next_option_partial( details.nextOptionPartial );
 		proto.set_notes( details.notes );
+
+		return proto;
 	}
 }

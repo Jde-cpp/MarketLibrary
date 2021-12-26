@@ -8,24 +8,24 @@
 namespace Jde::Markets
 {
 	using namespace Proto::Results;
-	ITwsAwaitable::ITwsAwaitable()noexcept:_pTws{ Tws::InstancePtr() }{}
-	α ITwsAwaitable::WrapperPtr()noexcept->sp<WrapperCo>{ return _pTws->WrapperPtr(); }
+	ITwsAwait::ITwsAwait()noexcept:_pTws{ Tws::InstancePtr() }{}
+	α ITwsAwait::WrapperPtr()noexcept->sp<WrapperCo>{ return _pTws->WrapperPtr(); }
 
-	α SecDefOptParamAwaitable::await_ready()noexcept->bool
+	α SecDefOptParamAwait::await_ready()noexcept->bool
 	{
 		auto cacheId = format( "OptParams.{}", _underlyingConId );
 		_dataPtr = Cache::Get<OptionExchanges>( CacheId() );
 		return _dataPtr || base::await_ready();
 	}
-	α SecDefOptParamAwaitable::await_suspend( HCoroutine h )noexcept->void
+	α SecDefOptParamAwait::await_suspend( HCoroutine h )noexcept->void
 	{
 		base::await_suspend( h );
 		var id = _pTws->RequestId();
 		WrapperPtr()->_secDefOptParamHandles.MoveIn( id, move(h) );
 		try
 		{
-			auto pContract = Future<Contract>( Tws::ContractDetails(_underlyingConId) ).get();
-			_pTws->reqSecDefOptParams( id, _underlyingConId, pContract->LocalSymbol );
+			auto pContract = SFuture<::ContractDetails>( Tws::ContractDetail(_underlyingConId) ).get();
+			_pTws->reqSecDefOptParams( id, _underlyingConId, pContract->contract.localSymbol );
 		}
 		catch( IException& e )
 		{
@@ -33,16 +33,16 @@ namespace Jde::Markets
 			h.resume();
 		}
 	}
-	α SecDefOptParamAwaitable::await_resume()noexcept->TaskResult
+	α SecDefOptParamAwait::await_resume()noexcept->AwaitResult
 	{
 		base::AwaitResume();
 		if( !_dataPtr )
-			_dataPtr = Cache::Set<OptionExchanges>( CacheId(), _pPromise->get_return_object().GetResult().Get<OptionExchanges>() );
+			_dataPtr = Cache::Set<OptionExchanges>( CacheId(), _pPromise->get_return_object().Result().SP<OptionExchanges>() );
 
 		sp<void> p = _smart
 			? _dataPtr->exchanges().size() ? make_shared<ExchangeContracts>( _dataPtr->exchanges()[0] ) : sp<void>{}
 			: _dataPtr;
-		return TaskResult{ p };
+		return AwaitResult{ p };
 	}
 
 	vector<HCoroutine> AllOpenOrdersAwait::_handles;
@@ -51,7 +51,7 @@ namespace Jde::Markets
 
 	α AllOpenOrdersAwait::await_suspend( HCoroutine h )noexcept->void
 	{
-		ITwsAwaitableImpl::await_suspend( h );
+		ITwsAwaitUnique::await_suspend( h );
 		lock_guard l{ _mutex };
 		_handles.push_back( h );
 		if( _handles.size()==1 )
@@ -84,9 +84,9 @@ namespace Jde::Markets
 		_pData = nullptr;
 		_handles.clear();
 	}
-	α AllOpenOrdersAwait::await_resume()noexcept->TaskResult
+	α AllOpenOrdersAwait::await_resume()noexcept->AwaitResult
 	{
 		base::AwaitResume();
-		return TaskResult{ _pPromise->get_return_object().GetResult() };
+		return AwaitResult{ _pPromise->get_return_object().Result() };
 	}
 }

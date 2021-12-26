@@ -29,13 +29,14 @@ namespace Jde::Markets
 		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache )noexcept(false) override;
 		//Future<::Bar> ReqHistoricalDataSync( const Contract& contract, time_t start, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept override;
 
-		Future<::ContractDetails> ReqContractDetails( sv symbol )noexcept;
+/*		Future<::ContractDetails> ReqContractDetails( sv symbol )noexcept;
 		static Future<::ContractDetails> ReqContractDetails( ContractPK id )noexcept{ auto p=_pSyncInstance; if( p ) return p->ReqContractDetailsInst(id);
 			std::promise<VectorPtr<::ContractDetails>> promise;
 			promise.set_value( make_shared<vector<::ContractDetails>>() );
 			return promise.get_future();
 		}
 		Future<::ContractDetails> ReqContractDetails( const ::Contract& contract )noexcept;
+*/
 //		sp<Proto::Results::ExchangeContracts> ReqSecDefOptParamsSmart( ContractPK underlyingConId, sv symbol )noexcept(false);
 //		std::future<sp<Proto::Results::OptionExchanges>> ReqSecDefOptParams( ContractPK underlyingConId, sv symbol )noexcept;
 		//α reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept override;
@@ -50,7 +51,7 @@ namespace Jde::Markets
 		static bool IsConnected()noexcept;
 		α ReqIds()noexcept->void;
 	private:
-		Future<::ContractDetails> ReqContractDetailsInst( ContractPK id )noexcept;
+		//Future<::ContractDetails> ReqContractDetailsInst( ContractPK id )noexcept;
 
 		α OnError( TickerId id, int errorCode, const std::string& errorMsg )->void;
 		α OnHeadTimestamp( TickerId reqId, TimePoint t )->void;

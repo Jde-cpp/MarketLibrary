@@ -59,8 +59,8 @@ namespace Jde::Markets
 			}
 			else */if( (handled = _fundamentalData.Contains(id)) )
 				_fundamentalData.Error( id, IBException{errorString, errorCode, id} );
-			else if( (handled = _detailsData.Contains(id)) )
-				_detailsData.Error( id, IBException{errorString, errorCode, id} );
+//			else if( (handled = _detailsData.Contains(id)) )
+//				_detailsData.Error( id, IBException{errorString, errorCode, id} );
 			else if( (handled = _ratioData.Contains(id)) )
 				_ratioData.Error( id, IBException{errorString, errorCode, id} );
 			else
@@ -130,7 +130,7 @@ namespace Jde::Markets
 	{
 		//_historicalData.CheckTimeouts();
 	}
-	α WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
+/*	α WrapperSync::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
 	{
 		if( WrapperCo::_contractSingleHandles.Has(reqId) ) return WrapperCo::contractDetails( reqId, contractDetails );
 		WrapperCache::contractDetails( reqId, contractDetails );
@@ -142,7 +142,7 @@ namespace Jde::Markets
 		WrapperCache::contractDetailsEnd( reqId );
 		_detailsData.End( reqId );
 	}
-
+*/
 	std::future<VectorPtr<Proto::Results::Position>> WrapperSync::PositionPromise()noexcept
 	{
 		_positionPromiseMutex.lock();
@@ -158,7 +158,7 @@ namespace Jde::Markets
 		{
 			ASSERT( _positionPromisePtr );
 			WrapperLog::position( account, contract, position, avgCost );
-			Proto::Results::Position y; y.set_allocated_contract( Contract{contract}.ToProto(true).get() ); y.set_account_number( account ); y.set_size( ToDouble(position) ); y.set_avg_cost( avgCost );
+			Proto::Results::Position y; y.set_allocated_contract( Contract{contract}.ToProto().release() ); y.set_account_number( account ); y.set_size( ToDouble(position) ); y.set_avg_cost( avgCost );
 			_positionsPtr->emplace_back( y );
 		}
 	}
@@ -185,11 +185,11 @@ namespace Jde::Markets
 		}
 		return *_requestIdsFuturePtr;
 	}
-	WrapperData<::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
+/*	WrapperData<::ContractDetails>::Future WrapperSync::ContractDetailsPromise( ReqId reqId )noexcept
 	{
 		return _detailsData.Promise( reqId, 5s );
 	}
-
+*/
 	WrapperItem<Proto::Results::OptionExchanges>::Future WrapperSync::SecDefOptParamsPromise( ReqId reqId )noexcept
 	{
 		return _optionFutures.Promise( reqId, 15s );

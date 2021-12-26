@@ -12,7 +12,7 @@ namespace Jde::Markets
 	using SecurityType=Proto::SecurityType;
 	using Exchanges = Proto::Exchanges;
 
-	constexpr std::array<sv,30> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF", "LSE" };
+	constexpr std::array<sv,31> ExchangeStrings={ "SMART", "NYSE", "NASDAQ", "AMEX", "ARCA", "BATS", "PINK", "VALUE", "IBIS", "CBOE", "ISE", "PSE", "PEARL", "MIAX", "MERCURY", "EDGX", "GEMINI", "BOX", "EMERALD", "NASDAQOM", "NASDAQBX", "PHLX", "CBOE2", "EBS", "IEX", "VENTURE", "ASX", "AEQLIT", "LSEETF", "LSE", "ISLAND" };
 	Φ ToString( Exchanges exchange )noexcept->sv;
 	Φ ToExchange( sv pszName )noexcept->Exchanges;
 	Φ PreviousTradingDay( Day day=0 )noexcept->Day;

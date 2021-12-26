@@ -20,15 +20,15 @@ namespace Jde::Markets
 			Markets::Tick Tick;
 		};
 
-		struct ΓM Awaitable final : CancelAwaitable, TickParams
+		struct ΓM Awaitable final : CancelAwait, TickParams
 		{
-			using base=CancelAwaitable;
+			using base=CancelAwait;
 			Awaitable( const TickParams& params, Handle& h )noexcept;
 			α await_ready()noexcept->bool override;
 			α await_suspend( HCoroutine h )noexcept->void override;
-			α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return _pPromise ? _pPromise->get_return_object().GetResult() : TaskResult{ make_shared<Markets::Tick>(TickParams::Tick) }; }
+			α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return _pPromise ? _pPromise->get_return_object().Result() : AwaitResult{ make_shared<Markets::Tick>(TickParams::Tick) }; }
 		private:
-			Task2::promise_type* _pPromise{ nullptr };
+			Task::promise_type* _pPromise{ nullptr };
 		};
 
 		using ProtoFunction=function<void(const vector<Proto::Results::MessageUnion>&, uint32_t)>;

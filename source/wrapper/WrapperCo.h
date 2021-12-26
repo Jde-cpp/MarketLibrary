@@ -5,7 +5,7 @@
 
 namespace Jde::Markets
 {
-	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwaitable; struct ContractAwaitable; struct NewsProviderAwaitable; struct NewsArticleAwaitable; struct SecDefOptParamAwaitable; struct AccountsAwait;
+	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait;
 	using namespace Jde::Coroutine;
 	struct ΓM WrapperCo : WrapperLog
 	{
@@ -29,9 +29,9 @@ namespace Jde::Markets
 		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void override;
 		α securityDefinitionOptionalParameterEnd( int reqId )noexcept->void override;
 	protected:
-		flat_map<int,vector<sp<Markets::Contract>>> _contracts; UnorderedMapValue<int,HCoroutine> _contractSingleHandles;
+		flat_map<ReqId,up<vector<sp<::ContractDetails>>>> _requestContracts; UnorderedMapValue<ReqId,HCoroutine> _contractHandles;
 	private:
-		flat_map<int,sp<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HCoroutine> _newsHandles;
+		flat_map<int,up<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HCoroutine> _newsHandles;
 		UnorderedSet<HCoroutine> _newsProviderHandles;
 		UnorderedMapValue<int,HCoroutine> _newsArticleHandles;
 		flat_map<int,up<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<int,HCoroutine> _secDefOptParamHandles;
@@ -39,6 +39,6 @@ namespace Jde::Markets
 		flat_map<TickerId,vector<::Bar>> _historicalData;
 		HCoroutine _accountHandle;
 
-		friend TwsClientCo; friend HistoricalNewsAwaitable; friend ContractAwaitable; friend NewsProviderAwaitable; friend NewsArticleAwaitable; friend HistoryAwait; friend SecDefOptParamAwaitable; friend AccountsAwait;//todo Awaitable to Await
+		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait;
 	};
 }

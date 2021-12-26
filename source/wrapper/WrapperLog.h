@@ -14,6 +14,7 @@ namespace Jde::Markets
 		β PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept->bool=0;
 		β AccountDownloadEnd( sv accountName )noexcept->void=0;
 	};
+#define $ noexcept->void override
 	struct ΓM WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
@@ -96,12 +97,13 @@ namespace Jde::Markets
 		void marketRule( int marketRuleId, const std::vector<PriceIncrement> &priceIncrements )noexcept override;
 		void pnl( int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL )noexcept override;
 		void pnlSingle( int reqId, ::Decimal pos, double dailyPnL, double unrealizedPnL, double realizedPnL, double value )noexcept override;
-		void historicalTicks( int reqId, const std::vector<HistoricalTick> &ticks, bool done )noexcept override;
-		void historicalTicksBidAsk( int reqId, const std::vector<HistoricalTickBidAsk> &ticks, bool done )noexcept override;
-		void historicalTicksLast( int reqId, const std::vector<HistoricalTickLast> &ticks, bool done )noexcept override;
-		α orderBound( long long orderId, int apiClientId, int apiOrderId )noexcept->void override;
-		α completedOrder( const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )noexcept->void override;
-		α completedOrdersEnd()noexcept->void override;
+		α historicalSchedule( int reqId, str startDateTime, str endDateTime, str timeZone, const vector<HistoricalSession>& sessions )$;
+		α historicalTicks( int reqId, const std::vector<HistoricalTick> &ticks, bool done )$;
+		α historicalTicksBidAsk( int reqId, const std::vector<HistoricalTickBidAsk> &ticks, bool done )$;
+		α historicalTicksLast( int reqId, const std::vector<HistoricalTickLast> &ticks, bool done )$;
+		α orderBound( long long orderId, int apiClientId, int apiOrderId )$;
+		α completedOrder( const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )$;
+		α completedOrdersEnd()$;
 		void tickOptionComputation( ::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept override;
 		void replaceFAEnd( int /*reqId*/, str /*text*/ )noexcept override{};
 		void wshMetaData( int reqId, str dataJson )noexcept override;
@@ -122,3 +124,4 @@ namespace Jde::Markets
 		flat_map<string, flat_map<Handle,sp<IAccountUpdateHandler>>> _accountUpdateCallbacks; static uint _accountUpdateHandle; flat_map<string,flat_map<string,tuple<string,string>>> _accountUpdateCache; flat_map<string,flat_map<ContractPK,Proto::Results::PortfolioUpdate>> _accountPortfolioUpdates; shared_mutex _accountUpdateCallbackMutex;		friend TickManager::TickWorker;
 	};
 }
+#undef $

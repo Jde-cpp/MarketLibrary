@@ -122,7 +122,7 @@ namespace Jde::Markets
 	}
 	*/
 
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
 	{
 		::Contract contract;
 		contract.symbol = symbol;
@@ -132,6 +132,7 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}
+*/
 /*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol, Day dayIndex, SecurityRight right )noexcept
 	{
 		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
@@ -144,13 +145,14 @@ namespace Jde::Markets
 
 		return ReqContractDetails( contract );
 	}*/
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetailsInst( ContractPK id )noexcept//TODO find out why return multiple?
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetailsInst( ContractPK id )noexcept//TODO find out why return multiple?
 	{
 		ASSERT( id!=0 );
 		::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
 		return ReqContractDetails( contract );
 	}
-	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ::Contract& contract )noexcept
+*/
+/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ::Contract& contract )noexcept
 	{
 		var reqId = RequestId();
 		auto future = _wrapper.ContractDetailsPromise( reqId );
@@ -165,7 +167,7 @@ namespace Jde::Markets
 		// else if( !set )
 		// 	TwsClient::reqContractDetails( reqId, contract );
 		return future;
-	}
+	}*/
 
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept
 	{

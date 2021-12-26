@@ -9,14 +9,14 @@ namespace Jde::Markets
 }
 namespace Jde::Markets::HistoricalDataCache
 {
-	struct ΓM StatAwait final : IAwaitable
+	struct ΓM StatAwait final : IAwait
 	{
-		using base=IAwaitable;
+		using base=IAwait;
 		StatAwait( ContractPtr_ pContract, double days, Day start, Day end )noexcept;
 		~StatAwait();
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->Task2::TResult override;
+		α await_resume()noexcept->Task::TResult override;
 	private:
 		ContractPtr_ ContractPtr; double Days; Day Start, End, FullDays; uint16 Minutes; string CacheId; Day Count;
 		std::variant<sp<StatCount>,sp<IException>> _result;

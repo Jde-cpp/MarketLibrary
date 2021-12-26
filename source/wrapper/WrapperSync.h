@@ -28,7 +28,7 @@ namespace Jde::Markets
 		α AddOpenOrderEnd( EndCallback& )noexcept->void;
 		std::shared_future<TickerId> ReqIdsPromise()noexcept;
 		//WrapperData<::Bar>::Future ReqHistoricalDataPromise( ReqId reqId, Duration duration )noexcept;
-		WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
+		//WrapperData<::ContractDetails>::Future ContractDetailsPromise( ReqId reqId )noexcept;
 		WrapperData<NewsProvider>::Future NewsProviderPromise()noexcept{ return _newsProviderData.Promise(static_cast<ReqId>(Threading::GetThreadId()), 5s); }
 		std::future<VectorPtr<Proto::Results::Position>> PositionPromise()noexcept;
 		WrapperItem<Proto::Results::OptionExchanges>::Future SecDefOptParamsPromise( ReqId reqId )noexcept;
@@ -57,11 +57,11 @@ namespace Jde::Markets
 		//bool securityDefinitionOptionalParameterSync( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept;
 		//α securityDefinitionOptionalParameterEnd( int reqId )noexcept override;
 		//bool securityDefinitionOptionalParameterEndSync( int reqId )noexcept;
-		α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
-		α contractDetailsEnd( int reqId )noexcept->void override;
+		//α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
+		//α contractDetailsEnd( int reqId )noexcept->void override;
 
 	protected:
-		WrapperData<::ContractDetails> _detailsData;
+		//WrapperData<::ContractDetails> _detailsData;
 		sp<TwsClientSync> _pClient;
 
 	private:

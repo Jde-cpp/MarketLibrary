@@ -4,6 +4,35 @@
 
 
 #define var const auto
+namespace Jde
+{
+	up<Markets::Proto::Results::OrderState> Markets::ToProto( const ::OrderState& state )noexcept
+	{
+		auto p = mu<Proto::Results::OrderState>();
+		p->set_status( state.status );
+		constexpr sv NotSet = "1.7976931348623157E308";
+		p->set_init_margin_before( state.initMarginBefore==NotSet ? "" : state.initMarginBefore );
+		p->set_maint_margin_before( state.maintMarginBefore==NotSet ? "" : state.maintMarginBefore );
+		p->set_equity_with_loan_before( state.equityWithLoanBefore==NotSet ? "" : state.equityWithLoanBefore );
+		p->set_init_margin_change( state.initMarginChange==NotSet ? "" : state.initMarginChange );
+		p->set_maint_margin_change( state.maintMarginChange==NotSet ? "" : state.maintMarginChange );
+		p->set_equity_with_loan_change( state.equityWithLoanChange==NotSet ? "" : state.equityWithLoanChange );
+		p->set_init_margin_after( state.initMarginAfter==NotSet ? "" : state.initMarginAfter );
+		p->set_maint_margin_after( state.maintMarginAfter==NotSet ? "" : state.maintMarginAfter );
+		p->set_equity_with_loan_after( state.equityWithLoanAfter==NotSet ? "" : state.equityWithLoanAfter );
+		var max = std::numeric_limits<double>::max();
+		p->set_commission( state.commission==max ? nan("") : state.commission );
+		//DBG( "max='{}', state='{}', proto='{}'"sv, max, state.commission, p->commission() );
+		p->set_min_commission( state.minCommission==max ? nan("") : state.minCommission );
+		p->set_max_commission( state.maxCommission==max ? nan("") : state.maxCommission );
+		p->set_commission_currency( state.commissionCurrency );
+		p->set_warning_text( state.warningText );
+		p->set_completed_time( state.completedTime );
+		p->set_completed_status( state.completedStatus );
+
+		return p;
+	}
+}
 namespace Jde::Markets
 {
 	MyOrder::MyOrder( ::OrderId id, const Proto::Order& proto )noexcept
@@ -212,32 +241,6 @@ namespace Jde::Markets
 		}
 		return result;
 	}
-	Proto::Results::OrderState* MyOrder::ToAllocatedProto( const ::OrderState& state )noexcept
-	{
-		auto p = new Proto::Results::OrderState{};
-		p->set_status( state.status );
-		constexpr sv NotSet = "1.7976931348623157E308";
-		p->set_init_margin_before( state.initMarginBefore==NotSet ? "" : state.initMarginBefore );
-		p->set_maint_margin_before( state.maintMarginBefore==NotSet ? "" : state.maintMarginBefore );
-		p->set_equity_with_loan_before( state.equityWithLoanBefore==NotSet ? "" : state.equityWithLoanBefore );
-		p->set_init_margin_change( state.initMarginChange==NotSet ? "" : state.initMarginChange );
-		p->set_maint_margin_change( state.maintMarginChange==NotSet ? "" : state.maintMarginChange );
-		p->set_equity_with_loan_change( state.equityWithLoanChange==NotSet ? "" : state.equityWithLoanChange );
-		p->set_init_margin_after( state.initMarginAfter==NotSet ? "" : state.initMarginAfter );
-		p->set_maint_margin_after( state.maintMarginAfter==NotSet ? "" : state.maintMarginAfter );
-		p->set_equity_with_loan_after( state.equityWithLoanAfter==NotSet ? "" : state.equityWithLoanAfter );
-		var max = std::numeric_limits<double>::max();
-		p->set_commission( state.commission==max ? nan("") : state.commission );
-		//DBG( "max='{}', state='{}', proto='{}'"sv, max, state.commission, p->commission() );
-		p->set_min_commission( state.minCommission==max ? nan("") : state.minCommission );
-		p->set_max_commission( state.maxCommission==max ? nan("") : state.maxCommission );
-		p->set_commission_currency( state.commissionCurrency );
-		p->set_warning_text( state.warningText );
-		p->set_completed_time( state.completedTime );
-		p->set_completed_status( state.completedStatus );
-
-		return p;
-	}
 
 	MyOrder::Fields MyOrder::Changes( const MyOrder& rhs, Fields fields )const noexcept
 	{
@@ -253,7 +256,7 @@ namespace Jde::Markets
 		return changes;
 	}
 
-	OrderStatus::Fields OrderStatus::Changes( const OrderStatus& status, Fields fields )const noexcept
+	OrderStatus::Fields OrderStatus::Changes( const OrderStatus& status )const noexcept
 	{
 		auto changes = Fields::None;
 		if( Status!=status.Status ) changes|=Fields::Status;
@@ -262,12 +265,28 @@ namespace Jde::Markets
 		return changes;
 	}
 
-	OrderState::Fields OrderState::Changes( const OrderState& state, Fields fields )const noexcept
+	α OrderStatus::ToProto()const noexcept->up<Proto::Results::OrderStatus>
 	{
-		auto changes = Fields::None;
-		if( status!=state.status ) changes|=Fields::Status;
-		if( completedTime!=state.completedTime ) changes|=Fields::CompletedTime;
-		if( completedStatus!=state.completedStatus ) changes|=Fields::CompletedStatus;
+		auto p = make_unique<Proto::Results::OrderStatus>();
+		p->set_order_id( Id );
+		p->set_status( Status );
+		p->set_filled( Filled );
+		p->set_remaining( Remaining );
+		p->set_average_fill_price( AverageFillPrice );
+		p->set_perm_id( PermId );
+		p->set_parent_id( ParentId );
+		p->set_last_fill_price( LastFillPrice );
+		p->set_why_held( WhyHeld );
+		p->set_market_cap_price( MarketCapPrice );
+		return p;
+	}
+
+	OrderStateFields OrderStateChanges( const ::OrderState& a, const ::OrderState& b )noexcept
+	{
+		auto changes = OrderStateFields::None;
+		if( a.status!=b.status ) changes|=OrderStateFields::Status;
+		if( a.completedTime!=b.completedTime ) changes|=OrderStateFields::CompletedTime;
+		if( a.completedStatus!=b.completedStatus ) changes|=OrderStateFields::CompletedStatus;
 		return changes;
 	}
 

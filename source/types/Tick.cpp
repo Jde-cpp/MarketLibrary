@@ -19,7 +19,7 @@ namespace Jde::Markets
 		case ETickType::BidExchange: BidExchange = value; break;
 		case ETickType::AskExchange: AskExchange = value; break;
 		case ETickType::LastExchange: LastExchange = value; break;
-		case ETickType::LastTimestamp: LastTimestamp = Str::TryTo<time_t>( value ).value_or( 0 ); break;
+		case ETickType::LastTimestamp: LastTimestamp = To<time_t>( value ); break;
 		case ETickType::RT_VOLUME: RT_VOLUME = value; break;
 		case ETickType::FUNDAMENTAL_RATIOS: RatioString = value; break;
 		case ETickType::IB_DIVIDENDS: DividendString = value; break;

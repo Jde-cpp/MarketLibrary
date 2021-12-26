@@ -12,28 +12,31 @@ namespace Jde::Markets
 	struct WrapperCo; struct Tws;
 
 	using namespace Jde::Coroutine;
-	struct ΓM ITwsAwaitable
+	struct ΓM ITwsAwait : IAwait
 	{
-		ITwsAwaitable()noexcept;
+		ITwsAwait()noexcept;
+		using base=IAwait;
+		α await_ready()noexcept->bool override{ return !_pTws; }
+		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); };
+		α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().Result()); }
 	protected:
 		sp<WrapperCo> WrapperPtr()noexcept;
 		sp<Tws> _pTws;
 	};
-
-	struct ITwsAwaitableImpl : ITwsAwaitable, IAwaitable
+	struct ITwsAwaitUnique : ITwsAwait
 	{
-		using base=IAwaitable;
-		α await_ready()noexcept->bool override{ return !_pTws; }
-		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); };
-		α await_resume()noexcept->TaskResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().GetResult()); }
 	};
 
-	struct ΓM SecDefOptParamAwaitable :ITwsAwaitableImpl
+	struct ITwsAwaitShared : ITwsAwait
 	{
-		SecDefOptParamAwaitable( ContractPK conId, bool smart )noexcept:_underlyingConId{conId}, _smart{smart}{};
+	};
+
+	struct ΓM SecDefOptParamAwait : ITwsAwaitShared
+	{
+		SecDefOptParamAwait( ContractPK conId, bool smart )noexcept:_underlyingConId{conId}, _smart{smart}{};
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->TaskResult override;
+		α await_resume()noexcept->AwaitResult override;
 	private:
 		α CacheId()const noexcept{ return format( "OptParams.{}", _underlyingConId ); }
 		const ContractPK _underlyingConId;
@@ -41,10 +44,10 @@ namespace Jde::Markets
 		sp<Proto::Results::OptionExchanges> _dataPtr;
 	};
 
-	struct ΓM AllOpenOrdersAwait : ITwsAwaitableImpl
+	struct ΓM AllOpenOrdersAwait : ITwsAwaitUnique
 	{
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->TaskResult override;
+		α await_resume()noexcept->AwaitResult override;
 		Ω Finish()noexcept->void;
 		Ω Push( up<Proto::Results::OpenOrder> order )noexcept->void;
 		Ω Push( up<Proto::Results::OrderStatus> status )noexcept->void;
