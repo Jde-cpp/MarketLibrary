@@ -48,7 +48,7 @@ namespace Jde::Markets
 		};
 		auto req = [check]( Day day, Day dayCount, Day checkDay=0 )
 		{
-			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(Contracts::Spy), day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true) ).get();
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<Contract>(Contracts::Spy), day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
@@ -89,7 +89,7 @@ namespace Jde::Markets
 				continue;
 			}
 			tested = true;
-			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			True( fs::exists(file), file.string() );//needs to work on prior month
 		}
@@ -107,7 +107,7 @@ namespace Jde::Markets
 		ASSERT_NEAR( actual.close, expected.close, .0001 );
 		//ASSERT_NEAR( actual.wap, expected.wap, .0001 );
 		if( compareVolume )
-			ASSERT_EQ( Math::URound(ToDouble(actual.volume)), Math::URound(ToDouble(expected.volume)) );
+			ASSERT_EQ( Round(ToDouble(actual.volume)), Round(ToDouble(expected.volume)) );
 		//DBG( "actual.time={}, actual={}, expected={}, diff={}"sv, actual.time, ToDouble(actual.volume), ToDouble(expected.volume), ToDouble(Subtract(actual.volume,expected.volume)) );
 		//ASSERT_EQ( actual.count, expected.count );
 		_testCompareBar = true;
@@ -124,7 +124,7 @@ namespace Jde::Markets
 	{
 		NoCache(){ Settings::Set("marketHistorian/barPath", _tempPath); }
 		~NoCache(){ Settings::Set( "marketHistorian/barPath", _original ); fs::remove_all( _tempPath ); }
-		fs::path _original{ Settings::Get<fs::path>("marketHistorian/barPath") };
+		fs::path _original{ Settings::Getɛ<fs::path>("marketHistorian/barPath") };
 		fs::path _tempPath{ fs::temp_directory_path()/"unitTests" };
 	};
 
@@ -136,16 +136,16 @@ namespace Jde::Markets
 		auto dates = BarData::FindExisting( contract, prev-30 );
 		if( dates.size()==0 )
 		{
-			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), prev, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), prev, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 			dates = BarData::FindExisting( contract, prev-30 ); ASSERT_GT( dates.size(), 0 );
 		}
 		var day = *dates.rbegin();
 		ClearMemoryLog();
-		auto pFileCache = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
+		auto pFileCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
 		HistoryCache::Clear( contract.Id, Display );
 		NoCache nc;
-		var pNoCache = Future<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
+		var pNoCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
 		CompareBars( *pFileCache, *pNoCache, false );
 	}
@@ -154,10 +154,10 @@ namespace Jde::Markets
 	{
 		var& contract = Contracts::SH;
 		var day = PreviousTradingDay();
-		auto pBars = Future<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
+		auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
 		ASSERT_GT( pBars->size(), 0 );
 		ClearMemoryLog();
-		pBars = Future<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
+		pBars = SFuture<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
 		var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
 		ASSERT_EQ( logs.size(), 0 );
 	}
@@ -186,20 +186,20 @@ namespace Jde::Markets
 		//_pTws->reqHistoricalData( id, *_contractPtr->ToTws(), endTimeString, format("{} D", _dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 /*		var tempPath = fs::temp_directory_path()/"unitTests";
 		Settings::Set( "marketHistorian/barPath", tempPath );
-		Future<vector<::Bar>>( Tws::HistoricalData(contract, ToDays(DateTime{2019,1,8}), 1, EBarSize::Day, EDisplay::Trades, true) ).get();
-		var pNoCache = Future<vector<::Bar>>( Tws::HistoricalData(contract, ToDays(DateTime{2019,1,8}), 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
+		SFuture<vector<::Bar>>( Tws::HistoricalData(contract, ToDays(DateTime{2019,1,8}), 1, EBarSize::Day, EDisplay::Trades, true) ).get();
+		var pNoCache = SFuture<vector<::Bar>>( Tws::HistoricalData(contract, ToDays(DateTime{2019,1,8}), 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
 		var bar = pNoCache->back();
 		//DBG( "2019,1,9 '{}' - count: '{}', volume: '{}', wap: '{}', open: '{:.2f}', close: '{:.2f}', high: '{:.2f}', low: '{:.2f}'", Chrono::Display(ConvertIBDate(bar.time)), bar.count, ToDouble(bar.volume), ToDouble(bar.wap), bar.open, bar.close, bar.high, bar.low );
 		fs::remove_all( tempPath );
 */
 		bool cached = true;
-		auto pValues = Future<StatCount>( ReqStats(contract, 5, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
+		auto pValues = SFuture<StatCount>( ReqStats(contract, 5, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{cached ? 1.004263 : 1.004734673, cached ? 0.000226 : .0002306706838, cached ? .946808 : .9463821274, cached ? 1.044750 : 1.04559958}, 248} );
 
-		pValues = Future<StatCount>( ReqStats(contract, 90/390.0, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
+		pValues = SFuture<StatCount>( ReqStats(contract, 90/390.0, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{1.00012755, 0.000006148848795, 0.9905072578, 1.007764935}, 252} );
 
-		pValues = Future<StatCount>( ReqStats(contract, 14, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
+		pValues = SFuture<StatCount>( ReqStats(contract, 14, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{ cached ? 1.0080295 : 1.008462279, cached ? 0.0003629049 : .000361840218, cached ? .946934704 : .9486596698, cached ? 1.05569695 : 1.054081344}, 244} );
 	}
 
@@ -212,7 +212,7 @@ namespace Jde::Markets
 		var day = *dates.rbegin();
 
 		ClearMemoryLog(); //2020-10-02T13:30:00, 2020-10-02T14:00:00Z
-		auto pFileCache = Future<vector<::Bar>>( Tws::HistoricalData(contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
+		auto pFileCache = SFuture<vector<::Bar>>( Tws::HistoricalData(contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
 //		for( auto bar : *pCache )
 //			Dbg( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
@@ -220,7 +220,7 @@ namespace Jde::Markets
 		NoCache nc;
 		ClearMemoryLog();
 		//auto pNoCache = _client.ReqHistoricalDataSync( contract, day, 1, EBarSize::Hour, EDisplay::Trades, true, false ).get();
-		auto pMemoryCache = Future<vector<::Bar>>( Tws::HistoricalData(contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
+		auto pMemoryCache = SFuture<vector<::Bar>>( Tws::HistoricalData(contract, day, 1, EBarSize::Hour, EDisplay::Trades, true) ).get();
 		//for( auto bar : *pNoCache )
 		//	DBG0( DateTime{ConvertIBDate(bar.time)}.ToIsoString() );
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
@@ -242,19 +242,19 @@ namespace Jde::Markets
 		};
 		auto req = [check]( ContractPtr_ contract, Day day, Day dayCount, Day checkDay=0 )
 		{
-			auto pBars = Future<vector<::Bar>>( Tws::HistoricalData( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true) ).get();
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData( contract, day, dayCount, EBarSize::Hour, EDisplay::Trades, true) ).get();
 			//ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
 		Contract contract; contract.Symbol = "SPY"; contract.SecType=SecurityType::Option; contract.Right=SecurityRight::Call; contract.Strike = 500; contract.Expiration = 19377; contract.Currency = Proto::Currencies::UsDollar;
-		var pDetails = Future<const Contract>( Tws::ContractDetails(contract.ToTws()) ).get();
+		var pDetails = SFuture<::ContractDetails>( Tws::ContractDetail(*contract.ToTws()) ).get();
 		//var& ibContract = pDetails->contract;
 		ClearMemoryLog();
 		var end = PreviousTradingDay();
 		var start = PreviousTradingDay( end );
-
-		req( pDetails, start, 1 );
-		req( pDetails, end, 2 );
-		req( pDetails, end, 3, PreviousTradingDay(start) );
+		auto pContract = ms<Contract>(*pDetails);
+		req( pContract, start, 1 );
+		req( pContract, end, 2 );
+		req( pContract, end, 3, PreviousTradingDay(start) );
 	}
 }

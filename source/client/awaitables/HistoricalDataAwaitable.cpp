@@ -70,7 +70,7 @@ namespace Jde::Markets
 				vector<::Bar> bars;
 				for( var& [start,end] : Missing() )
 				{
-					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).UP<map<Day,VectorPtr<CandleStick>>>();
+					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).SP<map<Day,VectorPtr<CandleStick>>>();
 					if( !pBars->size() )
 						continue;
 					LOG( "({})HistoryAwait::AsyncFetch have files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );

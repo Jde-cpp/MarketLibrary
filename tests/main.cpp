@@ -16,7 +16,7 @@ namespace Jde::Markets
 		auto pInstance = make_shared<WrapperSync>();
 		try
 		{
-			pInstance->CreateClient( Settings::Get<uint>("tws/clientId") );
+			pInstance->CreateClient( Settings::Getɛ<uint>("tws/clientId") );
 		}
 		catch( const Jde::Exception& e )
 		{

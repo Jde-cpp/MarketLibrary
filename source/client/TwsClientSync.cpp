@@ -24,7 +24,7 @@ namespace Jde::Markets
 		return _pSyncInstance;
 	}
 	TwsClientSync::TwsClientSync( const TwsConnectionSettings& settings, sp<WrapperSync> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
-		TwsClientCache( settings, wrapper, pReaderSignal, clientId )
+		Tws{ settings, wrapper, pReaderSignal, clientId }
 	{}
 
 	sp<WrapperSync> TwsClientSync::Wrapper()noexcept
@@ -85,89 +85,6 @@ namespace Jde::Markets
 		_conditionVariables.erase( reqId );
 		return time.value_or( TimePoint{} );
 	}
-
-/*	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync(const Contract& contract, Day endDay, Day dayCount, EBarSize barSize, TwsDisplay::Enum display, bool useRth, bool useCache)noexcept(false)
-	{
-		var reqId = RequestId();
-		auto future = _wrapper.ReqHistoricalDataPromise( reqId, barSize==EBarSize::Day && dayCount<3 ? 10s : 5min );
-		if( useCache )
-			TwsClientCache::ReqHistoricalData( reqId, contract, endDay, dayCount, barSize, display, useRth );
-		else
-		{
-			const DateTime endTime{ Chrono::FromDays(endDay) };
-			const string endTimeString{ format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };
-			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
-		}
-		return future;
-	}
-
-	TwsClientSync::Future<::Bar> TwsClientSync::ReqHistoricalDataSync( const Contract& contract, time_t start, EBarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept
-	{
-		var now = std::time(nullptr);
-		time_t end=start;
-		for( ; end<now; end+=barSize );
-		var seconds = end-start;
-		if( seconds )
-		{
-			var reqId = RequestId();
-			auto future = _wrapper.ReqHistoricalDataPromise( reqId, 10s );
-			const DateTime endTime{ end };
-			const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
-			reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} S", seconds), string{BarSize::TryToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
-			return future;
-		}
-		std::promise<sp<vector<::Bar>>> promise;
-		promise.set_value( make_shared<vector<::Bar>>() );
-		return promise.get_future();
-	}
-	*/
-
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol )noexcept
-	{
-		::Contract contract;
-		contract.symbol = symbol;
-		contract.secType = "STK";
-		contract.currency="USD";
-		contract.exchange = contract.primaryExchange = "SMART";
-
-		return ReqContractDetails( contract );
-	}
-*/
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( sv symbol, Day dayIndex, SecurityRight right )noexcept
-	{
-		::Contract contract; contract.symbol = symbol; contract.exchange = "SMART"; contract.secType = "OPT";/ *only works with symbol
-		if( dayIndex>0 )
-		{
-			const DateTime date{ Chrono::FromDays(dayIndex) };
-			contract.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
-		}
-		contract.right = ToString( right );
-
-		return ReqContractDetails( contract );
-	}*/
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetailsInst( ContractPK id )noexcept//TODO find out why return multiple?
-	{
-		ASSERT( id!=0 );
-		::Contract contract; contract.conId = id; contract.exchange = "SMART"; contract.secType = "STK";
-		return ReqContractDetails( contract );
-	}
-*/
-/*	TwsClientSync::Future<::ContractDetails> TwsClientSync::ReqContractDetails( const ::Contract& contract )noexcept
-	{
-		var reqId = RequestId();
-		auto future = _wrapper.ContractDetailsPromise( reqId );
-		TwsClientCache::ReqContractDetails( reqId, contract );
-		// if( set && cacheReqId )
-		// {
-		// 	var pContracts = future.get();
-		// 	for( var& contract : *pContracts )
-		// 		_wrapper.contractDetails( reqId, contract );
-		// 	_wrapper.contractDetailsEnd( reqId );
-		// }
-		// else if( !set )
-		// 	TwsClient::reqContractDetails( reqId, contract );
-		return future;
-	}*/
 
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept
 	{

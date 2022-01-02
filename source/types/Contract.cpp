@@ -1,4 +1,4 @@
-#include <jde/markets/types/Contract.h>
+﻿#include <jde/markets/types/Contract.h>
 #include "Currencies.h"
 #pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/results.pb.h>
@@ -26,7 +26,7 @@ namespace Jde::Markets
 		TradingClass{ other.tradingClass }
 	{}
 
-	Day Contract::ToDay( str str )noexcept
+	α Contract::ToDay( str str )noexcept->Day
 	{
 		Day value = 0;
 		if( str.size()==8 )
@@ -36,7 +36,7 @@ namespace Jde::Markets
 		}
 		return value;
 	}
-	sp<::Contract> Contract::ToTws()const noexcept
+	α Contract::ToTws()const noexcept->sp<::Contract>
 	{
 		auto pIB = ms<::Contract>();
 		auto& other = *pIB;
@@ -91,7 +91,7 @@ namespace Jde::Markets
 		if( contract.has_delta_neutral() )
 			DeltaNeutral = DeltaNeutralContract{ contract.delta_neutral() };
 	}
-	up<Proto::Contract> Contract::ToProto()const noexcept
+	α Contract::ToProto()const noexcept->up<Proto::Contract>
 	{
 		auto pProto = make_unique<Proto::Contract>();//  stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
 		pProto->set_id( Id );
@@ -134,7 +134,7 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
-	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( sv timeZoneId, str hours )noexcept;
+	α ParseTradingHours( sv timeZoneId, str hours )noexcept->sp<vector<Proto::Results::ContractHours>>;
 	Contract::Contract( const ::ContractDetails& details )noexcept:
 		Contract{ details.contract }
 	{
@@ -150,7 +150,7 @@ namespace Jde::Markets
 	Contract::~Contract()
 	{}
 
-	ContractPK Contract::ShortContractId()const noexcept
+	α Contract::ShortContractId()const noexcept->ContractPK
 	{
 		ContractPK shortContractId{0};
 		if( Id==Contracts::Spy.Id )
@@ -160,11 +160,11 @@ namespace Jde::Markets
 		return shortContractId;
 	}
 
-	PositionAmount Contract::LongShareCount( Amount price )const noexcept
+	α Contract::LongShareCount( Amount price )const noexcept->PositionAmount
 	{
 		return ShortShareCount( price );
 	}
-	PositionAmount Contract::ShortShareCount( Amount price )const noexcept
+	α Contract::ShortShareCount( Amount price )const noexcept->PositionAmount
 	{
 		var count = price==0 ? 0 : std::min( 1000.0, 10000.0/price );
 		auto shareCount = RoundShares( count, count>100 ? 100 : 1 );
@@ -177,17 +177,17 @@ namespace Jde::Markets
 			shareCount = 100;
 		return shareCount;
 	}
-	PositionAmount Contract::RoundShares( PositionAmount amount, PositionAmount roundAmount )const noexcept
+	α Contract::RoundShares( PositionAmount amount, PositionAmount roundAmount )const noexcept->PositionAmount
 	{
 		return PositionAmount( roundAmount==1 ? llround( amount ) : static_cast<_int>( amount/100 )*100 );
 	}
 
-	Amount Contract::RoundDownToMinTick( Amount price )const noexcept//TODO find min tick.
+	α Contract::RoundDownToMinTick( Amount price )const noexcept->Amount//TODO find min tick.
 	{
 		return Amount( std::round( (static_cast<double>(price)-.000005)*100.0 )/100.0 );//.00005 rounds down .005
 	}
 
-	string Contract::Display()const noexcept
+	α Contract::Display()const noexcept->string
 	{
 		return SecType==SecurityType::Option
 			? format("{} - {}@{}", Symbol, DateDisplay(Expiration), Strike )
@@ -200,7 +200,7 @@ namespace Jde::Markets
 		Price{ proto.price() }
 	{}
 
-	sp<Proto::DeltaNeutralContract> DeltaNeutralContract::ToProto( bool stupidPointer )const noexcept
+	α DeltaNeutralContract::ToProto( bool stupidPointer )const noexcept->sp<Proto::DeltaNeutralContract>
 	{
 		auto pProto = stupidPointer ? sp<Proto::DeltaNeutralContract>( new Proto::DeltaNeutralContract(), [](Proto::DeltaNeutralContract*){} ) : make_shared<Proto::DeltaNeutralContract>();
 		pProto->set_id( Id );
@@ -220,7 +220,7 @@ namespace Jde::Markets
 		ExemptCode{ proto.exempt_code() }
 	{}
 
-	void ComboLeg::SetProto( Proto::ComboLeg* pProto )const noexcept
+	α ComboLeg::SetProto( Proto::ComboLeg* pProto )const noexcept->void
 	{
 		pProto->set_contract_id( ConId );
 		pProto->set_ratio( Ratio );
@@ -242,7 +242,7 @@ namespace Jde::Markets
 		const Contract Xom{ 13977, Proto::Currencies::UsDollar, "XOM", 0, "EXXON MOBIL", Exchanges::Nyse, "XOM", "XOM", DateTime(2004,1,23,14,30,00).GetTimePoint() };
 	}
 #pragma region SecurityRight
-	SecurityRight ToSecurityRight( sv inputName )noexcept
+	α ToSecurityRight( sv inputName )noexcept->SecurityRight
 	{
 		CIString name{inputName};
 		auto securityRight = SecurityRight::None;
@@ -255,7 +255,7 @@ namespace Jde::Markets
 
 		return securityRight;
 	}
-	sv ToString( SecurityRight right )noexcept
+	α ToString( SecurityRight right )noexcept->sv
 	{
 		sv result = ""sv;
 		if( right==SecurityRight::Call )
@@ -267,7 +267,7 @@ namespace Jde::Markets
 	}
 #pragma endregion
 #pragma region SecurityType
-	SecurityType ToSecurityType( sv inputName )noexcept
+	α ToSecurityType( sv inputName )noexcept->SecurityType
 	{
 		CIString name{ inputName };
 		SecurityType type = SecurityType::Unknown;
@@ -285,12 +285,12 @@ namespace Jde::Markets
 		return type;
 	}
 	constexpr std::array<sv,12> SecurityTypes = {"None","STK","MutualFund","Etf","Future","Commodity","Bag","Cash","Fop","IND","OPT","WAR"};
-	sv ToString( SecurityType type )noexcept
+	α ToString( SecurityType type )noexcept->sv
 	{
 		return SecurityTypes[ type<(int)SecurityTypes.size() ? type : 0];
 	}
 #pragma endregion
-	ContractPtr_ Find( const flat_map<ContractPK, ContractPtr_>& contracts, sv symbol )noexcept
+	α Find( const flat_map<ContractPK, ContractPtr_>& contracts, sv symbol )noexcept->ContractPtr_
 	{
 		ContractPtr_ pContract;
 		for( var& pIdContract : contracts )
@@ -304,7 +304,7 @@ namespace Jde::Markets
 		return pContract;
 	}
 
-	sp<vector<Proto::Results::ContractHours>> ParseTradingHours( sv timeZoneId, str hours )noexcept
+	α ParseTradingHours( sv timeZoneId, str hours )noexcept->sp<vector<Proto::Results::ContractHours>>
 	{
 		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
 		if( auto pValue = Cache::Get<vector<Proto::Results::ContractHours>>(cacheId); pValue )
@@ -343,7 +343,21 @@ namespace Jde::Markets
 		return pHours;
 	}
 
-	ΓM α ToProto( const ::ContractDetails& details )noexcept->Proto::Results::ContractDetail
+	α ToIb( string symbol, Day dayIndex, SecurityRight right, double strike )noexcept->::Contract
+	{
+		::Contract contract; contract.symbol = move(symbol); contract.exchange = "SMART"; contract.secType = "OPT";/*only works with symbol*/
+		if( dayIndex>0 )
+		{
+			const DateTime date{ Chrono::FromDays(dayIndex) };
+			contract.lastTradeDateOrContractMonth = format( "{}{:0>2}{:0>2}", date.Year(), date.Month(), date.Day() );
+		}
+		if( strike )
+			contract.strike = strike;
+		contract.right = ToString( right );
+
+		return contract;
+	}
+	α ToProto( const ::ContractDetails& details )noexcept->Proto::Results::ContractDetail
 	{
 		Proto::Results::ContractDetail proto;
 		proto.set_allocated_contract( Contract{details.contract}.ToProto().release() );

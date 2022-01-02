@@ -1,10 +1,13 @@
 ﻿#pragma once
 #include <jde/markets/TypeDefs.h>
 #include <jde/markets/Exports.h>
+#include <jde/markets/types/proto/ib.pb.h>
 #include "../../../Framework/source/collections/Collections.h"
+#include "../../../Framework/source/coroutine/Awaitable.h"
 #include "../../../Framework/source/Settings.h"
 #pragma warning( disable : 4244 )
 #include "../types/proto/OptionOI.pb.h"
+
 #pragma warning( default : 4244 )
 
 #define Φ ΓM auto
@@ -32,11 +35,14 @@ namespace Jde::Markets
 	using OptionSetPtr=sp<OptionSet>;
 	namespace OptionData
 	{
-		Φ SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false)->OptionSetPtr;
+		using SecurityRight = Proto::SecurityRight;
+		using Proto::Results::OptionValues;
+		Φ Load( sp<::ContractDetails> pUnderlying, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait;
 		Φ Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false)->OptionSetPtr;
+		Φ SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false)->OptionSetPtr;
 		α LoadFiles( const Contract& contract )noexcept->flat_map<Day,sp<Proto::UnderlyingOIValues>>;
-		Φ LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false)->Proto::Results::OptionValues*;
-		Φ LoadDiff( const Contract& underlying, const vector<sp<ContractDetails>>& options, Proto::Results::OptionValues& results )noexcept(false)->Day;
+		Φ LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired=false, bool noFromDayOk=false )noexcept(false)->OptionValues*;
+		Φ LoadDiff( const Contract& underlying, const vector<sp<ContractDetails>>& options, OptionValues& results )noexcept(false)->Day;
 		α Insert( const Option& value )noexcept(false)->void;
 		Φ OptionFile( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept->fs::path;
 	}

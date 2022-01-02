@@ -31,15 +31,15 @@ namespace Jde::Markets
 
 	void TwsProcessor::Stop()noexcept
 	{
-		LOG( "TwsProcessor::Stop _pInstance={}"sv, _pInstance!=nullptr );
-		if( _pInstance )
-		{
-			LOG( "TwsProcessor::Stop - AddThread"sv );
-			IApplication::AddThread( _pInstance->_pThread );
-			_pInstance->_pThread->Interrupt();
-			if( TwsClient::HasInstance() )
-				TwsClient::Instance().reqCurrentTime();
-		}
+		if( !_pInstance )
+			return;
+
+		LOG( "TwsProcessor::Stop - AddThread"sv );
+		IApplication::AddThread( _pInstance->_pThread );
+		_pInstance->_pThread->Interrupt();
+		if( TwsClient::HasInstance() )
+			TwsClient::Instance().reqCurrentTime();
+
 		LOG( "Leaving TwsProcessor::Stop"sv );
 	}
 	void TwsProcessor::ProcessMessages( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept

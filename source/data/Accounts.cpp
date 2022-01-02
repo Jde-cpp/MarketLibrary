@@ -126,7 +126,7 @@ namespace Jde::Markets
 	{
 		for( auto&& ibName : accounts )
 		{
-			if( auto p = Accounts::Find( ibName ); !p )
+			if( auto p = Accounts::Find(ibName); !p )
 				Accounts::TryInsert( ibName );
 		}
 	}

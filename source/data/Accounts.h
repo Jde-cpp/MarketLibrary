@@ -7,9 +7,9 @@ namespace Jde::UM{ enum class EAccess : uint8; }
 namespace Jde::Markets
 {
 	struct Account{ PK Id{0}; string Display/*Name*/; string IbName/*Target*/; string Description; flat_map<UserPK, UM::EAccess> Access; };//TODO
-
 	struct ΓM AccountsAwait final:ITwsAwaitShared//sp<vector<Account>>
 	{
+		using base=ITwsAwaitShared;
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override;

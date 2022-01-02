@@ -129,7 +129,6 @@
     <ClCompile Include="client\awaitables\HistoricalDataAwaitable.cpp" />
     <ClCompile Include="client\awaitables\TwsAwaitable.cpp" />
     <ClCompile Include="client\TwsClient.cpp" />
-    <ClCompile Include="client\TwsClientCache.cpp" />
     <ClCompile Include="client\TwsClientCo.cpp" />
     <ClCompile Include="client\TwsClientSync.cpp" />
     <ClCompile Include="data\Accounts.cpp" />
@@ -238,7 +237,6 @@
     </ClCompile>
     <ClCompile Include="types\Tick.cpp" />
     <ClCompile Include="types\TwsConnectionSettings.cpp" />
-    <ClCompile Include="wrapper\WrapperCache.cpp" />
     <ClCompile Include="wrapper\WrapperCo.cpp" />
     <ClCompile Include="wrapper\WrapperLog.cpp" />
     <ClCompile Include="wrapper\WrapperSync.cpp" />
@@ -256,7 +254,6 @@
     <ClInclude Include="client\awaitables\HistoricalDataAwaitable.h" />
     <ClInclude Include="client\awaitables\TwsAwaitable.h" />
     <ClInclude Include="client\TwsClient.h" />
-    <ClInclude Include="client\TwsClientCache.h" />
     <ClInclude Include="client\TwsClientCo.h" />
     <ClInclude Include="client\TwsClientSync.h" />
     <ClInclude Include="data\Accounts.h" />
@@ -273,7 +270,6 @@
     <ClInclude Include="types\TwsConnectionSettings.h" />
     <ClInclude Include="types\WrapperLog.h" />
     <ClInclude Include="WrapperLog.h" />
-    <ClInclude Include="wrapper\WrapperCache.h" />
     <ClInclude Include="wrapper\WrapperCo.h" />
     <ClInclude Include="wrapper\WrapperLog.h" />
     <ClInclude Include="wrapper\WrapperPromise.h" />

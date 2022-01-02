@@ -9,13 +9,14 @@ namespace Jde::Markets
 	struct ΓM HistoryAwait final : ITwsAwaitShared//vector<::Bar>
 	{
 		using base = ITwsAwaitShared;
-		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth )noexcept:HistoryAwait{ pContract, end, dayCount, barSize, display, useRth, 0 }{}
+		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, SL sl )noexcept:HistoryAwait{ pContract, end, dayCount, barSize, display, useRth, 0, sl }{}
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
-		α await_resume()noexcept->AwaitResult override{ return _dataPtr ? AwaitResult{ _dataPtr } : base::await_resume(); }
+		α await_resume()noexcept->AwaitResult override{ return _dataPtr ? AwaitResult{ static_pointer_cast<void>(_dataPtr) } : base::await_resume(); }
 
 	private:
-		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start )noexcept:
+		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )noexcept:
+			ITwsAwaitShared{ sl },
 			_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 		{}
 		α Missing()noexcept->vector<tuple<Day,Day>>;

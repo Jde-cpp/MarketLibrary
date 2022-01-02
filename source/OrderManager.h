@@ -4,13 +4,15 @@
 #pragma warning( default : 4244 )
 
 #include "../../Framework/source/collections/Queue.h"
-#include "../../Framework/source/threading/Worker.h"
-#include "../../Framework/source/coroutine/CoWorker.h"
 #include "../../Framework/source/coroutine/Awaitable.h"
+#include "../../Framework/source/coroutine/CoWorker.h"
+#include "../../Framework/source/coroutine/Lock.h"
+#include "../../Framework/source/threading/Worker.h"
 #include <jde/coroutine/Task.h>
 #include <jde/markets/types/MyOrder.h>
 #include <jde/markets/types/Contract.h>
 #include <jde/markets/Exports.h>
+#include "types/IBException.h"
 
 
 namespace Jde::Markets{ struct TwsClientSync; }
@@ -19,7 +21,8 @@ namespace Jde::Markets::OrderManager
 {
 	struct IListener
 	{
-		β OnOrderChange( sp<const MyOrder> OrderPtr, sp<const Markets::Contract> ContractPtr, sp<const OrderStatus> StatusPtr, sp<const OrderState> StatePtr )noexcept->void=0;
+		β OnOrderChange( sp<const MyOrder> OrderPtr, sp<const Markets::Contract> ContractPtr, sp<const OrderStatus> StatusPtr, sp<const OrderState> StatePtr )noexcept->Task=0;
+		β OnOrderException( string account, sp<const IBException> e )->Task=0;
 	};
 	using namespace Coroutine;
 	struct OrderParams /*~final*/
@@ -47,6 +50,7 @@ namespace Jde::Markets::OrderManager
 		sp<const Markets::Contract> ContractPtr;
 		sp<const OrderStatus> StatusPtr;
 		sp<const ::OrderState> StatePtr;
+		sp<const IBException> ExceptionPtr;
 	};
 
 	using boost::container::flat_multimap;
@@ -59,7 +63,7 @@ namespace Jde::Markets::OrderManager
 		~Awaitable()=default;
 		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
 		α await_suspend( HCoroutine h )noexcept->void;
-		α await_resume()noexcept->AwaitResult{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? _pPromise->get_return_object().Result() : Task::TResult{}; }
+		α await_resume()noexcept->AwaitResult{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
 	private:
 		Task::promise_type* _pPromise{nullptr};
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
@@ -67,12 +71,12 @@ namespace Jde::Markets::OrderManager
 #define Φ ΓM α
 	Φ Cancel( Handle h )noexcept->void;
 	Ξ Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
-	α Listen( sp<IListener> p )noexcept->void;
-	Φ GetLatest( ::OrderId orderId )noexcept->optional<Cache>;
+	Φ Listen( sp<IListener> p )noexcept->Task;
+	Φ Latest( ::OrderId orderId )noexcept->LockWrapperAwait;
 	α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void;
 	Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
 	α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
-
+	α Push( ::OrderId id, int errorCode, string errorMsg )noexcept->Task;
 
 	struct OrderWorker final: TCoWorker<OrderWorker,Awaitable>
 	{
@@ -81,7 +85,7 @@ namespace Jde::Markets::OrderManager
 		OrderWorker():base{"OrderWorker"}{};
 	private:
 		static sp<OrderWorker> Instance()noexcept;
-		α Process()noexcept->void override;
+		Φ Process()noexcept->void override;
 		optional<Cache> Latest( ::OrderId orderId )noexcept;
 		α Cancel( Handle h )noexcept->void;
 		α Subscribe( const SubscriptionInfo& params )noexcept->void;
@@ -91,7 +95,6 @@ namespace Jde::Markets::OrderManager
 		static sp<OrderWorker> _pInstance;
 		static sp<TwsClientSync> _pTws;
 		flat_map<::OrderId,Cache> _incoming; mutex _incomingMutex;
-		flat_map<::OrderId,Cache> _cache; shared_mutex _cacheMutex;
 		friend Awaitable;
 		friend Φ Cancel( Handle h )noexcept->void;
 		friend ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;

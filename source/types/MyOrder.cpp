@@ -1,4 +1,4 @@
-#include <jde/markets/types/MyOrder.h>
+﻿#include <jde/markets/types/MyOrder.h>
 #include "OrderEnums.h"
 //#include "proto/requests.pb.h"
 
@@ -6,7 +6,7 @@
 #define var const auto
 namespace Jde
 {
-	up<Markets::Proto::Results::OrderState> Markets::ToProto( const ::OrderState& state )noexcept
+	α Markets::ToProto( const ::OrderState& state )noexcept->up<Markets::Proto::Results::OrderState>
 	{
 		auto p = mu<Proto::Results::OrderState>();
 		p->set_status( state.status );
@@ -22,7 +22,6 @@ namespace Jde
 		p->set_equity_with_loan_after( state.equityWithLoanAfter==NotSet ? "" : state.equityWithLoanAfter );
 		var max = std::numeric_limits<double>::max();
 		p->set_commission( state.commission==max ? nan("") : state.commission );
-		//DBG( "max='{}', state='{}', proto='{}'"sv, max, state.commission, p->commission() );
 		p->set_min_commission( state.minCommission==max ? nan("") : state.minCommission );
 		p->set_max_commission( state.maxCommission==max ? nan("") : state.maxCommission );
 		p->set_commission_currency( state.commissionCurrency );
@@ -121,7 +120,7 @@ namespace Jde::Markets
 	*/
 		//TODO rest of variables
 	}
-	up<Proto::Order> MyOrder::ToProto()const noexcept
+	α MyOrder::ToProto()const noexcept->up<Proto::Order>
 	{
 		auto p = make_unique<Proto::Order>();
 		auto& proto = *p;
@@ -200,24 +199,24 @@ namespace Jde::Markets
 
 		return p;
 	}
-	Proto::ETimeInForce MyOrder::TimeInForce()const noexcept
+	α MyOrder::TimeInForce()const noexcept->Proto::ETimeInForce
 	{
 		return Str::ToEnum<Proto::ETimeInForce>( ETifStrings, tif ).value_or( Proto::ETimeInForce::DayTif );
 	}
 
-	void MyOrder::TimeInForce( Proto::ETimeInForce value )noexcept
+	α MyOrder::TimeInForce( Proto::ETimeInForce value )noexcept->void
 	{
 		tif = static_cast<uint>(value)<ETifStrings.size() ? ETifStrings[value] : "";
 	}
-	Proto::EOrderType MyOrder::OrderType()const noexcept
+	α MyOrder::OrderType()const noexcept->Proto::EOrderType
 	{
 		return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, orderType ).value_or( Proto::EOrderType::Limit );
 	}
-	void MyOrder::OrderType( Proto::EOrderType value )noexcept
+	α MyOrder::OrderType( Proto::EOrderType value )noexcept->void
 	{
 		orderType = ToOrderTypeString( value );
 	}
-	time_t MyOrder::ParseDateTime( const string& date )noexcept
+	α MyOrder::ParseDateTime( const string& date )noexcept->time_t
 	{
 		//20060505 08:00:00 {time zone}
 		auto time = DateTime{ (uint16)stoi(date.substr(0,4)), (uint8)stoi(date.substr(4,2)), (uint8)stoi(date.substr(6,2)), (uint8)stoi(date.substr(9,2)), (uint8)stoi(date.substr(13,2)), (uint8)stoi(date.substr(15,2)) }.GetTimePoint();
@@ -231,7 +230,7 @@ namespace Jde::Markets
 		}
 		return Clock::to_time_t( time );
 	}
-	string MyOrder::ToDateString( time_t date )noexcept
+	α MyOrder::ToDateString( time_t date )noexcept->string
 	{
 		string result;
 		if( date )
@@ -242,7 +241,7 @@ namespace Jde::Markets
 		return result;
 	}
 
-	MyOrder::Fields MyOrder::Changes( const MyOrder& rhs, Fields fields )const noexcept
+	α MyOrder::Changes( const MyOrder& rhs, Fields fields )const noexcept->MyOrder::Fields
 	{
 		auto changes = Fields::None;
 		if( LastUpdate!=rhs.LastUpdate ) changes|=Fields::LastUpdate;
@@ -256,7 +255,7 @@ namespace Jde::Markets
 		return changes;
 	}
 
-	OrderStatus::Fields OrderStatus::Changes( const OrderStatus& status )const noexcept
+	α OrderStatus::Changes( const OrderStatus& status )const noexcept->OrderStatus::Fields
 	{
 		auto changes = Fields::None;
 		if( Status!=status.Status ) changes|=Fields::Status;
@@ -281,7 +280,7 @@ namespace Jde::Markets
 		return p;
 	}
 
-	OrderStateFields OrderStateChanges( const ::OrderState& a, const ::OrderState& b )noexcept
+	α OrderStateChanges( const ::OrderState& a, const ::OrderState& b )noexcept->OrderStateFields
 	{
 		auto changes = OrderStateFields::None;
 		if( a.status!=b.status ) changes|=OrderStateFields::Status;

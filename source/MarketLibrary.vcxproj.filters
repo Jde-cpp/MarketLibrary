@@ -89,9 +89,6 @@
     <ClInclude Include="client\TwsClient.h">
       <Filter>Header Files\client</Filter>
     </ClInclude>
-    <ClInclude Include="client\TwsClientCache.h">
-      <Filter>Header Files\client</Filter>
-    </ClInclude>
     <ClInclude Include="client\TwsClientCo.h">
       <Filter>Header Files\client</Filter>
     </ClInclude>
@@ -115,9 +112,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Public\jde\markets\types\Contract.h">
       <Filter>Header Files\types</Filter>
-    </ClInclude>
-    <ClInclude Include="wrapper\WrapperCache.h">
-      <Filter>Header Files\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="wrapper\WrapperCo.h">
       <Filter>Header Files\wrapper</Filter>
@@ -187,14 +181,8 @@
     <ClCompile Include="client\TwsClient.cpp">
       <Filter>Source Files\client</Filter>
     </ClCompile>
-    <ClCompile Include="client\TwsClientCache.cpp">
-      <Filter>Source Files\client</Filter>
-    </ClCompile>
     <ClCompile Include="client\TwsClientSync.cpp">
       <Filter>Source Files\client</Filter>
-    </ClCompile>
-    <ClCompile Include="wrapper\WrapperCache.cpp">
-      <Filter>Source Files\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="wrapper\WrapperLog.cpp">
       <Filter>Source Files\wrapper</Filter>

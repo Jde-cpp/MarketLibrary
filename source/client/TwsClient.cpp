@@ -1,5 +1,6 @@
 ﻿#include "TwsClient.h"
 #include "../TwsProcessor.h"
+#include "../data/Accounts.h"
 #include "../wrapper/WrapperLog.h"
 #include "../types/Bar.h"
 #include <jde/markets/types/Contract.h>
@@ -17,11 +18,16 @@ namespace Jde::Markets
 	{
 		if( _pInstance )
 			DBG( "Creating new Instance of TwsClient, removing old."sv );
+
 		_pInstance = sp<TwsClient>( new TwsClient(settings, wrapper, pReaderSignal, clientId) );
 		TwsProcessor::CreateInstance( _pInstance, pReaderSignal );
 		while( !_pInstance->isConnected() ) //Make sure thread is still alive, ie not shutting down.  while( !TwsProcessor::IsConnected() )
 			std::this_thread::yield();
-		INFO( "Connected to Tws Host='{}', Port'{}', Client='{}'"sv, settings.Host, _pInstance->_port, clientId );
+		_pInstance->reqIds();
+		while( _pInstance->_requestId==0 )
+			std::this_thread::yield();
+
+		INFO( "Connected to Tws Host='{}', Port'{}', Client='{}' nextId='{}'"sv, settings.Host, _pInstance->_port, clientId, _pInstance->_requestId );
 	}
 
 	TwsClient::TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> pWrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
@@ -29,6 +35,7 @@ namespace Jde::Markets
 		_pWrapper{ pWrapper },
 		_settings{ settings }
 	{
+		AccountAuthorizer::Initialize();
 		for( var port : _settings.Ports )
 		{
 			TRACE( "Attempt to connect to Tws:  {}", port );
@@ -187,7 +194,7 @@ namespace Jde::Markets
 	α TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
-		LOG( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice );
+		LOG( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice );
 		OrderManager::Push( order, contract );
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}

@@ -1,16 +1,16 @@
 ﻿#include "./OptionData.h"
-#include "BarData.h"
-#include <jde/markets/types/Contract.h>
-
-#pragma warning( disable : 4244 )
-#include <jde/markets/types/proto/results.pb.h>
-#pragma warning( default : 4244 )
-
-#include "../types/Exchanges.h"
 #include <jde/io/File.h>
+#include <jde/markets/types/Contract.h>
+#include <jde/markets/types/proto/results.pb.h>
+
 #include "../../../Framework/source/db/Database.h"
 #include "../../../Framework/source/Cache.h"
 #include "../../../XZ/source/XZ.h"
+#include "../client/TwsClientCo.h"
+#include "../data/BarData.h"
+#include "../types/Exchanges.h"
+#include "../types/IBException.h"
+
 #define var const auto
 
 namespace Jde::Markets
@@ -75,10 +75,8 @@ namespace Jde::Markets
 			OptionPtr pOption = make_shared<const Option>();
 			auto& option = const_cast<Option&>( *pOption );
 			option.UnderlyingId = underlyingId;
-			//uint16 dayCount;
 			uint8 flags;
 			row >> option.Id >> option.ExpirationDay >> flags >> option.Strike;
-			 //= dayCount;
 			option.IsCall = (flags&1)==1;
 			option.ContractPtr = make_shared<Contract>( option.Id );
 
@@ -121,7 +119,6 @@ namespace Jde::Markets
 		var from = PreviousTradingDay( to );
 		const DateTime toDate{ Chrono::FromDays(to) };
 		const DateTime fromDate{ Chrono::FromDays(from) };
-		//DBG( "current={}, to={}, from={}"sv, DateTime(Chrono::FromDays(currentTradingDay)).DateDisplay(), toDate.DateDisplay(), fromDate.DateDisplay() );
 		var pFromValues = Load( underlying, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
 		var fromSize = pFromValues ? pFromValues->contracts_size() : 0;
 		for( auto i=0; i<fromSize; ++i )
@@ -185,7 +182,6 @@ namespace Jde::Markets
 			options.emplace( pOption->Id, make_tuple(pOption,nullptr) );
 
 		const DateTime fromDate( Chrono::FromDays(from) );
-		//var pContract = Data::ContractData::Load( contract.Id );
 		var pFromValues = Load( contract, fromDate.Year(), fromDate.Month(), fromDate.Day() );//sp<Proto::UnderlyingOIValues>
 		if( !pFromValues && !noFromDayOk )
 			return nullptr;
@@ -216,7 +212,6 @@ namespace Jde::Markets
 			auto pDayValue = values.find( daysSinceEpoch );
 			if( pDayValue==values.end() )
 			{
-				//DBG( "Adding - {}({})", DateTime(DateTime::FromDays(daysSinceEpoch)).ToIsoString(), daysSinceEpoch );
 				pDayValue = values.emplace( daysSinceEpoch, pResults->add_option_days() ).first;
 				pDayValue->second->set_expiration_days( daysSinceEpoch );
 				pDayValue->second->set_is_call( isCall );
@@ -258,6 +253,77 @@ namespace Jde::Markets
 			}
 		}
 		return pResults;
+	}
+
+	α Load2( sp<::ContractDetails> pUnderlying, DayIndex expiration, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
+	{
+		return FunctionAwait( [=](HCoroutine h)->Task
+		{
+			var& symbol = pUnderlying->contract.symbol;
+			var ibContract = ToIb( symbol, expiration, right, startStrike && startStrike==endStrike ? startStrike : 0 );
+			auto pContracts = ( co_await Tws::ContractDetails(ibContract) ).UP<vector<sp<::ContractDetails>>>(); THROW_IF( pContracts->size()<1, "'{}' - '{}' {} has {} contracts", symbol, DateTime{Chrono::FromDays(expiration)}.DateDisplay(), ToString(right), pContracts->size() );
+			if( !ibContract.strike && (startStrike!=0 || endStrike!=0) )//remove contracts outside bounds?
+			{
+				auto pContracts2 = mu<vector<sp<ContractDetails>>>();
+				for( var& details : *pContracts )
+				{
+					if( (startStrike==0 || startStrike<=details->contract.strike) && (endStrike==0 || endStrike>=details->contract.strike) )
+						pContracts2->push_back( details );
+				}
+				pContracts = move( pContracts2 );
+			}
+			Contract c{*pUnderlying};
+			var valueDay = OptionData::LoadDiff( c, *pContracts, *pResults );
+			if( !valueDay )
+			{
+				flat_map<double,ContractPK> sorted;
+				for( var p : *pContracts )
+					sorted.emplace( p->contract.strike, p->contract.conId );
+
+				auto pExpiration = pResults->add_option_days();
+				pExpiration->set_is_call( right==SecurityRight::Call );
+				pExpiration->set_expiration_days( expiration );
+				for( var& [strike,contractId] : sorted )
+				{
+					auto pValue = pExpiration->add_values();
+					pValue->set_id( contractId );
+					pValue->set_strike( static_cast<float>(strike) );
+				}
+			}
+			if( valueDay )
+				h.promise().get_return_object().SetResult( mu<Day>(valueDay) );
+		});
+	}
+	α OptionData::Load( sp<::ContractDetails> pDetail, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
+	{
+		return FunctionAwait( [=](HCoroutine h)->Task
+		{
+			if( startExp==endExp )
+			{
+				var pDay = ( co_await Load2(pDetail, startExp, right, startStrike, endStrike, pResults) ).UP<Day>();
+				pResults->set_day( pDay ? *pDay : 0 );
+			}
+			else
+			{
+				var pOptionParams = ( co_await Tws::SecDefOptParams(pDetail->contract.conId,true) ).SP<Proto::Results::ExchangeContracts>();
+				var end = endExp ? endExp : std::numeric_limits<DayIndex>::max();
+				for( var expiration : pOptionParams->expirations() )
+				{
+					if( expiration<startExp || expiration>end )
+						continue;
+					try
+					{
+						var pDay = ( co_await Load2(pDetail, expiration, right, startStrike, endStrike, pResults) ).UP<Day>();
+						pResults->set_day( *pDay );//sets day multiple times...
+					}
+					catch( IBException& e )
+					{
+						if( e.Code!=200 )//No security definition has been found for the request
+							throw move(e);
+					}
+				}
+			}
+		});
 	}
 
 	α OptionDir( const Contract& contract )->fs::path

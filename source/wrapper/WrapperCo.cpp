@@ -1,11 +1,13 @@
 ﻿#include "WrapperCo.h"
 #include <jde/markets/types/Contract.h>
+#include <jde/markets/types/MyOrder.h>
 #include "../../../Framework/source/Cache.h"
 #include "../../../Framework/source/collections/Collections.h"
 #include "../client/awaitables/HistoricalDataAwaitable.h"
 #include "../data/Accounts.h"
 #include "../types/Exchanges.h"
 #include "../types/IBException.h"
+
 #define var const auto
 
 namespace Jde::Markets
@@ -15,6 +17,13 @@ namespace Jde::Markets
 		auto p = handles.MoveOut( reqId ); RETURN_IF( !p, "({})Could not get co-handle", reqId );
 		p->promise().get_return_object().SetResult<T>( move(pResult) );
 		Coroutine::CoroutinePool::Resume( move(*p) );
+	}
+
+	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T> pResult )->void
+	{
+		auto h = handles.MoveOut( reqId ); RETURN_IF( !h, "({})Could not get co-handle", reqId );
+		h->promise().get_return_object().SetResult<T>( move(pResult) );
+		Coroutine::CoroutinePool::Resume( move(*h) );
 	}
 
 	bool WrapperCo::error2( int id, int errorCode, str errorMsg )noexcept
@@ -31,7 +40,7 @@ namespace Jde::Markets
 			}
 			return pHandle.has_value();
 		};
-		bool handled = r( _contractHandles ) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		bool handled = r( _contractHandles ) || r(_orderHandles) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
 		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
@@ -172,15 +181,28 @@ namespace Jde::Markets
 	{
 		WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		if( CIString{exchange}=="SMART"sv )
-			*Collections::InsertUnique( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
+			*EmplaceShared( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
 
 	α WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )noexcept->void
 	{
 		WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
 		var pParams = _optionParams.find( reqId );
-		auto pResults = pParams!=_optionParams.end() ? move( (*pParams).second ) : make_unique<Proto::Results::OptionExchanges>();
+		auto pResults = pParams!=_optionParams.end() ? move( (*pParams).second ) : ms<Proto::Results::OptionExchanges>();
 		_optionParams.erase( reqId );
 		Resume( _secDefOptParamHandles, reqId, move(pResults) );
+	}
+	
+	α WrapperCo::OpenOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& state )noexcept->sp<Proto::Results::OpenOrder>
+	{
+		WrapperLog::openOrder( orderId, contract, order, state );
+		auto p = ms<Proto::Results::OpenOrder>();
+		p->set_allocated_contract( Contract{contract}.ToProto().release() );
+		p->set_allocated_order( MyOrder{order}.ToProto().release() );
+		p->set_allocated_state( ToProto(state).release() );
+
+		Resume( _orderHandles, orderId, p );
+
+		return p;
 	}
 }

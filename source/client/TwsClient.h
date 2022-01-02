@@ -29,7 +29,7 @@ namespace ibapi
 namespace Jde::Markets
 {
 	struct IAccountUpdateHandler;
-	struct TwsProcessor; struct TwsConnectionSettings; struct WrapperLog; struct Contract; class ClientConnection;
+	struct TwsProcessor; struct TwsConnectionSettings; struct WrapperLog; struct Contract; class ClientConnection; struct PlaceOrderAwait;
 
 	struct ΓM TwsClient : private EClientSocket
 	{
@@ -38,7 +38,7 @@ namespace Jde::Markets
 		Ω Instance()noexcept->TwsClient&{return *_pInstance;}//ASSERT(_pInstance);
 		Ω InstancePtr()noexcept->sp<TwsClient>{ return _pInstance; }
 		Ω HasInstance()noexcept->bool{ return _pInstance!=nullptr;}
-		α RequestId()noexcept->ibapi::OrderId{ return _requestId++; }
+		Ω RequestId()noexcept->ibapi::OrderId{ return Instance()._requestId++; }
 		α isConnected()const noexcept->bool{ return EClientSocket::isConnected(); }
 		α SetRequestId( TickerId id )noexcept->void;
 
@@ -71,7 +71,6 @@ namespace Jde::Markets
 		α reqCurrentTime()noexcept->void;
 		α reqOpenOrders()noexcept->void;
 		α reqAllOpenOrders()noexcept->void;
-		α placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void;
 	protected:
 		sp<EWrapper> _pWrapper;
 		sp<WrapperLog> WrapperLogPtr()noexcept;
@@ -79,13 +78,12 @@ namespace Jde::Markets
 		TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static sp<TwsClient> _pInstance;
 	private:
+		α placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void;
 		α reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions)noexcept->void;
 		TwsConnectionSettings _settings;
-		std::atomic<TickerId> _requestId{1};
+		std::atomic<TickerId> _requestId{0};
 		static const LogTag& _logLevel;
 		flat_set<string> _accountUpdates; shared_mutex _accountUpdateMutex;
-		friend TwsProcessor;
-		friend TickManager::TickWorker;
-		friend ClientConnection;
+		friend TwsProcessor; friend TickManager::TickWorker; friend ClientConnection; friend PlaceOrderAwait;
 	};
 }

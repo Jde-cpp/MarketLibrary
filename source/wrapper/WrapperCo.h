@@ -2,10 +2,11 @@
 #include "../../../Framework/source/coroutine/Coroutine.h"
 #include "./WrapperLog.h"
 #include "../../../Framework/source/collections/UnorderedMapValue.h"
+//#include <jde/markets/types/proto/results.pb.h>
 
 namespace Jde::Markets
 {
-	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait;
+	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait; struct PlaceOrderAwait;
 	using namespace Jde::Coroutine;
 	struct ΓM WrapperCo : WrapperLog
 	{
@@ -28,17 +29,19 @@ namespace Jde::Markets
 
 		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void override;
 		α securityDefinitionOptionalParameterEnd( int reqId )noexcept->void override;
+		α OpenOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& state )noexcept->sp<Proto::Results::OpenOrder>;
 	protected:
 		flat_map<ReqId,up<vector<sp<::ContractDetails>>>> _requestContracts; UnorderedMapValue<ReqId,HCoroutine> _contractHandles;
 	private:
 		flat_map<int,up<Proto::Results::NewsCollection>> _news;UnorderedMapValue<int,HCoroutine> _newsHandles;
 		UnorderedSet<HCoroutine> _newsProviderHandles;
 		UnorderedMapValue<int,HCoroutine> _newsArticleHandles;
-		flat_map<int,up<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<int,HCoroutine> _secDefOptParamHandles;
+		flat_map<ReqId,sp<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<ReqId,HCoroutine> _secDefOptParamHandles;
 		UnorderedMapValue<int,HistoryAwait*> _historical;
 		flat_map<TickerId,vector<::Bar>> _historicalData;
 		HCoroutine _accountHandle;
+		UnorderedMapValue<::OrderId,HCoroutine> _orderHandles;
 
-		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait;
+		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait; friend PlaceOrderAwait;
 	};
 }

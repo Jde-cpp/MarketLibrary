@@ -51,13 +51,15 @@ namespace Jde::Markets
 					WARN_IF( pDetails->size()>1, "{} returned {} records expected 1.", ToString(), pDetails->size() );
 				}
 			}
+			else
+				result.Set( pDetails.release() );
 		}
 
-		return result;
+		return move(result);
 	}
 	α Tws::ContractDetail( ContractPK conId )noexcept->ContractAwait{ return ContractAwait{ conId, [=]( ReqId id, sp<TwsClient> p )noexcept
 	{
-		::Contract c; c.conId=conId;
+		::Contract c; c.conId=conId; //c.exchange = "SMART"; c.secType = "STK"; c.currency = "USD";
 		p->reqContractDetails( id, c );
 	}};}
 
@@ -80,8 +82,8 @@ namespace Jde::Markets
 	α NewsProviderAwait::await_resume()noexcept->AwaitResult
 	{
 		AwaitResult result = _pPromise ? base::await_resume() : AwaitResult{ _pCache };
-		if( _pPromise && result.HasValue() )
-			Cache::Set<map<string,string>>( CacheId(), _pCache = result.SP<map<string,string>>() );
+		if( _pPromise && result.HasShared() )
+			Cache::Set<map<string,string>>( CacheId(), result.SP<map<string,string>>() );
 		return result;
 	}
 	α Tws::NewsProviders()noexcept->NewsProviderAwait{ return NewsProviderAwait{ [&]( sp<TwsClient> p )noexcept

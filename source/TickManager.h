@@ -26,7 +26,7 @@ namespace Jde::Markets
 			Awaitable( const TickParams& params, Handle& h )noexcept;
 			α await_ready()noexcept->bool override;
 			α await_suspend( HCoroutine h )noexcept->void override;
-			α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return _pPromise ? _pPromise->get_return_object().Result() : AwaitResult{ make_shared<Markets::Tick>(TickParams::Tick) }; }
+			α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ mu<Markets::Tick>(TickParams::Tick) }; }
 		private:
 			Task::promise_type* _pPromise{ nullptr };
 		};
@@ -48,7 +48,7 @@ namespace Jde::Markets
 			struct SubscriptionInfo : base::Handles<>{ TickManager::TickParams Params; };
 			static sp<TickWorker> CreateInstance( sp<TwsClient> _pParent )noexcept;
 			TickWorker( sp<TwsClient> pParent )noexcept;
-			//~TickWorker(){ DBG("~TickWorker"); }
+
 			α Push( TickerId id, ETickType type, Decimal v )noexcept->void;
 			α Push( TickerId id, ETickType type, double v )noexcept->void;
 			α Push( TickerId id, ETickType type, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept->void;

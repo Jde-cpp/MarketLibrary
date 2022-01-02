@@ -26,7 +26,7 @@ namespace Jde::Markets
 
 	fs::path BarData::Path()noexcept(false)
 	{
-		var path = Settings::Get<fs::path>( "marketHistorian/barPath" );
+		var path = Settings::Getɛ<fs::path>( "marketHistorian/barPath" );
 		return path.empty() ? IApplication::Instance().ApplicationDataFolder()/"securities" : path;
 	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/Str::ToLower(string{ToString(contract.PrimaryExchange)})/Str::Replace(contract.Symbol, " ", "_"); }
@@ -44,7 +44,7 @@ namespace Jde::Markets
 			{
 				LOG( "Reading {}", path.string() );
 				AwaitResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
-				var pFile = t.UP<Proto::BarFile>();
+				var pFile = t.SP<Proto::BarFile>();
 				Day dayCount = pFile->days_size();
 				auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
 				for( Day i=0; i<dayCount; ++i )
@@ -172,11 +172,13 @@ namespace Jde::Markets
 			_h = move( h );
 			auto f = [this]()mutable->Task
 			{
-				for( var& [path,start,end] : _files )
+				for( var [path,start,end] : _files )
 				{
 					try
 					{
-						auto pData = ( co_await BarData::Load(move(path), _symbol) ).UP<map<Day,VectorPtr<CandleStick>>>();
+						auto a = BarData::Load( move(path), _symbol );
+						auto result = co_await a;
+						auto pData = result.SP<map<Day,VectorPtr<CandleStick>>>();
 						_function( *pData, start, end );
 					}
 					catch( IException& e )

@@ -53,3 +53,5 @@ tests/packages/*
 *.log
 *.aps
 source/.vscode/settings.json
+*.exp
+*.pdb

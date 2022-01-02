@@ -1,12 +1,12 @@
 {
 	"testing":
 	{
-		"tests":  "Permissions.*",
-		"xtests":  "*"
+		"_tests":  "OrderManagerTests.Adhoc",
+		"tests":  "*"
 	},
 	"logging":
 	{
-		"tags": [ "threads", "_sql", "_tws-requests", "_tws-hist", "_mrk-hist" ],
+		"tags": [ "threads", "_sql", "_tws-requests", "tws-results", "_tws-hist", "_mrk-hist" ],
 		"console":{},
 		"file":{ "path": ".." },
 		"memory": true,

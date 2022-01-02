@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <Order.h>
 #include <jde/coroutine/Task.h>
 #include <jde/markets/Exports.h>
 #include <jde/markets/TypeDefs.h>
@@ -12,10 +13,12 @@ namespace Jde::Markets
 	struct WrapperCo; struct Tws;
 
 	using namespace Jde::Coroutine;
-	struct ΓM ITwsAwait : IAwait
+	class ΓM ITwsAwait : public IAwait
 	{
-		ITwsAwait()noexcept;
 		using base=IAwait;
+	public:
+		ITwsAwait( SRCE )noexcept;
+		
 		α await_ready()noexcept->bool override{ return !_pTws; }
 		α await_suspend( HCoroutine h )noexcept->void override{ base::await_suspend( h ); };
 		α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return move(_pPromise->get_return_object().Result()); }
@@ -23,16 +26,19 @@ namespace Jde::Markets
 		sp<WrapperCo> WrapperPtr()noexcept;
 		sp<Tws> _pTws;
 	};
+	
 	struct ITwsAwaitUnique : ITwsAwait
 	{
 	};
 
 	struct ITwsAwaitShared : ITwsAwait
 	{
+		ITwsAwaitShared( SRCE ):ITwsAwait{sl}{}
 	};
-
-	struct ΓM SecDefOptParamAwait : ITwsAwaitShared
+#define Base ITwsAwaitShared
+	struct ΓM SecDefOptParamAwait final : Base
 	{
+		using base=Base;
 		SecDefOptParamAwait( ContractPK conId, bool smart )noexcept:_underlyingConId{conId}, _smart{smart}{};
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
@@ -43,17 +49,32 @@ namespace Jde::Markets
 		const bool _smart;
 		sp<Proto::Results::OptionExchanges> _dataPtr;
 	};
-
-	struct ΓM AllOpenOrdersAwait : ITwsAwaitUnique
+#undef Base
+#define Base ITwsAwaitUnique
+	struct ΓM AllOpenOrdersAwait final : Base
 	{
+		using base=Base;
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override;
 		Ω Finish()noexcept->void;
-		Ω Push( up<Proto::Results::OpenOrder> order )noexcept->void;
+		Ω Push( Proto::Results::OpenOrder& order )noexcept->void;
 		Ω Push( up<Proto::Results::OrderStatus> status )noexcept->void;
 	private:
 		HCoroutine _h;
 		static vector<HCoroutine> _handles; static std::mutex _mutex;
-		static sp<Proto::Results::Orders> _pData;
+		static up<Proto::Results::Orders> _pData;
+	};
+
+	struct ΓM PlaceOrderAwait final : Base
+	{
+		using base=Base;
+		PlaceOrderAwait( sp<::Contract> c, ::Order o, string blockId ):_pContract{c}, _order{move(o)}, _blockId{move(blockId)}{}
+		α await_suspend( HCoroutine h )noexcept->void override;
+		α await_resume()noexcept->AwaitResult override;
+	private:
+		sp<::Contract> _pContract;
+		::Order _order;
+		string _blockId;
 	};
 }
+#undef Base

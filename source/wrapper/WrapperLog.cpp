@@ -13,15 +13,16 @@ namespace Jde::Markets
 {
 	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
 
-//	ELogLevel WrapperLog::_logLevel{ Logging::TagLevel("wrapper", [](auto l){ WrapperLog::SetLevel(l);}, ELogLevel::Trace) };
-	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws.results") };
+	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws-results") };
 	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws-hist") };
-	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws.tick") };
+	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws-tick") };
 
-	α WrapperLog::error2( int id, int errorCode, str errorMsg )noexcept->bool
+	α WrapperLog::error2( int id, int code, str m )noexcept->bool
 	{
-		WrapperLog::error( id, errorCode, errorMsg );
-		return id==-1 || _pTickWorker->HandleError( id, errorCode, errorMsg );
+		WrapperLog::error( id, code, m );
+		if( id>0 )
+		/*auto t =*/ OrderManager::Push( id, code, m );//todo find out if found.
+		return id==-1 || _pTickWorker->HandleError( id, code, m );
 	}
 #define $ noexcept->void
 	α WrapperLog::error( int id, int errorCode, str errorMsg )$

@@ -24,7 +24,7 @@ namespace Jde::Markets
 
 	using namespace Chrono;
 
-	Coroutine::Task2 Run2( Duration d )
+	Coroutine::Task Run2( Duration d )
 	{
 		var& contract = Contracts::Spy;
 		var priceFields = Tick::PriceFields();
@@ -38,7 +38,7 @@ namespace Jde::Markets
 			//DBG( "HasError = {}"sv, result.HasError() );
 			try
 			{
-				auto pNewTick = result.Get<Tick>();
+				auto pNewTick = result.UP<Tick>();
 				//DBG( "bid={}"sv, pNewTick->Bid );
 				tick = *pNewTick;
 			}

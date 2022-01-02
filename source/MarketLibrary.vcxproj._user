@@ -2,7 +2,7 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Label="Globals">
-    <IncludePath>$(BOOST_DIR);$(REPO_DIR)/spdlog/include;$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/json/include;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY\src;C:\TWS API\source\CppClient\client;$(IncludePath)</IncludePath>
+    <IncludePath>$(BOOST_DIR);$(REPO_DIR)/spdlog/include;$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/json/include;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY\src;$(REPO_DIR)\tws-api\source\cppclient\client;C:\TWS API\source\CppClient\client;$(IncludePath)</IncludePath>
     <LibraryPath>$(BOOST_DIR)/stage/lib;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

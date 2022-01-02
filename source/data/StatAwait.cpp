@@ -94,6 +94,6 @@ namespace Jde::Markets::HistoricalDataCache
 	}
 	α StatAwait::await_resume()noexcept->AwaitResult
 	{
-		return _pPromise ? _pPromise->get_return_object().Result() : _result.index() ? AwaitResult{ std::get<sp<IException>>(_result) } : AwaitResult{ std::get<sp<StatCount>>(_result) };
+		return _pPromise ? move(_pPromise->get_return_object().Result()) : _result.index() ? AwaitResult{ std::get<sp<IException>>(_result) } : AwaitResult{ std::get<sp<StatCount>>(_result) };
 	}
 }

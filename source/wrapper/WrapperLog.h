@@ -30,7 +30,7 @@ namespace Jde::Markets
 		void tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, ::Decimal bidSize, ::Decimal askSize, const TickAttribBidAsk& tickAttribBidAsk)noexcept override;
 		void tickByTickMidPoint(int reqId, time_t time, double midPoint)noexcept override;
 		void orderStatus( ::OrderId orderId, str status, ::Decimal filled, ::Decimal remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice)noexcept override;
-		void openOrder( ::OrderId orderId, const ::Contract&, const ::Order&, const ::OrderState&)noexcept override;
+		void openOrder( ::OrderId orderId, const ::Contract&, const ::Order&, const ::OrderState& )noexcept override;
 		void openOrderEnd()noexcept override;
 		void winError( str str, int lastError)noexcept override;
 		void connectionClosed()noexcept override;
