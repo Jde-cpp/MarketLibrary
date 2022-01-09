@@ -480,9 +480,19 @@ namespace Jde
 		DateTime etNow{ Timezone::EasternTimeNow() };
 		return !IsHoliday( ToDays(etNow) ) && etNow.Hour()>3 && etNow.Hour()<20;
 	}
-	bool Markets::IsOpen( const Contract& contract )noexcept//TODO use details.
+	bool Markets::IsOpen( const Contract& c, bool useRth )noexcept
 	{
-		return IsOpen( contract.SecType );
+		bool open=false;
+		if( var pHours = useRth ? c.LiquidHoursPtr : c.TradingHoursPtr; pHours )
+		{
+			var now = Clock::to_time_t( Clock::now() );
+			for( auto p = pHours->begin(); p!=pHours->end() && !open && now>p->start(); ++p )
+				open = now>p->start() && now<p->end();
+		}
+		else
+			ASSERT( false );
+
+		return open;
 	}
 	bool Markets::IsOpen( SecurityType type )noexcept
 	{

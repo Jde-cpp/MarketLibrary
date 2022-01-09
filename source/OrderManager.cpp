@@ -65,7 +65,7 @@ namespace Jde::Markets
 				l->OnOrderException( account, pException );
 		}
 		else
-			ERR( "({}) - could not find order", id );
+			LOG( "({}) - could not find order", id );
 	}
 
 namespace OrderManager

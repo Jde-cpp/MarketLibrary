@@ -14,7 +14,14 @@ namespace Jde::Markets
 	static var& _logLevel{ Logging::TagLevel("mrk-hist") };
 	α HistoryAwait::SetData( bool force )noexcept->bool
 	{
-		var set = _cache.size() && _cache.begin()->second && _cache.rbegin()->second && ( _cache.rbegin()->first!=CurrentTradingDay(*_pContract) || !IsOpen(*_pContract) );
+		bool set = false;
+		if( _cache.size() )
+		{
+			var haveStartAndEnd = _cache.begin()->second && _cache.rbegin()->second;
+			var endsToday = _cache.rbegin()->first==CurrentTradingDay( *_pContract );
+			var isOpen = IsOpen( *_pContract, _useRth );
+			set = haveStartAndEnd && ( !endsToday || !isOpen );
+		}
 		if( force || set )//have inclusive and not asking for live data.
 		{
 			_dataPtr = make_shared<vector<::Bar>>();

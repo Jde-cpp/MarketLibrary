@@ -28,10 +28,10 @@ namespace Jde::Markets
 	Φ CurrentTradingDay( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept->Day;
 	Φ ClosingTime( const std::vector<Proto::Results::ContractHours>& tradingHours )noexcept(false)->TimePoint;
 	Ξ DayLengthMinutes( Exchanges /*exchange*/=Exchanges::Nyse )noexcept->Day{ return 390; }
-	α IsOpen()noexcept->bool;
-	Φ IsOpen( SecurityType type )noexcept->bool;
-	Φ IsOpen( const Contract& contract )noexcept->bool;
-	Φ IsPreMarket( SecurityType type )noexcept->bool;
+	α IsOpen()noexcept->bool;//TODO getrid of
+	Φ IsOpen( SecurityType type )noexcept->bool;//TODO getrid of
+	Φ IsOpen( const Contract& c, bool useRth=false )noexcept->bool;
+	Φ IsPreMarket( SecurityType type )noexcept->bool;//TODO getrid of
 	α IsRth( const Contract& contract, TimePoint time )noexcept->bool;
 	α RthBegin( const Contract& contract, Day day )noexcept->TimePoint;
 	α RthEnd( const Contract& contract, Day day )noexcept->TimePoint;

@@ -32,7 +32,7 @@ namespace Jde::Markets
 	{
 		AwaitResume();
 		if( !_pPromise )
-			return AwaitResult{ _pCache };
+			return _pCache ? AwaitResult{ _pCache } : AwaitResult{ Exception{_sl, "No Connection to TWS."} };
 
 		auto& task = _pPromise->get_return_object();
 		auto& result = task.Result();

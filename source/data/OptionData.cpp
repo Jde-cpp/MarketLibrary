@@ -257,7 +257,7 @@ namespace Jde::Markets
 
 	α Load2( sp<::ContractDetails> pUnderlying, DayIndex expiration, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
 	{
-		return FunctionAwait( [=](HCoroutine h)->Task
+		return FunctionAwait( [=]( HCoroutine h )->Task
 		{
 			var& symbol = pUnderlying->contract.symbol;
 			var ibContract = ToIb( symbol, expiration, right, startStrike && startStrike==endStrike ? startStrike : 0 );
@@ -292,11 +292,12 @@ namespace Jde::Markets
 			}
 			if( valueDay )
 				h.promise().get_return_object().SetResult( mu<Day>(valueDay) );
+			h.resume();
 		});
 	}
 	α OptionData::Load( sp<::ContractDetails> pDetail, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
 	{
-		return FunctionAwait( [=](HCoroutine h)->Task
+		return FunctionAwait( [=]( HCoroutine h )->Task
 		{
 			if( startExp==endExp )
 			{
@@ -323,6 +324,7 @@ namespace Jde::Markets
 					}
 				}
 			}
+			h.resume();
 		});
 	}
 

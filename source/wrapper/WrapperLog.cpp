@@ -20,7 +20,7 @@ namespace Jde::Markets
 	α WrapperLog::error2( int id, int code, str m )noexcept->bool
 	{
 		WrapperLog::error( id, code, m );
-		if( id>0 )
+		if( id>0 && code!=322 )
 		/*auto t =*/ OrderManager::Push( id, code, m );//todo find out if found.
 		return id==-1 || _pTickWorker->HandleError( id, code, m );
 	}

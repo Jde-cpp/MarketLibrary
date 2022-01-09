@@ -11,7 +11,17 @@ namespace Jde::Markets
 {
 	struct TwsClient; class EventManagerTests; class OptionTests;
 
-	using boost::container::flat_multimap;
+	struct RatioAwait : IAwait
+	{
+		RatioAwait( ContractPK id ):_contractId{ id }{}
+		α await_ready()noexcept->bool;
+		α await_suspend( HCoroutine )noexcept->void;
+		α await_resume()noexcept->AwaitResult;
+	private:
+		ContractPK _contractId;
+		up<Tick> _value;
+	};
+
 	struct ΓM TickManager final
 	{
 		struct TickParams /*~final*/
@@ -38,7 +48,7 @@ namespace Jde::Markets
 		Ω Subscribe( const TickParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
 		Ω Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void;
 		Ω CancelProto( uint sessionId, uint clientId, ContractPK contractId )noexcept->void;
-		Ω Ratios( const ContractPK contractId )noexcept->std::future<Tick>;
+		Ω Ratios( ContractPK c )noexcept{ return RatioAwait{c}; }
 
 
 		struct TickWorker final: TCoWorker<TickWorker,Awaitable>
@@ -57,6 +67,7 @@ namespace Jde::Markets
 			α Push( TickerId id, ETickType type, long long v )noexcept->void;
 			α Push( TickerId id, ETickType type, const std::string& v )noexcept->void;
 			α HandleError( int id, int errorCode, const std::string& errorString )noexcept->bool;
+			Ω SGet( ContractPK contractId )noexcept->optional<Tick>;
 		private:
 			Φ Process()noexcept->void override;
 			α Cancel( Handle h )noexcept->void;
@@ -68,11 +79,11 @@ namespace Jde::Markets
 
 			α Test( Tick& tick, TickFields fields )noexcept->bool;
 			α Test( Tick& clientTick, TickFields clientFields, const Tick& latestTick )const noexcept->bool;
-			std::future<Tick> Ratios( const ContractPK contractId )noexcept;
-			optional<Tick> Get( ContractPK contractId )const noexcept;
+			α Ratios( ContractPK contractId )noexcept->Task;
+			α Get( ContractPK contractId )const noexcept->optional<Tick>;
 
-			TickerId RequestId( ContractPK contractId )const noexcept;
-			ContractPK ContractId( TickerId id )const noexcept{ shared_lock l( _valuesMutex ); auto p=_tickerContractMap.find(id); return p==_tickerContractMap.end() ? 0 : p->second; }
+			α RequestId( ContractPK contractId )const noexcept->TickerId;
+			α ContractId( TickerId id )const noexcept->ContractPK{ shared_lock l( _valuesMutex ); auto p=_tickerContractMap.find(id); return p==_tickerContractMap.end() ? 0 : p->second; }
 			α SetRequestId( TickerId id, ContractPK contractId )noexcept->void;
 			α RemoveRequest( TickerId id )noexcept->void;
 			flat_map<TickerId,ContractPK> _tickerContractMap; //mutable shared_mutex _tickerContractMapMutex;
@@ -100,12 +111,12 @@ namespace Jde::Markets
 			};
 			flat_multimap<ContractPK,ProtoSubscription> _protoSubscriptions; mutex _protoSubscriptionMutex;//Type=1, handleIndex=[SessionId,clientId]
 
-			flat_multimap<ContractPK,tuple<std::promise<Tick>,TimePoint,uint>> _ratioSubscriptions; mutex _ratioSubscriptionMutex;
+			flat_multimap<ContractPK,tuple<HCoroutine,TimePoint,uint>> _ratioSubscriptions; mutex _ratioSubscriptionMutex;
 
 			α CancelMarketData( TickerId oldId, TickerId newId )noexcept->void;
 			Collections::MapValue<TickerId,TimePoint> _canceledTicks;//TODO move to cache.
 
-			flat_multimap<TimePoint,TickerId> _orphans; mutex _orphanMutex;//TODO make a multimap class
+			flat_multimap<TimePoint,TickerId> _orphans; shared_mutex _orphanMutex;//TODO make a multimap class
 			sp<TwsClient> _pTwsClient;
 			TimePoint LastOutgoing;
 
@@ -114,8 +125,7 @@ namespace Jde::Markets
 			flat_multimap<TickerId,ProtoSubscription> _optionRequests; mutex _optionRequestMutex;
 
 			uint InternalSubscriptionHandle{0};
-			friend TickManager;
-			friend EventManagerTests; friend OptionTests;
+			friend TickManager; friend EventManagerTests; friend OptionTests; friend RatioAwait;
 		};
 	};
 

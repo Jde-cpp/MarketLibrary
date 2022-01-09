@@ -42,7 +42,7 @@ namespace Jde::Markets
 		α isConnected()const noexcept->bool{ return EClientSocket::isConnected(); }
 		α SetRequestId( TickerId id )noexcept->void;
 
-		α cancelMktData( TickerId reqId, bool log=true )noexcept->void{ if( log )LOG( "({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
+		α cancelMktData( TickerId reqId )noexcept->void{ LOG("({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
 		α cancelOrder( TickerId reqId )noexcept->void{ LOG( "({})cancelOrder()", reqId); EClientSocket::cancelOrder(reqId); }
 		α cancelPositionsMulti(TickerId reqId)noexcept->void{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		α cancelRealTimeBars( TickerId reqId )noexcept->void{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }

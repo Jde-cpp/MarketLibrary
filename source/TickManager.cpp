@@ -3,7 +3,8 @@
 #include <jde/markets/types/proto/results.pb.h>
 #include "../../Framework/source/collections/Vector.h"
 #include "types/IBException.h"
-#include "client/TwsClient.h"
+#include "client/TwsClientCo.h"
+//#include "client/TwsClient.h"
 
 #define WorkerPtr if( auto p=TickWorker::Instance(); p ) p
 #define TwsClientPtr if( _pTwsClient ) _pTwsClient
@@ -13,12 +14,6 @@ namespace Jde::Markets
 {
 	using Proto::Results::ETickType;
 	static const LogTag& _logLevel{ Logging::TagLevel("tick") };
-	α TickManager::Ratios( const ContractPK contractId )noexcept->std::future<Tick>
-	{
-		auto p=TickWorker::Instance(); //THROW_IF( !p, "Shutting Down" );
-		return p ? p->Ratios( contractId ) : std::future<Tick>{};
-	}
-
 	α TickManager::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void
 	{
 		WorkerPtr->Subscribe( sessionId, clientId,  contractId, fields, snapshot, fnctn );
@@ -70,18 +65,23 @@ namespace Jde::Markets
 		_pTwsClient{ _pParent }
 	{}
 
-	sp<TickManager::TickWorker> TickManager::TickWorker::CreateInstance( sp<TwsClient> _pParent )noexcept
+	α TickManager::TickWorker::CreateInstance( sp<TwsClient> _pParent )noexcept->sp<TickManager::TickWorker>
 	{
-		auto p = _pInstance = make_shared<TickManager::TickWorker>( _pParent );
+		auto p = _pInstance = ms<TickManager::TickWorker>( _pParent );
 		_pInstance->Start();
 		return dynamic_pointer_cast<TickManager::TickWorker>( p );
 	}
 
-	optional<Tick> TickManager::TickWorker::Get( ContractPK contractId )const noexcept
+	α TickManager::TickWorker::Get( ContractPK contractId )const noexcept->optional<Tick>
 	{
 		shared_lock l{ _valuesMutex };
 		auto p = _values.find( contractId );
 		return p==_values.end() ? optional<Tick>{} : p->second;
+	}
+	α TickManager::TickWorker::SGet( ContractPK contractId )noexcept->optional<Tick>
+	{
+		auto p = Instance();
+		return p ? p->Get( contractId ) : optional<Tick>{};
 	}
 	TickerId TickManager::TickWorker::RequestId( ContractPK contractId )const noexcept
 	{
@@ -217,7 +217,7 @@ namespace Jde::Markets
 		}
 #define FORX(X,Iter) for( auto Iter=X.find(contractId); Iter!=X.end() && Iter->first==contractId; Iter = X.erase(Iter) )
 #define FOR(X) FORX(X,p)
-//#define IBExceptionPtr make_shared<IBException>( errorString, errorCode, id )
+//#define IBExceptionPtr ms<IBException>( errorString, errorCode, id )
 		{
 			unique_lock l{ _twsSubscriptionMutex };
 			for( auto pSub=_twsSubscriptions.find(contractId); pSub!=_twsSubscriptions.end() && pSub->first==contractId; pSub = _twsSubscriptions.erase(pSub) )
@@ -238,7 +238,11 @@ namespace Jde::Markets
 				{
 					unique_lock l2{ _ratioSubscriptionMutex };
 					FOR( _ratioSubscriptions )
-						get<0>( p->second ).set_exception( Jde::make_exception_ptr(IBException{errorString, errorCode, id}) );
+					{
+						auto h = get<0>( p->second );
+						h.promise().get_return_object().SetResult( IBException{errorString, errorCode, id}.Move() );
+						h.resume();
+					}
 				}
 				else if( s.Source==ESubscriptionSource::Coroutine )
 				{
@@ -360,20 +364,18 @@ namespace Jde::Markets
 						LOG( "!messages.size()"sv );
 				}
 			}
-			{//Ratio Subscriptions
-				unique_lock ul{ _ratioSubscriptionMutex };
-				auto range = _ratioSubscriptions.equal_range( contractId );
-				haveSubscription = haveSubscription || range.first!=range.second;
-				for( auto p = range.first; p!=range.second; ++p )
-				{
-					if( !tick.HasRatios() )
-						continue;
-					get<0>(p->second).set_value( tick );
-					_ratioSubscriptions.erase( p );
-					unique_lock ul2{ _delayMutex };
-					LOG( "_delays.emplace[{}]={} - ratios"sv, get<2>(p->second), contractId );
-					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), contractId) );
-				}
+			unique_lock _{ _ratioSubscriptionMutex };
+			for( auto p=_ratioSubscriptions.find(contractId); p!=_ratioSubscriptions.end() && p->first==contractId; p = tick.HasRatios() ? _ratioSubscriptions.erase(p) : _ratioSubscriptions.end() )
+			{
+				haveSubscription = true;
+				if( !tick.HasRatios() )
+					continue;
+				auto h = get<0>( p->second );
+				h.promise().get_return_object().SetResult( mu<Tick>(tick) );
+				h.resume();
+				unique_lock ul2{ _delayMutex };
+				LOG( "_delays.emplace[{}]={} - ratios"sv, get<2>(p->second), contractId );
+				_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), contractId) );
 			}
 			LastOutgoing = Clock::now();
 			unique_lock ul{ _orphanMutex };
@@ -390,14 +392,23 @@ namespace Jde::Markets
 			for( auto p = _ratioSubscriptions.begin(); p!=_ratioSubscriptions.end(); )
 			{
 				auto& value = p->second;
-				var remove = get<1>(value)<Clock::now();
+				var remove = get<1>( value )<Clock::now();
 				if( remove )
 				{
 					LOG( "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
-					LOG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(p->second), p->first );
-					get<0>(value).set_exception( Jde::make_exception_ptr(Exception("Timeout")) );
-					unique_lock ul2{ _delayMutex };
-					_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(p->second), p->first) );
+					var contractId = p->first;
+					LOG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(value), contractId );
+					get<0>(value).promise().get_return_object().SetResult( Exception{"Timeout"}.Move() );
+					bool add;
+					{
+						shared_lock _{ _orphanMutex };
+						add = std::find_if( _orphans.begin(), _orphans.end(), [contractId](auto x){return contractId==x.second;} )==_orphans.end();
+					}
+					if( add )
+					{
+						unique_lock ul2{ _delayMutex };
+						_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Internal, get<2>(value), contractId) );
+					}
 				}
 				p = remove ? _ratioSubscriptions.erase( p ) : next( p );
 			}
@@ -520,7 +531,34 @@ namespace Jde::Markets
 		pTwsClient->calculateOptionPrice( id, contract, volatility, underPrice, {} );
 	}
 
-	std::future<Tick> TickManager::TickWorker::Ratios( const ContractPK contractId )noexcept
+	α RatioAwait::await_ready()noexcept->bool
+	{
+		if( auto p = TickManager::TickWorker::SGet(_contractId); p && p->HasRatios() )
+			_value = mu<Tick>( *p );
+		return (bool)_value || !TickManager::TickWorker::Instance();
+	}
+
+	α RatioAwait::await_suspend( HCoroutine h )noexcept->void
+	{
+		IAwait::await_suspend( h );
+		auto p = TickManager::TickWorker::Instance();
+		auto pLock = ms<unique_lock<mutex>>( p->_twsSubscriptionMutex );
+		var requestTicks = p->GetSubscribedTicks( _contractId );
+
+		const flat_set ticks{ ETickList::MiscStats, ETickList::Fundamentals, ETickList::Dividends };
+		var handle = ++p->InternalSubscriptionHandle;
+		p->AddSubscription( _contractId, TickManager::TickWorker::TickListSource{TickManager::TickWorker::ESubscriptionSource::Internal, handle, ticks}, pLock );
+
+		unique_lock l{ p->_ratioSubscriptionMutex };
+		LOG( "_ratioSubscriptions.emplace({}, {})"sv, _contractId, ToIsoString(Clock::now()+5s) );//TODO make ToIso
+		p->_ratioSubscriptions.emplace( _contractId, make_tuple( h, Clock::now()+5s, handle ) );
+	}
+	α RatioAwait::await_resume()noexcept->AwaitResult
+	{
+		return  _value ? AwaitResult{ _value.release() } : _pPromise ? _pPromise->get_return_object().Result() : AwaitResult{ Exception{"no Tws Connection"} };
+	}
+
+/*	α TickManager::TickWorker::Ratios( const ContractPK contractId )noexcept->Task
 	{
 		auto pTwsClient = _pTwsClient;
 		var tick = Get( contractId );
@@ -531,10 +569,10 @@ namespace Jde::Markets
 			return promise.get_future();
 		}
 		//don't already have.
-		auto pLock = make_shared<unique_lock<mutex>>( _twsSubscriptionMutex );
+		auto pLock = ms<unique_lock<mutex>>( _twsSubscriptionMutex );
 		flat_set<ETickList> requestTicks = GetSubscribedTicks( contractId );
 
-		const flat_set ticks{ ETickList::MiscStats, ETickList::Fundamentals/*, ETickList::Dividends*/ };
+		const flat_set ticks{ ETickList::MiscStats, ETickList::Fundamentals, ETickList::Dividends };
 		var handle = ++InternalSubscriptionHandle;
 		AddSubscription( contractId, TickListSource{ESubscriptionSource::Internal, handle, ticks}, pLock );
 
@@ -543,13 +581,13 @@ namespace Jde::Markets
 		auto p = _ratioSubscriptions.emplace( contractId, make_tuple( std::promise<Tick>{}, Clock::now()+5s, handle ) );
 		return get<0>( p->second ).get_future();
 	}
-
+*/
 	bool TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept
 	{
 		auto newTicks = 0;
 
 		if( !pLock )
-			pLock = make_shared<unique_lock<mutex>>( _twsSubscriptionMutex );
+			pLock = ms<unique_lock<mutex>>( _twsSubscriptionMutex );
 		auto requestTicks = GetSubscribedTicks( contractId );
 		std::for_each( source.Ticks.begin(), source.Ticks.end(), [&newTicks, &requestTicks](auto x){newTicks+=requestTicks.emplace(x).second;} );
 		LOG( "({})Adding _twsSubscription {}."sv, source.Id, source.Source );
@@ -573,9 +611,9 @@ namespace Jde::Markets
 					_values.emplace( contractId, Tick{contractId, reqId} );
 			}
 
-
-			::Contract contract;  contract.conId = contractId; contract.exchange = "SMART";
-			_pTwsClient->reqMktData( reqId, contract, Str::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
+			auto c = SFuture<::ContractDetails>( Tws::ContractDetail(contractId) ).get();
+			//::Contract contract;  contract.conId = contractId; contract.exchange = "SMART";
+			_pTwsClient->reqMktData( reqId, c->contract, Str::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
 		}
 		return newTicks;
 	}
@@ -609,7 +647,7 @@ namespace Jde::Markets
 			}
 		}
 		LOG( "TickWorker::cancelMktData( oldId={}, newId={} )"sv, oldId, newId );
-		TwsClientPtr->cancelMktData( oldId, false );
+		TwsClientPtr->cancelMktData( oldId );
 	}
 
 	α TickManager::TickWorker::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void

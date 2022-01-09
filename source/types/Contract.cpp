@@ -10,7 +10,10 @@
 
 namespace Jde::Markets
 {
-	using std::ostream;
+	α ParseTradingHours( sv timeZoneId, str hours )noexcept->sp<vector<Proto::Results::ContractHours>>;
+	α Liquid( const ::ContractDetails& c )noexcept->sp<vector<Proto::Results::ContractHours>>{ return ParseTradingHours( c.timeZoneId, c.liquidHours ); }
+	α Rth( const ::ContractDetails& c )noexcept->sp<vector<Proto::Results::ContractHours>>{ return ParseTradingHours( c.timeZoneId, c.tradingHours ); }
+
 	Contract::Contract( const ::Contract& other )noexcept:
 		Id{ other.conId },
 		Symbol{ other.symbol },
@@ -134,17 +137,17 @@ namespace Jde::Markets
 		Name{name},
 		IssueDate{issueDate}
 	{}
-	α ParseTradingHours( sv timeZoneId, str hours )noexcept->sp<vector<Proto::Results::ContractHours>>;
-	Contract::Contract( const ::ContractDetails& details )noexcept:
-		Contract{ details.contract }
+
+	Contract::Contract( const ::ContractDetails& c )noexcept:
+		Contract{ c.contract }
 	{
-		TradingHoursPtr = ParseTradingHours( details.timeZoneId, details.tradingHours );
-		LiquidHoursPtr =  ParseTradingHours( details.timeZoneId, details.liquidHours );
+		TradingHoursPtr = Rth( c );
+		LiquidHoursPtr =  Liquid( c );
 	}
 
 	Contract::Contract(ContractPK id, sv symbol )noexcept:
-		Id(id),
-		Symbol(symbol)
+		Id{ id },
+		Symbol{ symbol }
 	{}
 
 	Contract::~Contract()

@@ -14,16 +14,24 @@ namespace Jde::Markets
 {
 	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )->void
 	{
-		auto p = handles.MoveOut( reqId ); RETURN_IF( !p, "({})Could not get co-handle", reqId );
-		p->promise().get_return_object().SetResult<T>( move(pResult) );
-		Coroutine::CoroutinePool::Resume( move(*p) );
+		if( auto p = handles.MoveOut( reqId ); p )
+		{
+			p->promise().get_return_object().SetResult<T>( move(pResult) );
+			Coroutine::CoroutinePool::Resume( move(*p) );
+		}
+		else
+			WARN( "({})Could not get co-handle", reqId );
 	}
 
 	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T> pResult )->void
 	{
-		auto h = handles.MoveOut( reqId ); RETURN_IF( !h, "({})Could not get co-handle", reqId );
-		h->promise().get_return_object().SetResult<T>( move(pResult) );
-		Coroutine::CoroutinePool::Resume( move(*h) );
+		if( auto h = handles.MoveOut( reqId ); h )
+		{
+			h->promise().get_return_object().SetResult<T>( move(pResult) );
+			Coroutine::CoroutinePool::Resume( move(*h) );
+		}
+		else
+			WARN( "({})Could not get co-handle", reqId );
 	}
 
 	bool WrapperCo::error2( int id, int errorCode, str errorMsg )noexcept
@@ -192,7 +200,7 @@ namespace Jde::Markets
 		_optionParams.erase( reqId );
 		Resume( _secDefOptParamHandles, reqId, move(pResults) );
 	}
-	
+
 	α WrapperCo::OpenOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& state )noexcept->sp<Proto::Results::OpenOrder>
 	{
 		WrapperLog::openOrder( orderId, contract, order, state );

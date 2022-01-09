@@ -432,12 +432,12 @@ namespace Jde::Markets
 
 	α Tick::HasRatios()const noexcept->bool
 	{
-		return _setFields[ETickType::FUNDAMENTAL_RATIOS];
+		return _setFields[ETickType::FUNDAMENTAL_RATIOS] && _setFields[ETickType::IB_DIVIDENDS];
 	}
 
-	α Tick::Ratios()const noexcept->flat_map<string,double>
+	α Tick::Ratios()const noexcept->std::map<string,double>
 	{
-		flat_map<string,double> values;
+		std::map<string,double> values;
 		{
 			var dividendSplit = Str::Split( DividendString, ';' );
 			for( var& subValue : dividendSplit )
