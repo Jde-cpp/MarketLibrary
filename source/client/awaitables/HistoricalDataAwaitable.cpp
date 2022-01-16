@@ -70,7 +70,7 @@ namespace Jde::Markets
 	}
 	α HistoryAwait::AsyncFetch( HCoroutine h )noexcept->Task
 	{
-		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize!=EBarSize::Month )
+		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize<EBarSize::Week )
 		{
 			try
 			{

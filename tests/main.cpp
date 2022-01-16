@@ -34,8 +34,8 @@ namespace Jde::Markets
 	auto result = EXIT_FAILURE;
 	if( auto p = Markets::Startup(argc, argv); p )
 	{
-		ASSERT( Settings::TryGet<size_t>("workers/drive/threads") );//main thread busy with tests, linux has uint in global ns
-		var pFilter=Settings::TryGet<string>( "testing/tests" );
+		ASSERT( Settings::Get<size_t>("workers/drive/threads") );//main thread busy with tests, linux has uint in global ns
+		var pFilter=Settings::Get<string>( "testing/tests" );
 		::testing::GTEST_FLAG( filter ) = pFilter ? *pFilter : "*";
 	   result = RUN_ALL_TESTS();
 		p->Shutdown();

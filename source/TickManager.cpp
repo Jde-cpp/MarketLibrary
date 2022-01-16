@@ -48,6 +48,8 @@ namespace Jde::Markets
 	{
 		AwaitSuspend();
 		_pPromise = &h.promise();
+		if( auto& ro = _pPromise->get_return_object(); ro.HasResult() )
+			ro.Clear();
 		if( auto p=TickWorker::Instance(); p )
 			p->Subscribe( TickWorker::SubscriptionInfo{ {h, _hClient}, *this} );
 	}

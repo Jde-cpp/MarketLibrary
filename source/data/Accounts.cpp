@@ -111,7 +111,9 @@ namespace Jde::Markets
 		if( var pIdAccount = _accounts.find( accountId ); pIdAccount!=_accounts.end() )
 		{
 			var& account = pIdAccount->second;
-			if( var pAccount = account.Access.find(userId); pAccount != account.Access.end() )
+			if( account.Access.size()==0 )//TODO add admin rights, currently noone=everyone.
+				haveAccess = true;
+			else if( var pAccount = account.Access.find(userId); pAccount != account.Access.end() )
 				haveAccess = (pAccount->second & requested)!=UM::EAccess::None;
 			else if( var pAccount2 = account.Access.find(std::numeric_limits<UserPK>::max()); userId!=0 && pAccount2 != account.Access.end() )
 				haveAccess = (pAccount2->second & requested)!=UM::EAccess::None;

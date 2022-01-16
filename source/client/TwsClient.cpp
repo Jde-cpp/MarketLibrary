@@ -61,7 +61,7 @@ namespace Jde::Markets
 			_requestId = id;
 	}
 
-	α TwsClient::RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> callback )noexcept->uint
+	α TwsClient::RequestAccountUpdates( str acctCode, sp<IAccountUpdateHandler> callback )noexcept->uint
 	{
 		LOG( "reqAccountUpdates( '{}', '{}' )", true, acctCode );
 		auto [handle,subscribe] = WrapperLogPtr()->AddAccountUpdate( acctCode, callback );
@@ -69,14 +69,14 @@ namespace Jde::Markets
 		 	EClient::reqAccountUpdates( true, string{acctCode} );
 		return handle;
 	}
-	α TwsClient::CancelAccountUpdates( sv acctCode, Handle handle )noexcept->void
+	α TwsClient::CancelAccountUpdates( str acctCode, Handle handle )noexcept->void
 	{
 		auto p = _pInstance; if( !p ) return;
 		LOG( "({})CancelAccountUpdates( '{}' )", handle, acctCode );
-		if( p->WrapperLogPtr()->RemoveAccountUpdate( acctCode, handle) )
+		if( p->WrapperLogPtr()->RemoveAccountUpdate(acctCode, handle) )
 		{
 			LOG( "reqAccountUpdates( '{}', '{}' )", false, acctCode );
-			p->reqAccountUpdates( false, string{acctCode} );
+			p->reqAccountUpdates( false, acctCode );
 		}
 	}
 	α TwsClient::reqAccountUpdatesMulti( TickerId reqId, str account, str modelCode, bool ledgerAndNLV )noexcept->void

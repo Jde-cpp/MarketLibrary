@@ -10,7 +10,7 @@ namespace Jde::Markets
 {
 	struct IAccountUpdateHandler
 	{
-		β UpdateAccountValue( sv key, sv val, sv currency, sv accountName )noexcept->bool=0;
+		β UpdateAccountValue( sv key, sv val, sv currency, str accountName )noexcept->bool=0;
 		β PortfolioUpdate( const Proto::Results::PortfolioUpdate& update )noexcept->bool=0;
 		β AccountDownloadEnd( sv accountName )noexcept->void=0;
 	};
@@ -35,7 +35,7 @@ namespace Jde::Markets
 		void winError( str str, int lastError)noexcept override;
 		void connectionClosed()noexcept override;
 		void updateAccountValue(str key, str val,	str currency, str accountName)noexcept override;
-		bool updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept;
+		bool updateAccountValue2( sv key, sv val, sv currency, str accountName )noexcept;
 		void updatePortfolio( const ::Contract& contract, ::Decimal position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, str accountName)noexcept override;
 		void updateAccountTime(str timeStamp)noexcept override;
 		void accountDownloadEnd(str accountName)noexcept override;
@@ -104,16 +104,15 @@ namespace Jde::Markets
 		α orderBound( long long orderId, int apiClientId, int apiOrderId )$;
 		α completedOrder( const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )$;
 		α completedOrdersEnd()$;
-		void tickOptionComputation( ::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )noexcept override;
-		void replaceFAEnd( int /*reqId*/, str /*text*/ )noexcept override{};
-		void wshMetaData( int reqId, str dataJson )noexcept override;
-		void wshEventData( int reqId, str dataJson )noexcept override;
+		α tickOptionComputation( ::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )$;
+		α replaceFAEnd( int /*reqId*/, str /*text*/ )${};
+		α wshMetaData( int reqId, str dataJson )$;
+		α wshEventData( int reqId, str dataJson )$;
 
-		//ELogLevel GetLogLevel()const noexcept{ return _logLevel; }
-		uint HistoricalDataRequestSize()const noexcept{ return _historicalDataRequests.size(); }
-		void AddHistoricalDataRequest2( TickerId id )noexcept{ _historicalDataRequests.emplace(id); }
-		tuple<uint,bool> AddAccountUpdate( sv accountNumber, sp<IAccountUpdateHandler> callback )noexcept;
-		bool RemoveAccountUpdate( sv account, uint handle )noexcept;
+		α HistoricalDataRequestSize()const noexcept->uint{ return _historicalDataRequests.size(); }
+		α AddHistoricalDataRequest2( TickerId id )noexcept->void{ _historicalDataRequests.emplace(id); }
+		α AddAccountUpdate( str accountNumber, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>;
+		α RemoveAccountUpdate( str account, uint handle )noexcept->bool;
 
 	protected:
 		UnorderedSet<TickerId> _historicalDataRequests;

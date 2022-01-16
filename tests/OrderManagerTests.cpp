@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
 #include "../../Framework/source/threading/Pool.h"
 #include "../../MarketLibrary/source/client/TwsClientSync.h"
 #include "../../MarketLibrary/source/types/IBException.h"
@@ -18,13 +18,13 @@ namespace Jde::Markets
 		OrderManagerTests() {}
 		~OrderManagerTests() override{}
 
-		void SetUp() override {}
-		void TearDown() override {}
+		α SetUp()->void override{}
+		α TearDown()->void override{}
 	};
 
 	using namespace Chrono;
 
-	Coroutine::Task Run2( Duration d )
+	α Run2( Duration d )->Coroutine::Task
 	{
 		var& contract = Contracts::Spy;
 		var priceFields = Tick::PriceFields();

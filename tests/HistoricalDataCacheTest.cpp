@@ -35,6 +35,7 @@ namespace Jde::Markets
 	// ask for 2 days ago, then last 2 days, then last 3 days.
 	TEST_F( HistoricalDataCacheTest, PartialCache )
 	{
+		sp<::ContractDetails> pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::Spy.Id) ).get();
 		auto check = []( Day day )
 		{
 			var logs = FindMemoryLog( TwsClient::ReqHistoricalDataLogId );
@@ -46,9 +47,9 @@ namespace Jde::Markets
 			ASSERT_EQ( log.Variables[4], "1 min" );
 			ClearMemoryLog();
 		};
-		auto req = [check]( Day day, Day dayCount, Day checkDay=0 )
+		auto req = [check, pContract]( Day day, Day dayCount, Day checkDay=0 )
 		{
-			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<Contract>(Contracts::Spy), day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true) ).get();
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<Contract>(*pContract), day, dayCount, EBarSize::Minute, EDisplay::Midpoint, true) ).get();
 			ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
@@ -70,7 +71,8 @@ namespace Jde::Markets
 	TEST_F( HistoricalDataCacheTest, SaveToFile )
 	{
 		ClearMemoryLog();
-		var& contract = Contracts::Xom;
+		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::Xom.Id) ).get();
+		const Contract contract{ *pContract };
 		var testFrom = ToDays( DateTime{2020,1,1} );
 		var dates = BarData::FindExisting( Contracts::Aig, testFrom );
 		bool tested = false;
@@ -130,7 +132,8 @@ namespace Jde::Markets
 
 	TEST_F( HistoricalDataCacheTest, LoadFromFile )
 	{
-		var& contract = Contracts::Aig;
+		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::Aig.Id) ).get();
+		var& contract = *pContract;
 		constexpr auto Display = EDisplay::Trades;
 		var prev = PreviousTradingDay();
 		auto dates = BarData::FindExisting( contract, prev-30 );
@@ -143,7 +146,7 @@ namespace Jde::Markets
 		ClearMemoryLog();
 		auto pFileCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
-		HistoryCache::Clear( contract.Id, Display );
+		HistoryCache::Clear( contract.contract.conId, Display );
 		NoCache nc;
 		var pNoCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
@@ -152,7 +155,8 @@ namespace Jde::Markets
 
 	TEST_F( HistoricalDataCacheTest, DayBars )
 	{
-		var& contract = Contracts::SH;
+		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::SH.Id) ).get();
+		var& contract = *pContract;
 		var day = PreviousTradingDay();
 		auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData( ms<Contract>(contract), day, 1, EBarSize::Day, EDisplay::Trades, true) ).get();
 		ASSERT_GT( pBars->size(), 0 );
@@ -182,7 +186,8 @@ namespace Jde::Markets
 			Near( actual.Min, expected.Min, near2 );
 			Near( actual.Max, expected.Max, near2 );
 		};
-		var contract{ ms<const Contract>(Contracts::Spy) };
+		var pContract{ SFuture<::ContractDetails>(Tws::ContractDetail(Contracts::Spy.Id)).get() };
+		var contract{ ms<const Contract>(*pContract) };
 		//_pTws->reqHistoricalData( id, *_contractPtr->ToTws(), endTimeString, format("{} D", _dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 /*		var tempPath = fs::temp_directory_path()/"unitTests";
 		Settings::Set( "marketHistorian/barPath", tempPath );
@@ -206,7 +211,8 @@ namespace Jde::Markets
 
 	TEST_F(HistoricalDataCacheTest, CombineMinuteBars)
 	{
-		var contract = ms<const Contract>( Contracts::Aig );
+		sp<const ::ContractDetails> pContract{ SFuture<::ContractDetails>(Tws::ContractDetail(Contracts::Aig.Id)).get() };
+		var contract{ ms<const Contract>(*pContract) };
 		var dates = BarData::FindExisting( *contract, PreviousTradingDay()-30 ); ASSERT_GT( dates.size(), 0 );
 		ASSERT_GT( dates.size(), 0 );
 		var day = *dates.rbegin();

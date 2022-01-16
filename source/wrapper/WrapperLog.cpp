@@ -79,7 +79,7 @@ namespace Jde::Markets
 	α WrapperLog::tickByTickBidAsk(int reqId, time_t time, double bidPrice, double askPrice, ::Decimal /*bidSize*/, ::Decimal /*askSize*/, const TickAttribBidAsk& /*attribs*/)${ LOG( "WrapperLog::tickByTickBidAsk( {}, {}, {}, {} )", reqId, time, bidPrice, askPrice); }
 	α WrapperLog::tickByTickMidPoint(int reqId, time_t time, double midPoint)${ LOG( "WrapperLog::tickByTickMidPoint( {}, {}, {} )", reqId, time, midPoint); }
 	α WrapperLog::tickReqParams( int tickerId, double minTick, str bboExchange, int snapshotPermissions )${ LOGL( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )", tickerId, minTick, bboExchange, snapshotPermissions ); }
-	α WrapperLog::updateAccountValue2( sv key, sv val, sv currency, sv accountName )noexcept->bool
+	α WrapperLog::updateAccountValue2( sv key, sv val, sv currency, str accountName )noexcept->bool
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
@@ -247,13 +247,15 @@ namespace Jde::Markets
 	}
 	α WrapperLog::completedOrdersEnd()${LOG( "WrapperLog::completedOrdersEnd()"); }
 	Handle WrapperLog::_accountUpdateHandle{0};
-	α WrapperLog::AddAccountUpdate( sv account, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>
+	UnorderedSet<string> _canceledAccounts;
+	α WrapperLog::AddAccountUpdate( str account, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>
 	{
 		unique_lock l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
 		var handle = ++_accountUpdateHandle;
 		auto& handleCallbacks = _accountUpdateCallbacks.try_emplace( string{account} ).first->second;
 		handleCallbacks.emplace( handle, callback );
+		_canceledAccounts.erase( account );
 		var newCall = handleCallbacks.size()==1;
 		if( var p  = _accountPortfolioUpdates.find( string{account} ); p!=_accountPortfolioUpdates.end() )
 		{
@@ -271,10 +273,10 @@ namespace Jde::Markets
 		return make_tuple( handle, newCall );
 	}
 
-	α WrapperLog::RemoveAccountUpdate( sv account, uint handle )noexcept->bool
+	α WrapperLog::RemoveAccountUpdate( str account, uint handle )noexcept->bool
 	{
 		bool cancel = true;
-		var pLock = _pUpdateLock ? up<unique_lock<shared_mutex>>{} : make_unique<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
+		var pLock = _pUpdateLock ? up<unique_lock<shared_mutex>>{} : mu<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
 		if( auto p  = _accountUpdateCallbacks.find(string{account}); p!=_accountUpdateCallbacks.end() )
 		{
 			if( handle )
@@ -283,7 +285,7 @@ namespace Jde::Markets
 				p->second.clear();
 			cancel = p->second.empty();
 		}
-		return cancel;
+		return cancel && _canceledAccounts.emplace( account );
 	}
 	α WrapperLog::wshMetaData( int reqId, str dataJson )$
 	{

@@ -193,10 +193,9 @@ namespace Jde::Markets
 			for( ; ppExtendedBegin!=pExtended->end(); ++ppExtendedBegin )
 				pResult->push_back( *ppExtendedBegin );
 		}
-		if( barSize!=Size() )
-		{
+		if( barSize<=EBarSize::Day && barSize!=Size() )
 			pResult = BarData::Combine( contract, day, *pResult, barSize, Size(), useRth );
-		}
+
 		return pResult;
 	}
 	α MinuteCache::Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void

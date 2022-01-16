@@ -47,8 +47,8 @@ namespace Jde::Markets
 		α cancelPositionsMulti(TickerId reqId)noexcept->void{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		α cancelRealTimeBars( TickerId reqId )noexcept->void{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }
 		α reqIds( int _=1 )noexcept->void{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
-		α RequestAccountUpdates( sv acctCode, sp<IAccountUpdateHandler> )noexcept->Handle;
-		Ω CancelAccountUpdates( sv acctCode, Handle handle )noexcept->void;
+		α RequestAccountUpdates( str acctCode, sp<IAccountUpdateHandler> )noexcept->Handle;
+		Ω CancelAccountUpdates( str acctCode, Handle handle )noexcept->void;
 		α reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept->void;
 		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
 		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void;

@@ -23,14 +23,14 @@ namespace Jde::Markets
 			WARN( "({})Could not get co-handle", reqId );
 	}
 
-	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T> pResult )->void
+	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T> pResult, bool warn=true )->void
 	{
 		if( auto h = handles.MoveOut( reqId ); h )
 		{
 			h->promise().get_return_object().SetResult<T>( move(pResult) );
 			Coroutine::CoroutinePool::Resume( move(*h) );
 		}
-		else
+		else if( warn )
 			WARN( "({})Could not get co-handle", reqId );
 	}
 
@@ -48,7 +48,10 @@ namespace Jde::Markets
 			}
 			return pHandle.has_value();
 		};
-		bool handled = r( _contractHandles ) || r(_orderHandles) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		if( auto h = errorCode!=399 ? nullopt : _orderHandles.Find(id); h )
+			h->promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id} );
+
+		bool handled = errorCode==399 || r( _contractHandles ) || r(_orderHandles) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
 		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
@@ -208,8 +211,12 @@ namespace Jde::Markets
 		p->set_allocated_contract( Contract{contract}.ToProto().release() );
 		p->set_allocated_order( MyOrder{order}.ToProto().release() );
 		p->set_allocated_state( ToProto(state).release() );
-
-		Resume( _orderHandles, orderId, p );
+		if( var h = _orderHandles.Find(orderId); h && h->promise().get_return_object().Result().HasError() )
+		{
+			auto pExp = h->promise().get_return_object().Result().Error();
+			p->mutable_state()->set_warning_text( format("({}){}", pExp->Code, pExp->What()) );
+		}
+		Resume( _orderHandles, orderId, p, false );
 
 		return p;
 	}

@@ -14,9 +14,9 @@ namespace Jde::Markets
 	struct RatioAwait : IAwait
 	{
 		RatioAwait( ContractPK id ):_contractId{ id }{}
-		α await_ready()noexcept->bool;
-		α await_suspend( HCoroutine )noexcept->void;
-		α await_resume()noexcept->AwaitResult;
+		Φ await_ready()noexcept->bool;
+		Φ await_suspend( HCoroutine )noexcept->void;
+		Φ await_resume()noexcept->AwaitResult;
 	private:
 		ContractPK _contractId;
 		up<Tick> _value;
