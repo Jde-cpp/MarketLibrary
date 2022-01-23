@@ -30,9 +30,12 @@ namespace Jde::Markets
 		while( WrapperPtr()->_accountHandle )
 			std::this_thread::yield();
 		sl l{ _accountMutex };
-		auto accounts = make_shared<vector<Account>>(); accounts->reserve( _accounts.size() );
-		for( var& p : _accounts )
-			accounts->push_back( p.second );
+		auto accounts = ms<vector<Account>>(); accounts->reserve( _accounts.size() );
+		for( var& a : _accounts )
+		{
+			if( a.second.Connected )
+				accounts->push_back( a.second );
+		}
 		return AwaitResult{ accounts };
 	}
 
@@ -126,9 +129,12 @@ namespace Jde::Markets
 
 	α Accounts::Set( const vector<string>& accounts )noexcept->void
 	{
-		for( auto&& ibName : accounts )
+		for( var& ibName : accounts )
 		{
-			if( auto p = Accounts::Find(ibName); !p )
+			ul l{ _accountMutex };
+			if( auto p = std::find_if( _accounts.begin(), _accounts.end(), [&ibName](var& x)->bool{ return x.second.IbName==ibName; } ); p!=_accounts.end() )
+				p->second.Connected = true;
+			else
 				Accounts::TryInsert( ibName );
 		}
 	}

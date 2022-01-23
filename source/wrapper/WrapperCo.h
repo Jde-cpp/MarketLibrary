@@ -15,10 +15,10 @@ namespace Jde::Markets
 		α historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept->void override;
 		α historicalNewsEnd( int requestId, bool hasMore )noexcept->void override;
 
-		α historicalData( TickerId reqId, const ::Bar& bar )noexcept->void override{ HistoricalData(reqId, bar); }
-		α historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void override{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
-		α HistoricalData( TickerId reqId, const ::Bar& bar )noexcept->bool;
-		α HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->bool;
+		α historicalData( TickerId reqId, const ::Bar& bar )noexcept->void override;//{ HistoricalData(reqId, bar); }
+		α historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void override;//{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
+		//α HistoricalData( TickerId reqId, const ::Bar& bar )noexcept->bool;
+		//α HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->bool;
 
 		α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
 		α contractDetailsEnd( int reqId )noexcept->void override;
@@ -38,7 +38,7 @@ namespace Jde::Markets
 		UnorderedMapValue<int,HCoroutine> _newsArticleHandles;
 		flat_map<ReqId,sp<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<ReqId,HCoroutine> _secDefOptParamHandles;
 		UnorderedMapValue<int,HistoryAwait*> _historical;
-		flat_map<TickerId,vector<::Bar>> _historicalData;
+		//flat_map<TickerId,vector<::Bar>> _historicalData;
 		HCoroutine _accountHandle;
 		UnorderedMapValue<::OrderId,HCoroutine> _orderHandles;
 

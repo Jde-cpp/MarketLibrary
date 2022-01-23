@@ -39,6 +39,7 @@ namespace Jde::Markets
 		Ω InstancePtr()noexcept->sp<TwsClient>{ return _pInstance; }
 		Ω HasInstance()noexcept->bool{ return _pInstance!=nullptr;}
 		Ω RequestId()noexcept->ibapi::OrderId{ return Instance()._requestId++; }
+		Ω MaxHistoricalDataRequest()noexcept->uint8;
 		α isConnected()const noexcept->bool{ return EClientSocket::isConnected(); }
 		α SetRequestId( TickerId id )noexcept->void;
 
@@ -49,19 +50,19 @@ namespace Jde::Markets
 		α reqIds( int _=1 )noexcept->void{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
 		α RequestAccountUpdates( str acctCode, sp<IAccountUpdateHandler> )noexcept->Handle;
 		Ω CancelAccountUpdates( str acctCode, Handle handle )noexcept->void;
-		α reqAccountUpdatesMulti(TickerId reqId, const std::string& account, const std::string& modelCode, bool ledgerAndNLV)noexcept->void;
+		α reqAccountUpdatesMulti(TickerId reqId, str account, str modelCode, bool ledgerAndNLV)noexcept->void;
 		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
 		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void;
-		α reqHistoricalData( TickerId reqId, const ::Contract& contract, const std::string& endDateTime, const std::string& durationStr, const std::string& barSizeSetting, const std::string& whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
+		α reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
 		α reqPositions()noexcept->void{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
-		α reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, const std::string& whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept->void;
+		α reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, str whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept->void;
 
 		α cancelPositions()noexcept->void{ LOG( "cancelPositions()" ); EClientSocket::cancelPositions(); }
-		α reqPositionsMulti( int reqId, const std::string& account, const std::string& modelCode )noexcept->void;
+		α reqPositionsMulti( int reqId, str account, str modelCode )noexcept->void;
 		α reqManagedAccts()noexcept->void{ LOG( "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
 		β reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept->void;
 		α reqContractDetails( int reqId, const ::Contract& contract )noexcept->void;
-		α reqHeadTimestamp( int tickerId, const ::Contract &contract, const std::string& whatToShow, int useRTH, int formatDate )noexcept->void;
+		α reqHeadTimestamp( int tickerId, const ::Contract &contract, str whatToShow, int useRTH, int formatDate )noexcept->void;
 		α reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept->void;
 		α reqNewsProviders()noexcept->void;	static constexpr uint32 ReqNewsProvidersLogId = 159697286;
 
@@ -79,8 +80,7 @@ namespace Jde::Markets
 		static sp<TwsClient> _pInstance;
 	private:
 		α placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void;
-		α reqMktData(TickerId id, const ::Contract& contract, const std::string& genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions)noexcept->void;
-		TwsConnectionSettings _settings;
+		α reqMktData(TickerId id, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions)noexcept->void;
 		std::atomic<TickerId> _requestId{0};
 		static const LogTag& _logLevel;
 		flat_set<string> _accountUpdates; shared_mutex _accountUpdateMutex;

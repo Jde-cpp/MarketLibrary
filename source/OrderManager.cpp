@@ -48,21 +48,21 @@ namespace Jde::Markets
 
 	α OrderManager::Push( ::OrderId id, int errorCode, string errorMsg )noexcept->Task
 	{
-		sp<const IBException> pException{ new IBException{move(errorMsg), errorCode, id} };//make_shared doesn't work.
+
 		string account;
 		{
 			var _ = ( co_await CoLockKey( "OrderManager._cache", true) ).UP<CoLockGuard>();
 			if( auto p=_cache.find(id); p!=_cache.end() )
 			{
 				account = p->second.OrderPtr->account;
-				p->second.ExceptionPtr = pException;
+				p->second.ExceptionPtr = sp<const IBException>{ new IBException{move(errorMsg), errorCode, id} };//make_shared doesn't work.
 			}
 		}
 		if( account.size() )
 		{
 			var _ = ( co_await CoLockKey( "OrderManager._listeners", true) ).UP<CoLockGuard>();//TODO use a mutex class vs string
 			for( var l : _listeners )
-				l->OnOrderException( account, pException );
+				l->OnOrderException( account, sp<const IBException>{new IBException{move(errorMsg), errorCode, id}} );//make_shared doesn't work.
 		}
 		else
 			LOG( "({}) - could not find order", id );

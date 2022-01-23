@@ -109,13 +109,13 @@ namespace Jde::Markets
 		α wshMetaData( int reqId, str dataJson )$;
 		α wshEventData( int reqId, str dataJson )$;
 
-		α HistoricalDataRequestSize()const noexcept->uint{ return _historicalDataRequests.size(); }
-		α AddHistoricalDataRequest2( TickerId id )noexcept->void{ _historicalDataRequests.emplace(id); }
+		Ω HistoricalDataRequestSize()noexcept->uint{ return _historicalDataRequests.size(); }
+		Ω AddHistoricalDataRequest2( TickerId id )noexcept->void{ _historicalDataRequests.emplace(id); }
 		α AddAccountUpdate( str accountNumber, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>;
 		α RemoveAccountUpdate( str account, uint handle )noexcept->bool;
 
 	protected:
-		UnorderedSet<TickerId> _historicalDataRequests;
+		static UnorderedSet<TickerId> _historicalDataRequests;
 		static const LogTag& _logLevel;
 		static const LogTag& _historicalLevel;
 		static const LogTag& _tickLevel;

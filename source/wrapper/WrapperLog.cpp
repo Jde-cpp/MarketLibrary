@@ -16,6 +16,7 @@ namespace Jde::Markets
 	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws-results") };
 	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws-hist") };
 	const LogTag& WrapperLog::_tickLevel{ Logging::TagLevel("tws-tick") };
+	UnorderedSet<TickerId> WrapperLog::_historicalDataRequests;
 
 	α WrapperLog::error2( int id, int code, str m )noexcept->bool
 	{
@@ -46,7 +47,8 @@ namespace Jde::Markets
 	α WrapperLog::execDetailsEnd( int reqId )${ LOG( "WrapperLog::execDetailsEnd( {} )", reqId ); }
 	α WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )$
 	{
-		LOGT( _historicalLevel, "({})hstrclData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, bar.time.starts_with("20") ? DateDisplay(DateTime{ConvertIBDate(bar.time)}) : Chrono::Display(ConvertIBDate(bar.time)), bar.count, ToDouble(bar.volume), ToDouble(bar.wap), bar.open, bar.close, bar.high, bar.low );
+		var date = bar.time.starts_with("20") ? DateDisplay( DateTime{ConvertIBDate(bar.time)} ) : Chrono::Display( ConvertIBDate(bar.time) );
+		LOGT( _historicalLevel, "({})hstrclData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, date, bar.count, ToDouble(bar.volume), ToDouble(bar.wap), bar.open, bar.close, bar.high, bar.low );
 	}
 	α WrapperLog::historicalDataEnd( int reqId, str startDateStr, str endDateStr )$
 	{

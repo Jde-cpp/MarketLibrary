@@ -5,6 +5,7 @@
 #include "../../data/HistoricalDataCache.h"
 #include "../../data/BarData.h"
 #include "../../types/Exchanges.h"
+#include "../../types/IBException.h"
 #include "../../wrapper/WrapperCo.h"
 
 #define var const auto
@@ -93,6 +94,8 @@ namespace Jde::Markets
 							baseTime+=1min;
 						}
 						_cache[day] = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine( *_pContract, day, *pDayBars, _barSize );
+						if( _barSize==EBarSize::Day )
+							HistoryCache::SetDay( *_pContract, true, *_cache[day] );
 					}
 				}
 				if( bars.size() && SetData() )
@@ -126,7 +129,13 @@ namespace Jde::Markets
 				if( !IsHoliday(iDay) )
 					++dayCount;
 			}
-			_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+			if( var size=WrapperLog::HistoricalDataRequestSize(); size>TwsClient::MaxHistoricalDataRequest() )
+			{
+				h.promise().get_return_object().SetResult( IBException{format("Only '{}' historical data requests allowed at one time - {}.", TwsClient::MaxHistoricalDataRequest(), size), 322, id} );
+				h.resume();
+			}
+			else
+				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 		}
 	}
 

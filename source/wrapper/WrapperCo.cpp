@@ -12,6 +12,8 @@
 
 namespace Jde::Markets
 {
+	flat_map<TickerId,vector<::Bar>> _historicalData;
+
 	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )->void
 	{
 		if( auto p = handles.MoveOut( reqId ); p )
@@ -151,27 +153,28 @@ namespace Jde::Markets
 		Resume( _newsArticleHandles, reqId, move(p) );
 	}
 
-	bool WrapperCo::HistoricalData( TickerId reqId, const ::Bar& bar )noexcept
+	α WrapperCo::historicalData( TickerId reqId, const ::Bar& bar )noexcept->void
 	{
 		WrapperLog::historicalData( reqId, bar );
 		bool has = _historical.Has( reqId );
 		if( has )
 			_historicalData.try_emplace( reqId ).first->second.push_back( bar );
-		return has;
+//		return has;
 	}
-	bool WrapperCo::HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept
+
+	α WrapperCo::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void
 	{
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
 		auto ppAwaitable = _historical.Find( reqId );
 		if( !ppAwaitable.has_value() )
-			return false;
+			return /*false*/;
 		auto pData = _historicalData.find( reqId );
 		(*ppAwaitable)->SetTwsResults( reqId, pData==_historicalData.end() ? vector<::Bar>{} : move(pData->second) );//
 
 		_historical.erase( reqId );
 		if( pData!=_historicalData.end() )
 			_historicalData.erase( pData );
-		return true;
+		//return true;
 	}
 
 	Proto::Results::ExchangeContracts ToOptionParam( sv exchangeString, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept

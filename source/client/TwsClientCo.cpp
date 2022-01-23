@@ -48,7 +48,8 @@ namespace Jde::Markets
 				else
 				{
 					task.SetResult( pDetails->front() );
-					WARN_IF( pDetails->size()>1, "{} returned {} records expected 1.", ToString(), pDetails->size() );
+					if( pDetails->size()>1 )//~~WARN_IF( pDetails->size()>1, "{} returned {} records expected 1.", ToString(), pDetails->size() );
+						WARN( "{} returned {} records expected 1.", ToString(), pDetails->size() );
 				}
 			}
 			else

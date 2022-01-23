@@ -14,6 +14,9 @@ namespace Jde::Markets
 	using namespace Chrono;
 	sp<TwsClient> TwsClient::_pInstance;
 	const LogTag& TwsClient::_logLevel{ Logging::TagLevel("tws-requests") };
+	TwsConnectionSettings _settings;
+	α TwsClient::MaxHistoricalDataRequest()noexcept->uint8{ return _settings.MaxHistoricalDataRequest; }
+
 	α TwsClient::CreateInstance( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false)->void
 	{
 		if( _pInstance )
@@ -32,9 +35,9 @@ namespace Jde::Markets
 
 	TwsClient::TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> pWrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		EClientSocket( pWrapper.get(), pReaderSignal.get() ),
-		_pWrapper{ pWrapper },
-		_settings{ settings }
+		_pWrapper{ pWrapper }
 	{
+		_settings = settings;
 		AccountAuthorizer::Initialize();
 		for( var port : _settings.Ports )
 		{
@@ -101,16 +104,10 @@ namespace Jde::Markets
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		var send = size<_settings.MaxHistoricalDataRequest;
 		LOG( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
-		if( send )
-		{
-			ASSERT( durationStr!="0 D" );
-			WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
-			if( contract.symbol=="CAT" )
-				DBG( "{}"sv, endDateTime );
-			EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
-		}
-		else
-			_pWrapper->error( reqId, 322, format("Only '{}' historical data requests allowed at one time - {}.", _settings.MaxHistoricalDataRequest, size) );
+		ASSERT( send )
+		ASSERT( durationStr!="0 D" );
+		WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
+		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}
 	α TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept->void
 	{

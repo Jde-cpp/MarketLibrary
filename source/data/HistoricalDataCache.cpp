@@ -65,6 +65,7 @@ namespace Jde::Markets
 	struct DayCache final : IDataCache
 	{
 		Ω Push( const Contract& contract, EDisplay display, bool useRth, const vector<::Bar>& bars )noexcept->void;
+		Ω Push( const Contract& contract, bool useRth, const vector<sp<::Bar>>& bars )noexcept->void;
 		α Contains( const flat_set<Day>& days, bool useRth, EBarSize barSize )noexcept->optional<tuple<Day,Day>> override;
 		α Get( const Contract& contract, Day day, bool useRth, EBarSize barSize )noexcept->VectorPtr<BarPtr> override;
 		Ω CacheId( ContractPK contractId, EDisplay display )noexcept->string{ return IDataCache::CacheId( Prefix, contractId, display); }
@@ -72,10 +73,11 @@ namespace Jde::Markets
 		α Size()const noexcept->EBarSize override{ return EBarSize::Day; }
 		α Push( const flat_map<Day,::Bar>& dayBars, bool rth )noexcept->void;
 
+
 		constexpr static sv Prefix = "HistoricalDataCacheDay";
 	private:
-		map<Day,::Bar> _rth;	shared_mutex _rthMutex;
-		map<Day,::Bar> _extended; shared_mutex _extendedMutex;
+		flat_map<Day,::Bar> _rth;	shared_mutex _rthMutex;
+		flat_map<Day,::Bar> _extended; shared_mutex _extendedMutex;
 	};
 
 	α HistoryCache::Clear( ContractPK contractId, EDisplay display, EBarSize barSize )noexcept->void
@@ -93,6 +95,10 @@ namespace Jde::Markets
 			OptionCache::Push( contract, display, bars, end, subDayCount );
 		else
 			TRACE( "Pushing barsize '{}' not supported."sv, BarSize::ToString(barSize) );
+	}
+	α HistoryCache::SetDay( const Contract& contract, bool useRth, const vector<sp<::Bar>>& bars )noexcept->void
+	{
+		DayCache::Push( contract, useRth, bars );
 	}
 
 	α HistoryCache::Get( const Contract& contract, Day end, Day tradingDays, EBarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->flat_map<Day,VectorPtr<BarPtr>>
@@ -228,6 +234,17 @@ namespace Jde::Markets
 		if( cacheBars.size() )
 			pValues->Push( cacheBars, useRth );
 	}
+	α DayCache::Push( const Contract& contract, bool useRth, const vector<sp<::Bar>>& bars )noexcept->void
+	{
+		flat_map<Day,::Bar> cacheBars;
+		for( var& p : bars )
+			cacheBars.emplace( ToDays(ConvertIBDate(p->time)), *p );
+
+		auto pValues = Cache::Emplace<DayCache>( CacheId(contract.Id, EDisplay::Trades) );
+		if( cacheBars.size() )
+			pValues->Push( cacheBars, useRth );
+	}
+
 	α OptionCache::Push( const Contract& contract, EDisplay display, const vector<::Bar>& bars, Day end, Day subDayCount )noexcept->void
 	{
 		flat_map<Day,vector<BarPtr>> rthBars;
@@ -275,6 +292,7 @@ namespace Jde::Markets
 		unique_lock l{ mutex };
 		for( var& [day,bar] : dayBars )
 		{
+			//if( day==19012 ) BREAK;
 			auto result = cache.emplace( day, bar );
 			if( !result.second )
 				result.first->second = bar;
@@ -288,7 +306,11 @@ namespace Jde::Markets
 		auto pResult = ms<vector<BarPtr>>();
 		var p = cache.find( day );
 		if( p==cache.end() )
-			ERR("({}) Trying to add '{}' bars but does not contain '{}'"sv, contract.Symbol, ToString(barSize), DateDisplay(FromDays(day)) );
+		{
+			ERR("({}) Trying to add '{}' bar but does not contain '{}' - {}"sv, contract.Symbol, BarSize::ToString(barSize), DateDisplay(FromDays(day)), day );
+			//for( var& x : cache )
+			//	DBG( "{}", x.first );
+		}
 		else
 			pResult->push_back( ms<::Bar>(p->second) );
 

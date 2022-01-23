@@ -12,8 +12,8 @@ namespace Jde::Markets
 		string Host{"localhost"};
 		string Options;
 		vector<uint16> Ports={7497,4002};
-		const bool CommunicationSink{false};
-		uint MaxHistoricalDataRequest{ std::numeric_limits<uint>::max() };
+		bool CommunicationSink{false};
+		uint8 MaxHistoricalDataRequest{ std::numeric_limits<uint8>::max() };
 	};
 	ΓM α operator<<( std::ostream& os, const TwsConnectionSettings& settings )noexcept->std::ostream&;
 }
