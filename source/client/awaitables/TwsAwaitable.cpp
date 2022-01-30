@@ -100,7 +100,6 @@ namespace Jde::Markets
 			_order.orderId = _pTws->RequestId();
 		WrapperPtr()->_orderHandles.MoveIn( _order.orderId, move(h) );
 //		LOG( "({})receiveOrder( contract='{}' {}x{} )"sv, _order.orderId, pIbContract->symbol, order.lmtPrice, ToDouble(order.totalQuantity) );
-		_pTws->placeOrder( *_pContract, _order );
 		if( _blockId.size() )
 		{
 			try
@@ -123,6 +122,8 @@ namespace Jde::Markets
 			}}.detach();
 */
 		}
+		_pTws->placeOrder( *_pContract, _order );//can't have h destruct this when _blockId.size() is using it.
+
 /*		if( !order.whatIf && r.stop()>0 )
 		{
 			var parentId = _tws.RequestId();

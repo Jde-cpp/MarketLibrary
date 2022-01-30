@@ -115,6 +115,8 @@ namespace Jde::Markets
 		else if( type==ETickType::AverageVolume_ ) AverageVolume = value;
 		else if( type==ETickType::ShortableShares ) ShortableShares = value;
 		else set = false;
+		if( set )
+			_setFields.set( type );
 		ASSERT( set );
 		return set;
 	}

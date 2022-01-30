@@ -282,7 +282,7 @@ namespace Jde::Markets
 			type = SecurityType::Index;
 		else if( name=="WAR"sv )
 			type = SecurityType::Warrant;
-		else
+		else if( name!="UNK"sv )
 			WARN( "Could not parse security type {}"sv, inputName );
 
 		return type;

@@ -13,12 +13,9 @@ namespace Jde::Markets
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override{ return _dataPtr ? AwaitResult{ static_pointer_cast<void>(_dataPtr) } : base::await_resume(); }
-
+		~HistoryAwait();
 	private:
-		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )noexcept:
-			ITwsAwaitShared{ sl },
-			_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
-		{}
+		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )noexcept;
 		α Missing()noexcept->vector<tuple<Day,Day>>;
 		α AsyncFetch( HCoroutine h )noexcept->Task;
 		α SetData(bool force=false)noexcept->bool;

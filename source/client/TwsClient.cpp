@@ -75,7 +75,6 @@ namespace Jde::Markets
 	α TwsClient::CancelAccountUpdates( str acctCode, Handle handle )noexcept->void
 	{
 		auto p = _pInstance; if( !p ) return;
-		LOG( "({})CancelAccountUpdates( '{}' )", handle, acctCode );
 		if( p->WrapperLogPtr()->RemoveAccountUpdate(acctCode, handle) )
 		{
 			LOG( "reqAccountUpdates( '{}', '{}' )", false, acctCode );
@@ -102,9 +101,8 @@ namespace Jde::Markets
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
-		var send = size<_settings.MaxHistoricalDataRequest;
 		LOG( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
-		ASSERT( send )
+		ASSERT( size<_settings.MaxHistoricalDataRequest+1 )
 		ASSERT( durationStr!="0 D" );
 		WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );

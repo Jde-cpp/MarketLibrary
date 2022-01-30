@@ -18,7 +18,11 @@ namespace Jde::Markets
 		using T=IBException;
 		α Clone()noexcept->sp<IException> override{ return ms<T>(move(*this)); }\
 		α Move()noexcept->up<IException> override{ return mu<T>(move(*this)); }\
-		α Ptr()->std::exception_ptr override{ return Jde::make_exception_ptr(move(*this)); }\
+		α Ptr()->std::exception_ptr override
+		{ 
+			auto p = Jde::make_exception_ptr( move(*this) ); 
+			return p;
+		}\
 		[[noreturn]] α Throw()->void override{ throw move(*this); }
 		const long RequestId{0};
 	};

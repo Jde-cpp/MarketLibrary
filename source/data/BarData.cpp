@@ -5,6 +5,7 @@
 #include <jde/io/File.h>
 #include <jde/markets/types/Contract.h>
 
+#include "../../../Framework/source/math/MathUtilities.h"
 #include "../../../Framework/source/collections/Collections.h"
 #include "../../../Framework/source/io/ProtoUtilities.h"
 #include "../../../XZ/source/XZ.h"
@@ -38,11 +39,13 @@ namespace Jde::Markets
 
 	α BarData::Load( fs::path path_, string symbol2 )noexcept->AWrapper
 	{
+		auto name{ path_.filename().string() };
+		DBG( "({})BarData::Load", name );
 		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task
 		{
 			try
 			{
-				LOG( "Reading {}", path.string() );
+				LOG( "({}) Reading", path.string() );
 				AwaitResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
 				var pFile = t.SP<Proto::BarFile>();
 				Day dayCount = pFile->days_size();
@@ -79,7 +82,7 @@ namespace Jde::Markets
 				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
-		}};
+		}, move(name) };
 	}
 
 
@@ -166,38 +169,60 @@ namespace Jde::Markets
 		}
 		~BarFilesAwaitable(){ LOG( "({})~BarFilesAwaitable()", _symbol ); }
 		α await_ready()noexcept->bool override{ return _files.empty(); }
+		α Process()->Task
+		{
+			for( var [path,start,end] : _files )
+			{
+				try
+				{
+					if( _function )
+						DBG( "({})_function!=null {:x}", path.filename().string(), *(long *)(char *)&_function );
+					else
+						DBG( "({})_function==null", path.filename().string() );
+
+					auto a = BarData::Load( path, _symbol );
+					auto result = co_await a;
+					auto pData = result.SP<map<Day,VectorPtr<CandleStick>>>();
+					try
+					{
+						if( _function )
+							_function( *pData, start, end );
+						else
+							INFO( "({})_function==null", path.filename().string() );
+					}
+					catch( std::bad_function_call e )
+					{
+						INFO( "{}", e.what() );
+						BREAK;
+					}
+				}
+				catch( IException& e )
+				{
+					try
+					{
+						if( IO::FileSize(path)>0 ) e.Throw();
+						fs::remove( path ); INFO( "{} empty removing", path );
+					}
+					catch( IException& e )
+					{
+						_pException = e.Clone();
+						break;
+					}
+				}
+			}
+			_h.resume();
+		}
 		α await_suspend( HCoroutine h )noexcept->void override
 		{
 			base::await_suspend( h );
 			_h = move( h );
-			auto f = [this]()mutable->Task
-			{
-				for( var [path,start,end] : _files )
-				{
-					try
-					{
-						auto a = BarData::Load( move(path), _symbol );
-						auto result = co_await a;
-						auto pData = result.SP<map<Day,VectorPtr<CandleStick>>>();
-						_function( *pData, start, end );
-					}
-					catch( IException& e )
-					{
-						try
-						{
-							if( IO::FileSize(path)>0 ) e.Throw();
-							fs::remove( path ); INFO( "{} empty removing", path );
-						}
-						catch( IException& e )
-						{
-							_pException = e.Clone();
-							break;
-						}
-					}
-				}
-				_h.resume();
-			};
-			f();
+			
+			if( _function )
+				DBG( "({}) have function", _symbol );
+			else
+				DBG( "({})no function", _symbol );
+
+			Process();
 		}
 		α await_resume()noexcept->AwaitResult override
 		{
@@ -228,10 +253,31 @@ namespace Jde::Markets
 		{}
 		return ms<flat_map<Day,VectorPtr<CandleStick>>>();
 	}
+	struct LoadLambda
+	{
+		LoadLambda( const Contract& contract, Day start, Day end, sp<flat_map<Day,VectorPtr<CandleStick>>> p ):_contract{contract},_start{start}, _end{end}, _pResults{p}
+		{
+			INFO( "({})LoadLambda - {:x}", _contract.Symbol, (uint)this );
+		}
+		~LoadLambda(){ INFO( "({})LoadLambda - {:x}", _contract.Symbol, (uint)this ); }
+		void operator()( path path, Day, Day )
+		{
+			var pFileValues = BarData::Load( path, (sv)_contract.Symbol );
+			for( var& [day,pBars] : *pFileValues )
+			{
+				if( day>=_start && day<=_end )
+					_pResults->try_emplace( _pResults->end(), day, pBars );
+			}
+		}
+	private:
+		const Contract& _contract;
+		const Day _start; const Day _end;
+		sp<flat_map<Day,VectorPtr<CandleStick>>> _pResults;
+	};
 	α BarData::Load( const Contract& contract, Day start, Day end )noexcept(false)->sp<flat_map<Day,VectorPtr<CandleStick>>>
 	{
 		auto pResults = ms<flat_map<Day,VectorPtr<CandleStick>>>();
-		auto fnctn = [&]( path path, Day, Day )noexcept
+/*		auto fnctn = [&]( path path, Day, Day )noexcept
 		{
 			var pFileValues = Load( path, (sv)contract.Symbol );
 			for( var& [day,pBars] : *pFileValues )
@@ -239,17 +285,38 @@ namespace Jde::Markets
 				if( day>=start && day<=end )
 					pResults->try_emplace( pResults->end(), day, pBars );
 			}
-		};
-		ForEachFile( contract, fnctn, start, end );
+		};*/
+		ForEachFile( contract, LoadLambda{contract, start, end, pResults}, start, end );
 		return pResults;
 	}
+	struct LoadLambda2
+	{
+		LoadLambda2( string symbol, Day start, Day end, sp<map<Day,VectorPtr<CandleStick>>> p ):_symbol{symbol}, _start{start}, _end{end}, _pResults{p}
+		{
+			INFO( "({})LoadLambda2 - {:x}", _symbol, (uint)this );
+		}
+		~LoadLambda2(){ INFO( "({})~LoadLambda2 - {:x}", _symbol, (uint)this ); }
+		void operator()( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
+		{
+			for( var& dayBars : bars )
+			{
+				var day = dayBars.first; var pBars = dayBars.second;
+				if( day>=_start && day<=_end )
+					_pResults->try_emplace( _pResults->end(), day, pBars );
+			}
+		}
+	private:
+		const string _symbol;
+		const Day _start; const Day _end;
+		sp<map<Day,VectorPtr<CandleStick>>> _pResults;
+	};
 	α BarData::CoLoad( ContractPtr_ pContract, Day start, Day end )noexcept(false)->AWrapper
 	{
 		return AWrapper( [pContract, start, end]( HCoroutine h )->Task
 		{
 			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, DateDisplay(start), DateDisplay(end) );
-			auto p = new map<Day,VectorPtr<CandleStick>>();
-			auto f = [pResults=p,start,end]( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
+			auto p = ms<map<Day,VectorPtr<CandleStick>>>();
+			/*auto f = [pResults=p,start,end]( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
 			{
 				for( var& dayBars : bars )
 				{
@@ -257,18 +324,18 @@ namespace Jde::Markets
 					if( day>=start && day<=end )
 						pResults->try_emplace( pResults->end(), day, pBars );
 				}
-			};
+			};*/
 			try
 			{
-				( co_await ForEachFile(*pContract, start, end, f) ).CheckError();
-				h.promise().get_return_object().SetResult( make_shared<map<Day,VectorPtr<CandleStick>>>(*p) );
+				( co_await ForEachFile(*pContract, start, end, LoadLambda2{format("{}.{}.{}", pContract->Symbol, start, end), start,end, p}) ).CheckError();
+				h.promise().get_return_object().SetResult( p );
 			}
 			catch( IException& e )
 			{
 				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
-		} );
+		}, pContract->Symbol );
 	}
 
 	void BarData::Save( const Contract& contract, flat_map<Day,vector<sp<::Bar>>>& rthBars )noexcept
@@ -464,9 +531,10 @@ namespace Jde::Markets
 		auto ppBar = fromBars.begin();
 		var duration = toBarSize==EBarSize::Day ? end-start : BarSize::BarDuration( toBarSize );  ASSERT( toBarSize<=EBarSize::Day );
 		var minuteCount = std::chrono::duration_cast<std::chrono::minutes>( duration ).count();
-		for( auto barStart = start, barEnd=Clock::from_time_t( (Clock::to_time_t(start)/60+minuteCount)/minuteCount*minuteCount*60 ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
+		for( auto barStart = start, barEnd=Clock::from_time_t( Round<uint>((Clock::to_time_t(start)/60+minuteCount)/(double)minuteCount*(double)minuteCount*60) ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
 		{
-			::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, 0, 0, 0 };
+			DBG( "Start={}, end={}", ToIsoString(start), ToIsoString(barEnd) );
+			::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, ToDecimal(0), ToDecimal(0), 0 };
 			double sum = 0;
 			for( ;ppBar!=fromBars.end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<barEnd; ++ppBar )
 			{
@@ -477,7 +545,7 @@ namespace Jde::Markets
 					combined.open = bar.open;
 				combined.close = bar.close;
 				sum = ToDouble( bar.wap )*ToDouble( bar.volume );
-				combined.volume += bar.volume;
+				combined.volume = Add( combined.volume, bar.volume );
 				combined.count += bar.count;
 			}
 			if( combined.low!=std::numeric_limits<double>::max() )

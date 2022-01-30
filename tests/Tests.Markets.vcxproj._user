@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup Label="Globals">
-		<IncludePath>C:\TWS API\source\CppClient\client;$(REPO_DIR)\protobuf\src;$(REPO_DIR)\spdlog\include;$(BOOST_DIR);$(REPO_DIR)\fmt\include;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY\src;$(IncludePath)</IncludePath>
+		<IncludePath>C:\TWS API\source\CppClient\client;$(REPO_DIR)\tws-api\source\cppclient\client;$(REPO_DIR)\protobuf\src;$(REPO_DIR)\spdlog\include;$(BOOST_DIR);$(REPO_DIR)\fmt\include;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)\IntelRDFPMathLib20U2\LIBRARY\src;$(IncludePath)</IncludePath>
 		<LibraryPath>$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
 		<LocalDebuggerCommandArguments>-c</LocalDebuggerCommandArguments>
 		<DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>

@@ -6,6 +6,8 @@
 
 namespace Jde::Markets
 {
+	string _defaultCurrency{ Settings::Get<string>("tws/defaultCurrency").value_or("USD") };
+
 	Tws::Tws( const TwsConnectionSettings& settings, sp<WrapperCo> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false):
 		TwsClient( settings, wrapper, pReaderSignal, clientId )
 	{}
@@ -47,9 +49,22 @@ namespace Jde::Markets
 					task.SetResult( Exception(_sl, "{} returned 0 records expected 1.", ToString()) );
 				else
 				{
-					task.SetResult( pDetails->front() );
-					if( pDetails->size()>1 )//~~WARN_IF( pDetails->size()>1, "{} returned {} records expected 1.", ToString(), pDetails->size() );
-						WARN( "{} returned {} records expected 1.", ToString(), pDetails->size() );
+					uint count = 0;
+					for( var& p : *pDetails )
+					{
+						if( p->contract.currency==_defaultCurrency )
+						{
+							++count;
+							task.SetResult( p );
+						}
+					}
+					if( count==0 )
+					{
+						count = pDetails->size();
+						task.SetResult( pDetails->front() );
+					}
+					if( count>1 )//~~WARN_IF( pDetails->size()>1, "{} returned {} records expected 1.", ToString(), pDetails->size() );
+						WARN( "({}) {} returned {} records expected 1.", pDetails->front()->contract.symbol, ToString(), pDetails->size() );
 				}
 			}
 			else

@@ -1,16 +1,21 @@
 {
 	"testing":
 	{
-		"_tests":  "OrderManagerTests.Adhoc",
-		"tests":  "*"
+		"tests":  "HistoricalDataCacheTest.LoadFromFile2",
+		"_tests":  "*"
 	},
 	"logging":
 	{
-		"tags": [ "threads", "_sql", "_tws-requests", "tws-results", "_tws-hist", "_mrk-hist" ],
+		"tags": [ "_threads", "_sql", "_tws-requests", "tws-results", "_tws-hist", "mrk-hist", "io" ],
 		"console":{},
 		"file":{ "path": ".." },
 		"memory": true,
-		"server": { "portx": 4321, "level": "Debug", "diagnosticsLevel": "Debug", "tags": {"threads":"Debug"} }
+		"server": { "portx": 4321, "level": "Debug", "diagnosticsLevel": "Debug", "tags": {"threads":"Debug"} },
+		"breakLevel":  "Critical"
+	},
+	"marketHistorian":
+	{
+		"barPath": "C:\\ProgramData\\Jde-cpp\\TwsWebSocket\\securities"
 	},
 	"wakeDuration": "PT5S",
 	"db":

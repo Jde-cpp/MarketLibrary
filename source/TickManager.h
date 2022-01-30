@@ -46,7 +46,7 @@ namespace Jde::Markets
 		Ω CalculateOptionPrice(  uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept->void;
 		Ω Cancel( Handle h )noexcept->void;
 		Ω Subscribe( const TickParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
-		Ω Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void;
+		Ω Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept(false)->void;
 		Ω CancelProto( uint sessionId, uint clientId, ContractPK contractId )noexcept->void;
 		Ω Ratios( ContractPK c )noexcept{ return RatioAwait{c}; }
 
@@ -95,13 +95,13 @@ namespace Jde::Markets
 			struct TickListSource{ ESubscriptionSource Source; uint Id; flat_set<ETickList> Ticks; };
 			α RemoveTwsSubscription( ESubscriptionSource source, uint id, ContractPK contractId )noexcept->void;
 			flat_set<ETickList> GetSubscribedTicks( ContractPK id )const noexcept;
-			α AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock={} )noexcept->bool;
+			α AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock={} )noexcept(false)->bool;
 			flat_multimap<TimePoint,tuple<ESubscriptionSource, uint, ContractPK>> _delays; std::shared_mutex _delayMutex;
 			flat_multimap<ContractPK,TickListSource> _twsSubscriptions; std::mutex _twsSubscriptionMutex;
 
 			flat_multimap<ContractPK,SubscriptionInfo> _subscriptions; mutex _subscriptionMutex;//Type=0, handleIndex=clientId
 
-			α Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void;
+			α Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept(false)->void;
 			struct ProtoSubscription
 			{
 				uint32 SessionId;

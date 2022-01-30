@@ -13,6 +13,15 @@
 namespace Jde::Markets
 {
 	static var& _logLevel{ Logging::TagLevel("mrk-hist") };
+
+	HistoryAwait::HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )noexcept:
+		ITwsAwaitShared{ sl },
+		_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
+	{
+		LOG( "HistoryAwait={:x}", (uint)this );
+	}
+
+	HistoryAwait::~HistoryAwait(){ LOG( "HistoryAwait={:x}", (uint)this ); }
 	α HistoryAwait::SetData( bool force )noexcept->bool
 	{
 		bool set = false;
@@ -73,18 +82,20 @@ namespace Jde::Markets
 	{
 		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize<EBarSize::Week )
 		{
+			DBG( "this={:x} _cache={:x}", (uint)this, (uint)&_cache );
 			try
 			{
 				vector<::Bar> bars;
 				for( var& [start,end] : Missing() )
 				{
+					auto pCache = &_cache;//for some reason gets lost in msvc.
 					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).SP<map<Day,VectorPtr<CandleStick>>>();
 					if( !pBars->size() )
 						continue;
 					LOG( "({})HistoryAwait::AsyncFetch have files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );
 					for( var& [day,pSticks] : *pBars )
 					{
-						CONTINUE_IF( _cache.find(day)->second, "Day {} has value, but loaded again.", day );
+						CONTINUE_IF( pCache->find(day)->second, "Day {} has value, but loaded again.", day );
 						auto pDayBars = ms<vector<sp<Bar>>>();
 						for( auto baseTime = RthBegin( *_pContract, day ); var& stick : *pSticks )
 						{
@@ -93,15 +104,17 @@ namespace Jde::Markets
 							bars.push_back( *ib );
 							baseTime+=1min;
 						}
-						_cache[day] = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine( *_pContract, day, *pDayBars, _barSize );
+						VectorPtr<sp<::Bar>> pEmplaced = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine(*_pContract, day, *pDayBars, _barSize );
+						(*pCache)[day] = pEmplaced;
 						if( _barSize==EBarSize::Day )
-							HistoryCache::SetDay( *_pContract, true, *_cache[day] );
+							HistoryCache::SetDay( *_pContract, true, *pEmplaced );
+						else
+							HistoryCache::Set( *_pContract, EDisplay::Trades, EBarSize::Minute, true, bars );
 					}
 				}
 				if( bars.size() && SetData() )
 				{
 					LOG( "HistoryAwait::AsyncFetch have files" );
-					HistoryCache::Set( *_pContract, EDisplay::Trades, EBarSize::Minute, true, bars );
 					CoroutinePool::Resume( move(h) );
 					co_return;
 				}

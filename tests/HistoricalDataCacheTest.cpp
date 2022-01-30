@@ -152,7 +152,29 @@ namespace Jde::Markets
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
 		CompareBars( *pFileCache, *pNoCache, false );
 	}
-
+	
+	TEST_F( HistoricalDataCacheTest, LoadFromFile2 )
+	{
+		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::Tsla.Id) ).get();
+		var& contract = *pContract;
+		constexpr auto Display = EDisplay::Trades;
+		var prev = PreviousTradingDay();
+		auto dates = BarData::FindExisting( contract, prev-30 );
+		if( dates.size()==0 )
+		{
+			auto pBars = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), prev, 1, EBarSize::Minute, EDisplay::Trades, true) ).get();
+			dates = BarData::FindExisting( contract, prev-30 ); ASSERT_GT( dates.size(), 0 );
+		}
+		var day = *dates.rbegin();
+		ClearMemoryLog();
+		auto pFileCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
+		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 0 );
+		HistoryCache::Clear( contract.contract.conId, Display );
+		NoCache nc;
+		var pNoCache = SFuture<vector<::Bar>>( Tws::HistoricalData(ms<const Contract>(contract), day, 1, EBarSize::Minute, Display, true) ).get();
+		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
+		CompareBars( *pFileCache, *pNoCache, false );
+	}
 	TEST_F( HistoricalDataCacheTest, DayBars )
 	{
 		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::SH.Id) ).get();
@@ -252,7 +274,7 @@ namespace Jde::Markets
 			//ASSERT_GT( pBars->size(), 0 );
 			check( checkDay ? checkDay : day );
 		};
-		Contract contract; contract.Symbol = "SPY"; contract.SecType=SecurityType::Option; contract.Right=SecurityRight::Call; contract.Strike = 500; contract.Expiration = 19377; contract.Currency = Proto::Currencies::UsDollar;
+		Contract contract; contract.Symbol = "SPY"; contract.SecType=SecurityType::Option; contract.Right=SecurityRight::Call; contract.Strike = 430; contract.Expiration = 19377; contract.Currency = Proto::Currencies::UsDollar;
 		var pDetails = SFuture<::ContractDetails>( Tws::ContractDetail(*contract.ToTws()) ).get();
 		//var& ibContract = pDetails->contract;
 		ClearMemoryLog();

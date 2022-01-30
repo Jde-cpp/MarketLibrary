@@ -14,7 +14,7 @@ namespace Jde::Markets
 {
 	using Proto::Results::ETickType;
 	static const LogTag& _logLevel{ Logging::TagLevel("tick") };
-	α TickManager::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void
+	α TickManager::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept(false)->void
 	{
 		WorkerPtr->Subscribe( sessionId, clientId,  contractId, fields, snapshot, fnctn );
 	}
@@ -584,16 +584,15 @@ namespace Jde::Markets
 		return get<0>( p->second ).get_future();
 	}
 */
-	bool TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept
+	α TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept(false)->bool
 	{
 		auto newTicks = 0;
-
 		if( !pLock )
 			pLock = ms<unique_lock<mutex>>( _twsSubscriptionMutex );
 		auto requestTicks = GetSubscribedTicks( contractId );
 		std::for_each( source.Ticks.begin(), source.Ticks.end(), [&newTicks, &requestTicks](auto x){newTicks+=requestTicks.emplace(x).second;} );
 		LOG( "({})Adding _twsSubscription {}."sv, source.Id, source.Source );
-		_twsSubscriptions.emplace( contractId, source );
+		auto pInsert = _twsSubscriptions.emplace( contractId, source );
 		pLock = nullptr;
 		if( newTicks )
 		{
@@ -612,10 +611,20 @@ namespace Jde::Markets
 				else
 					_values.emplace( contractId, Tick{contractId, reqId} );
 			}
-
-			auto c = SFuture<::ContractDetails>( Tws::ContractDetail(contractId) ).get();
-			//::Contract contract;  contract.conId = contractId; contract.exchange = "SMART";
-			_pTwsClient->reqMktData( reqId, c->contract, Str::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
+			try
+			{
+				auto c = SFuture<::ContractDetails>( Tws::ContractDetail(contractId) ).get();//throws
+				_pTwsClient->reqMktData( reqId, c->contract, Str::AddCommas(requestTicks), false, false, {} );//456=dividends - https://interactivebrokers.github.io/tws-api/tick_types.html
+			}
+			catch( IException& e )
+			{
+				_twsSubscriptions.erase( pInsert );
+				e.Throw();
+			}
+			catch( std::exception& e )
+			{
+				DBG( "{}", e.what() );
+			}
 		}
 		return newTicks;
 	}
@@ -652,13 +661,31 @@ namespace Jde::Markets
 		TwsClientPtr->cancelMktData( oldId );
 	}
 
-	α TickManager::TickWorker::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept->void
+	α TickManager::TickWorker::Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept(false)->void
 	{
 		{
-			unique_lock l{ _protoSubscriptionMutex };
+			unique_lock _{ _protoSubscriptionMutex };
 			_protoSubscriptions.emplace( contractId, ProtoSubscription{sessionId, clientId, fnctn} );
 		}
-		if( !AddSubscription(contractId, TickListSource{ESubscriptionSource::Proto, sessionId, fields}) )
+		bool newTicks;
+		try
+		{
+			newTicks = AddSubscription( contractId, TickListSource{ESubscriptionSource::Proto, sessionId, fields} );
+		}
+		catch( IException& e )
+		{
+			unique_lock _{ _protoSubscriptionMutex };
+			auto range = _protoSubscriptions.equal_range( contractId );
+			for( auto p=range.first; p!=range.second; ++p )
+			{
+				if( p->second.SessionId!=sessionId || p->second.ClientId!=clientId )
+					continue;
+				_protoSubscriptions.erase( p );
+				break;
+			}
+			e.Throw();
+		}
+		if( !newTicks )
 		{
 			if( auto pTick = Get( contractId ); pTick )
 			{
