@@ -8,16 +8,18 @@
 #define var const auto
 namespace Jde::Markets
 {
+	static const LogTag& _logLevel = Logging::TagLevel( "ib-accounts" );
+
 	AccountAuthorizer _authorizer;
 	flat_map<uint,Account> _accounts; shared_mutex _accountMutex; flat_set<uint> _deletedAccounts; flat_map<UserPK,UM::EAccess> _minimumAccess;
-	α AccountAccess( UM::EAccess requested, UserPK userId, AccountPK accountId, bool allowDeleted=true )noexcept(false)->bool;
+	α AccountAccess( UM::EAccess requested, UserPK userId, AccountPK accountId, bool allowDeleted=true )noexcept->bool;
 
-	struct GroupAuthorizer final: UM::IAuthorize
+/*	struct GroupAuthorizer final: UM::IAuthorize
 	{
 		GroupAuthorizer()noexcept;
 
 		α CanRead( uint pk, UserPK userId )noexcept->bool override{ return true; }
-	};
+	};*/
 	α AccountsAwait::await_ready()noexcept->bool{ return base::await_ready() || !_accounts.empty() || !WrapperPtr()->_accountHandle; }
 	α AccountsAwait::await_suspend( HCoroutine h )noexcept->void//will never get called, accounts gets setup initially.
 	{
@@ -44,6 +46,7 @@ namespace Jde::Markets
 	{
 		unique_lock l{ _accountMutex };
 		_deletedAccounts.clear();
+		var connected = Collections::Keys<uint,Account>( _accounts, []( var& a ){return a.Connected;} );
 		_accounts.clear();
 		if( !db.TrySelect( format("select id, {}, name, target, description  from ib_accounts", DB::DefaultSyntax().DateTimeSelect("deleted")), [&]( const DB::IRow& row )
 		{
@@ -51,7 +54,7 @@ namespace Jde::Markets
 			if( pDeleted )
 				_deletedAccounts.emplace( id );
 			else
-				_accounts.emplace( id, Account{id, row.GetString(i+1), row.GetString(i+2), row.GetString(i+3)} );
+				_accounts.emplace( id, Account{id, row.GetString(i+1), row.GetString(i+2), row.GetString(i+3), connected.find(id)!=connected.end()} );
 		}) ) return;
 		db.TrySelect( "select account_id, user_id, right_id  FROM ib_account_roles ib join um_group_roles gr on gr.role_id=ib.role_id join um_user_groups ug on gr.group_id=ug.group_id", [&]( const DB::IRow& row )
 		{
@@ -76,7 +79,7 @@ namespace Jde::Markets
 	{
 		DB::AddMutationListener( "ib", [](const DB::MutationQL& m, PK /*id*/)
 		{
-			if( m.JsonName.ends_with( "AccountRoles") || m.JsonName.ends_with("RoleAccounts") )
+			if( m.JsonName.ends_with( "AccountRoles") || m.JsonName.ends_with("RoleAccounts") || m.JsonName=="account" )
 				LoadAccess();
 		} );
 		DB::AddMutationListener( "um", []( const DB::MutationQL& m, PK /*id*/ )
@@ -94,17 +97,35 @@ namespace Jde::Markets
 
 	α AccountAuthorizer::CanRead( uint pk, UserPK userId )noexcept->bool
 	{
-		try
+		return AccountAccess( UM::EAccess::Read, userId, (AccountPK)pk );
+/*		try
 		{
-			return AccountAccess( UM::EAccess::Read, userId, (AccountPK)pk );
 		}
 		catch( IException& )
 		{
 			return false;
-		}
+		}*/
 	}
+	α AccountAuthorizer::Test( DB::EMutationQL ql, UserPK userId, SL sl )noexcept(false)->void
+	{
 
-	α AccountAccess( UM::EAccess requested, UserPK userId, AccountPK accountId, bool allowDeleted )noexcept(false)->bool
+		var requested{ ql==DB::EMutationQL::Update ? UM::EAccess::Write : UM::EAccess::Administer };
+		shared_lock l{ _accountMutex };
+		var pUser = _minimumAccess.find( userId );
+		THROW_IFSL( pUser==_minimumAccess.end() || (pUser->second & requested)==UM::EAccess::None , "No Access" );
+	}
+/*	α AccountAuthorizer::Invalidate( SL sl )noexcept(false)->void
+	{
+		{
+			ul _{ _accountMutex };
+			_accounts.clear();
+			_deletedAccounts.clear();
+			_minimumAccess.clear();
+		}
+	}*/
+
+
+	α AccountAccess( UM::EAccess requested, UserPK userId, AccountPK accountId, bool allowDeleted )noexcept->bool
 	{
 		shared_lock l{ _accountMutex };
 		if( !allowDeleted && _deletedAccounts.find( accountId )!=_deletedAccounts.end() )

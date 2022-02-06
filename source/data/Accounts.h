@@ -21,6 +21,7 @@ namespace Jde::Markets
 
 		Ω Initialize()noexcept->void;
 		α CanRead( uint pk, UserPK userId )noexcept->bool override;
+		α Test( DB::EMutationQL ql, UserPK userId, SRCE )noexcept(false)->void override;
 	};
 }
 #define Φ ΓM α

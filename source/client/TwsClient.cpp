@@ -91,25 +91,25 @@ namespace Jde::Markets
 		LOG( "({})reqExecutions( {}, {}, {} )", reqId, filter.m_acctCode, filter.m_time, filter.m_symbol );
 		EClient::reqExecutions( reqId, filter );
 	}
-	α TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void
+	α TwsClient::ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth, SL sl )noexcept->void
 	{
 		const DateTime endTime{ EndOfDay(FromDays(endDay)) };
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
-		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{}, sl );
 	}
-	α TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept->void
+	α TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SL sl )noexcept->void
 	{
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
-		LOG( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
+		LOGSL( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
 		ASSERT( size<_settings.MaxHistoricalDataRequest+1 )
 		ASSERT( durationStr!="0 D" );
 		WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}
-	α TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions )noexcept->void
+	α TwsClient::reqMktData( TickerId reqId, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions, SL sl )noexcept->void
 	{
-		LOG( "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
+		LOGSL( "({})reqMktData( '{}', '{}', snapshot='{}', regulatorySnaphsot='{}' )", reqId, contract.conId, genericTicks, snapshot, regulatorySnaphsot );
 		EClientSocket::reqMktData( reqId, contract, genericTicks, snapshot, regulatorySnaphsot, mktDataOptions );
 	}
 
@@ -118,9 +118,9 @@ namespace Jde::Markets
 		LOG( "({})reqSecDefOptParams( '{}', '{}', '{}', {} )", tickerId, underlyingSymbol, futFopExchange, underlyingSecType, underlyingConId );
 		EClientSocket::reqSecDefOptParams( tickerId, string(underlyingSymbol), string(futFopExchange), string(underlyingSecType), underlyingConId );
 	}
-	α TwsClient::reqContractDetails( int reqId, const ::Contract& contract )noexcept->void
+	α TwsClient::reqContractDetails( int reqId, const ::Contract& contract, SL sl )noexcept->void
 	{
-		LOG( "({})reqContractDetails( '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
+		LOGSL( "({})reqContractDetails( '{}', '{}', '{}' )", reqId, (contract.conId==0 ? contract.symbol : std::to_string(contract.conId)), contract.secType, contract.lastTradeDateOrContractMonth );
 		EClientSocket::reqContractDetails( reqId, contract );
 	}
 	α TwsClient::reqHeadTimestamp( int tickerId, const ::Contract &contract, str whatToShow, int useRTH, int formatDate )noexcept->void
@@ -186,10 +186,10 @@ namespace Jde::Markets
 		LOG( "({})reqRealTimeBars( {}, {}, {} )", id, contract.conId, barSize, whatToShow, useRTH );
 		EClientSocket::reqRealTimeBars( id, contract, barSize, whatToShow, useRTH, realTimeBarsOptions );
 	}
-	α TwsClient::placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void
+	α TwsClient::placeOrder( const ::Contract& contract, const ::Order& order, SL sl )noexcept->void
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
-		LOG( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice );
+		LOGSL( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice );
 		OrderManager::Push( order, contract );
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}

@@ -40,7 +40,7 @@ namespace Jde::Markets
 	α BarData::Load( fs::path path_, string symbol2 )noexcept->AWrapper
 	{
 		auto name{ path_.filename().string() };
-		DBG( "({})BarData::Load", name );
+		LOG( "({})BarData::Load", name );
 		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task
 		{
 			try
@@ -175,10 +175,10 @@ namespace Jde::Markets
 			{
 				try
 				{
-					if( _function )
-						DBG( "({})_function!=null {:x}", path.filename().string(), *(long *)(char *)&_function );
-					else
-						DBG( "({})_function==null", path.filename().string() );
+//					if( _function )
+//						DBG( "({})_function!=null {:x}", path.filename().string(), *(long *)(char *)&_function );
+//					else
+//						DBG( "({})_function==null", path.filename().string() );
 
 					auto a = BarData::Load( path, _symbol );
 					auto result = co_await a;
@@ -216,11 +216,11 @@ namespace Jde::Markets
 		{
 			base::await_suspend( h );
 			_h = move( h );
-			
-			if( _function )
-				DBG( "({}) have function", _symbol );
-			else
-				DBG( "({})no function", _symbol );
+
+			// if( _function )
+			// 	DBG( "({}) have function", _symbol );
+			// else
+			// 	DBG( "({})no function", _symbol );
 
 			Process();
 		}
@@ -293,9 +293,9 @@ namespace Jde::Markets
 	{
 		LoadLambda2( string symbol, Day start, Day end, sp<map<Day,VectorPtr<CandleStick>>> p ):_symbol{symbol}, _start{start}, _end{end}, _pResults{p}
 		{
-			INFO( "({})LoadLambda2 - {:x}", _symbol, (uint)this );
+			//LOG( "({})LoadLambda2 - {:x}", _symbol, (uint)this );
 		}
-		~LoadLambda2(){ INFO( "({})~LoadLambda2 - {:x}", _symbol, (uint)this ); }
+		~LoadLambda2(){ /*LOG( "({})~LoadLambda2 - {:x}", _symbol, (uint)this );*/ }
 		void operator()( const map<Day,VectorPtr<CandleStick>>& bars, Day, Day )
 		{
 			for( var& dayBars : bars )
@@ -533,7 +533,7 @@ namespace Jde::Markets
 		var minuteCount = std::chrono::duration_cast<std::chrono::minutes>( duration ).count();
 		for( auto barStart = start, barEnd=Clock::from_time_t( Round<uint>((Clock::to_time_t(start)/60+minuteCount)/(double)minuteCount*(double)minuteCount*60) ); barEnd<=end; barStart=barEnd, barEnd+=duration )//1st barEnd for hour is 10am not 10:30am
 		{
-			DBG( "Start={}, end={}", ToIsoString(start), ToIsoString(barEnd) );
+			LOG( "Start={}, end={}", ToIsoString(start), ToIsoString(barEnd) );
 			::Bar combined{ ToIBDate(barStart), 0, std::numeric_limits<double>::max(), 0, 0, ToDecimal(0), ToDecimal(0), 0 };
 			double sum = 0;
 			for( ;ppBar!=fromBars.end() && Clock::from_time_t(ConvertIBDate((*ppBar)->time))<barEnd; ++ppBar )

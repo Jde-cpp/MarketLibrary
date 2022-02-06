@@ -43,17 +43,17 @@ namespace Jde::Markets
 		α isConnected()const noexcept->bool{ return EClientSocket::isConnected(); }
 		α SetRequestId( TickerId id )noexcept->void;
 
-		α cancelMktData( TickerId reqId )noexcept->void{ LOG("({})cancelMktData()", reqId); EClientSocket::cancelMktData(reqId); }
+		α cancelMktData( TickerId reqId, SRCE )noexcept->void{ LOGSL( "({})cancelMktData()", reqId ); EClientSocket::cancelMktData( reqId ); }
 		α cancelOrder( TickerId reqId )noexcept->void{ LOG( "({})cancelOrder()", reqId); EClientSocket::cancelOrder(reqId); }
-		α cancelPositionsMulti(TickerId reqId)noexcept->void{ LOG( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
+		α cancelPositionsMulti( TickerId reqId, SRCE )noexcept->void{ LOGSL( "({})cancelPositionsMulti()", reqId); EClientSocket::cancelPositionsMulti(reqId); }
 		α cancelRealTimeBars( TickerId reqId )noexcept->void{ LOG( "({})cancelRealTimeBars()", reqId); EClientSocket::cancelRealTimeBars(reqId); }
 		α reqIds( int _=1 )noexcept->void{ LOG( "reqIds()" ); EClientSocket::reqIds(_); }
 		α RequestAccountUpdates( str acctCode, sp<IAccountUpdateHandler> )noexcept->Handle;
 		Ω CancelAccountUpdates( str acctCode, Handle handle )noexcept->void;
 		α reqAccountUpdatesMulti(TickerId reqId, str account, str modelCode, bool ledgerAndNLV)noexcept->void;
 		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
-		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth )noexcept->void;
-		α reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
+		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth, SRCE )noexcept->void;
+		α reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SRCE )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
 		α reqPositions()noexcept->void{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
 		α reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, str whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept->void;
 
@@ -61,7 +61,7 @@ namespace Jde::Markets
 		α reqPositionsMulti( int reqId, str account, str modelCode )noexcept->void;
 		α reqManagedAccts()noexcept->void{ LOG( "reqManagedAccts()" ); EClientSocket::reqManagedAccts(); }
 		β reqSecDefOptParams( TickerId tickerId, int underlyingConId, sv underlyingSymbol=""sv, sv futFopExchange="", sv underlyingSecType="STK" )noexcept->void;
-		α reqContractDetails( int reqId, const ::Contract& contract )noexcept->void;
+		α reqContractDetails( int reqId, const ::Contract& contract, SRCE )noexcept->void;
 		α reqHeadTimestamp( int tickerId, const ::Contract &contract, str whatToShow, int useRTH, int formatDate )noexcept->void;
 		α reqFundamentalData( TickerId tickerId, const ::Contract &contract, sv reportType )noexcept->void;
 		α reqNewsProviders()noexcept->void;	static constexpr uint32 ReqNewsProvidersLogId = 159697286;
@@ -79,8 +79,8 @@ namespace Jde::Markets
 		TwsClient( const TwsConnectionSettings& settings, sp<EWrapper> wrapper, sp<EReaderSignal>& pReaderSignal, uint clientId )noexcept(false);
 		static sp<TwsClient> _pInstance;
 	private:
-		α placeOrder( const ::Contract& contract, const ::Order& order )noexcept->void;
-		α reqMktData(TickerId id, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions)noexcept->void;
+		α placeOrder( const ::Contract& contract, const ::Order& order, SRCE )noexcept->void;
+		α reqMktData( TickerId id, const ::Contract& contract, str genericTicks, bool snapshot, bool regulatorySnaphsot, const TagValueListSPtr& mktDataOptions, SRCE )noexcept->void;
 		std::atomic<TickerId> _requestId{0};
 		static const LogTag& _logLevel;
 		flat_set<string> _accountUpdates; shared_mutex _accountUpdateMutex;

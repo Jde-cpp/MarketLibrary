@@ -139,10 +139,11 @@ namespace OrderManager
 		_cv.notify_one();
 	}
 
-	α Update( ::OrderId id, Cache&& update )->Task
+	α Update( ::OrderId id, Cache&& update_ )->Task
 	{
 		Cache latest;
 		{
+			Cache update{ move(update_) };//need local
 			var _ = ( co_await CoLockKey( "OrderManager._cache", true) ).UP<CoLockGuard>();//TODO make unique.
 			if( auto p=_cache.find(id); p!=_cache.end() )
 			{

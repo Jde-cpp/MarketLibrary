@@ -11,7 +11,7 @@
 
 namespace Jde::Markets
 {
-	unique_lock<shared_mutex>* _pUpdateLock{ nullptr };
+	ul* _pUpdateLock{ nullptr };
 
 	const LogTag& WrapperLog::_logLevel{ Logging::TagLevel("tws-results") };
 	const LogTag& WrapperLog::_historicalLevel{ Logging::TagLevel("tws-hist") };
@@ -83,7 +83,7 @@ namespace Jde::Markets
 	α WrapperLog::tickReqParams( int tickerId, double minTick, str bboExchange, int snapshotPermissions )${ LOGL( ELogLevel::Trace, "WrapperLog::tickReqParams( {}, {}, {}, {} )", tickerId, minTick, bboExchange, snapshotPermissions ); }
 	α WrapperLog::updateAccountValue2( sv key, sv val, sv currency, str accountName )noexcept->bool
 	{
-		unique_lock l{ _accountUpdateCallbackMutex };
+		ul l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
 
 		bool haveCallback = false;
@@ -113,7 +113,7 @@ namespace Jde::Markets
 	{
 		LOGL( ELogLevel::Trace, "WrapperLog::updatePortfolio( {}, {}, {}, {}, {}, {}, {}, {} )", contract.symbol, position, marketPrice, marketValue, averageCost, unrealizedPNL, realizedPNL, accountNumber);
 		Proto::Results::PortfolioUpdate update;
-		unique_lock l{ _accountUpdateCallbackMutex };
+		ul l{ _accountUpdateCallbackMutex };
 		auto p  = _accountUpdateCallbacks.find( string{accountNumber} );
 		if( p==_accountUpdateCallbacks.end() || p->second.empty() )
 		{
@@ -252,7 +252,7 @@ namespace Jde::Markets
 	UnorderedSet<string> _canceledAccounts;
 	α WrapperLog::AddAccountUpdate( str account, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>
 	{
-		unique_lock l{ _accountUpdateCallbackMutex };
+		ul l{ _accountUpdateCallbackMutex };
 		_pUpdateLock = &l;
 		var handle = ++_accountUpdateHandle;
 		auto& handleCallbacks = _accountUpdateCallbacks.try_emplace( string{account} ).first->second;
@@ -278,7 +278,7 @@ namespace Jde::Markets
 	α WrapperLog::RemoveAccountUpdate( str account, uint handle )noexcept->bool
 	{
 		bool cancel = true;
-		var pLock = _pUpdateLock ? up<unique_lock<shared_mutex>>{} : mu<unique_lock<shared_mutex>>( _accountUpdateCallbackMutex );
+		var pLock = _pUpdateLock ? up<ul>{} : mu<ul>( _accountUpdateCallbackMutex );
 		if( auto p  = _accountUpdateCallbacks.find(string{account}); p!=_accountUpdateCallbacks.end() )
 		{
 			if( handle )

@@ -41,7 +41,7 @@ namespace Jde::Markets
 			Task::promise_type* _pPromise{ nullptr };
 		};
 
-		using ProtoFunction=function<void(const vector<Proto::Results::MessageUnion>&, uint32_t)>;
+		using ProtoFunction=function<void(const vector<Proto::Results::MessageUnion>&)>;
 		Ω CalcImpliedVolatility( uint32 sessionId, uint32 clientId,  const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept->void;
 		Ω CalculateOptionPrice(  uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept->void;
 		Ω Cancel( Handle h )noexcept->void;
@@ -86,7 +86,7 @@ namespace Jde::Markets
 			α ContractId( TickerId id )const noexcept->ContractPK{ shared_lock l( _valuesMutex ); auto p=_tickerContractMap.find(id); return p==_tickerContractMap.end() ? 0 : p->second; }
 			α SetRequestId( TickerId id, ContractPK contractId )noexcept->void;
 			α RemoveRequest( TickerId id )noexcept->void;
-			flat_map<TickerId,ContractPK> _tickerContractMap; //mutable shared_mutex _tickerContractMapMutex;
+			flat_map<TickerId,ContractPK> _tickerContractMap;
 
 			flat_map<ContractPK,Tick> _values; mutable shared_mutex _valuesMutex;
 			flat_map<ContractPK,TickFields> _outgoingFields; mutex _outgoingFieldsMutex;

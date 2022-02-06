@@ -100,6 +100,7 @@ namespace Jde::Markets
 			_order.orderId = _pTws->RequestId();
 		WrapperPtr()->_orderHandles.MoveIn( _order.orderId, move(h) );
 //		LOG( "({})receiveOrder( contract='{}' {}x{} )"sv, _order.orderId, pIbContract->symbol, order.lmtPrice, ToDouble(order.totalQuantity) );
+		bool place = true;
 		if( _blockId.size() )
 		{
 			try
@@ -110,6 +111,7 @@ namespace Jde::Markets
 			}
 			catch( IException& e )
 			{
+				place = false;
 				_pPromise->get_return_object().SetResult( e.Move() );
 				//WebSendGateway::PushS( "Place order failed", e.Move(), {{session.SessionId}, r.id()} );
 			}
@@ -122,7 +124,8 @@ namespace Jde::Markets
 			}}.detach();
 */
 		}
-		_pTws->placeOrder( *_pContract, _order );//can't have h destruct this when _blockId.size() is using it.
+		if( place )
+			_pTws->placeOrder( *_pContract, _order );//can't have h destruct this when _blockId.size() is using it.
 
 /*		if( !order.whatIf && r.stop()>0 )
 		{

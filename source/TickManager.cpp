@@ -191,10 +191,9 @@ namespace Jde::Markets
 		if( auto p = _optionRequests.find(id); p!=_optionRequests.end() )
 		{
 			const uint32_t clientId = p->second.ClientId;
-			const uint32_t sessionId = p->second.SessionId;
 			msg.set_allocated_option_calculation( optionComp.ToProto( clientId, type ).release() );
 			unique_lock l{ _optionRequestMutex };
-			p->second.Function( {msg}, sessionId );
+			p->second.Function( {msg} );
 			_optionRequests.erase( p );
 		}
 		else
@@ -219,7 +218,6 @@ namespace Jde::Markets
 		}
 #define FORX(X,Iter) for( auto Iter=X.find(contractId); Iter!=X.end() && Iter->first==contractId; Iter = X.erase(Iter) )
 #define FOR(X) FORX(X,p)
-//#define IBExceptionPtr ms<IBException>( errorString, errorCode, id )
 		{
 			unique_lock l{ _twsSubscriptionMutex };
 			for( auto pSub=_twsSubscriptions.find(contractId); pSub!=_twsSubscriptions.end() && pSub->first==contractId; pSub = _twsSubscriptions.erase(pSub) )
@@ -233,7 +231,7 @@ namespace Jde::Markets
 						Proto::Results::MessageUnion message;
 						auto pError = make_unique<Proto::Results::Error>(); pError->set_request_id(contractId); pError->set_code(errorCode); pError->set_message(errorString);
 						message.set_allocated_error( pError.release() );
-						p->second.Function( {message}, contractId );
+						p->second.Function( {message} );
 					}
 				}
 				else if( s.Source==ESubscriptionSource::Internal )
@@ -330,8 +328,7 @@ namespace Jde::Markets
 			}
 			{//Proto Subscriptions
 				unique_lock ul{ _protoSubscriptionMutex };//only shared.
-				auto range = _protoSubscriptions.equal_range( contractId );
-				if( range.first!=range.second )
+				if( auto range = _protoSubscriptions.equal_range(contractId); range.first!=range.second )
 				{
 					haveSubscription = true;
 					vector<Proto::Results::MessageUnion> messages;
@@ -353,7 +350,7 @@ namespace Jde::Markets
 							try
 							{
 								CHECK( p->second.Function );//not sure why
-								p->second.Function( messages, contractId );
+								p->second.Function( messages );
 							}
 							catch( const IException& )
 							{
@@ -474,8 +471,13 @@ namespace Jde::Markets
 				CancelMarketData( requestId, newRequestId );
 				if( newRequestId )
 				{
+					ASSERT( _tickerContractMap.find(newRequestId)!=_tickerContractMap.end() );
+					ASSERT( _tickerContractMap.find(requestId)==_tickerContractMap.end() );
 					::Contract contract; contract.conId = contractId; contract.exchange = "SMART";
 					_pTwsClient->reqMktData( newRequestId, contract, Str::AddCommas(currentTicks), false, false, {} );
+					//ul _{ _valuesMutex };
+					//LOG( "_tickerContractMap[{}]={}"sv, newRequestId, contractId );
+					//_tickerContractMap.emplace( newRequestId, contractId );
 				}
 			}
 		}
@@ -702,7 +704,7 @@ namespace Jde::Markets
 				{
 					try
 					{
-						fnctn( messages, contractId );
+						fnctn( messages );
 					}
 					catch( const IException& )
 					{
