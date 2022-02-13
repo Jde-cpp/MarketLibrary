@@ -68,7 +68,7 @@ namespace Jde::Markets
 	{
 		unique_lock l{ _accountMutex };
 		_minimumAccess.clear();
-		db.TrySelect( "select user_id, right_id from um_permissions p join um_apis apis on p.api_id=apis.id and apis.name='TWS' and p.name is null join um_role_permissions rp on rp.permission_id=p.id join um_group_roles gr on gr.role_id=rp.role_id join um_user_groups ug on gr.group_id=ug.user_id", [&]( const DB::IRow& row )
+		db.TrySelect( "select user_id, right_id from um_apis apis join um_permissions p on p.api_id=apis.id and apis.name='TWS' and p.name is null join um_role_permissions rp on rp.permission_id=p.id join um_group_roles gr on gr.role_id=rp.role_id join um_groups g on g.id=gr.group_id join um_user_groups ug on g.id=ug.group_id where apis.name='TWS' and p.name is null", [&]( const DB::IRow& row )
 		{
 			_minimumAccess[(UserPK)row.GetUInt(0)] = (UM::EAccess)row.GetUInt16( 1 );
 		} );
@@ -109,7 +109,7 @@ namespace Jde::Markets
 	α AccountAuthorizer::Test( DB::EMutationQL ql, UserPK userId, SL sl )noexcept(false)->void
 	{
 
-		var requested{ ql==DB::EMutationQL::Update ? UM::EAccess::Write : UM::EAccess::Administer };
+		var requested{ UM::EAccess::Administer }; //ql==DB::EMutationQL::Update ? UM::EAccess::Write : UM::EAccess::Administer
 		shared_lock l{ _accountMutex };
 		var pUser = _minimumAccess.find( userId );
 		THROW_IFSL( pUser==_minimumAccess.end() || (pUser->second & requested)==UM::EAccess::None , "No Access" );
