@@ -434,7 +434,10 @@ namespace Jde::Markets
 
 	α Tick::HasRatios()const noexcept->bool
 	{
-		return _setFields[ETickType::FUNDAMENTAL_RATIOS] && _setFields[ETickType::IB_DIVIDENDS];
+		bool fundamentals = _setFields[ETickType::FUNDAMENTAL_RATIOS];
+		bool dividends = _setFields[ETickType::IB_DIVIDENDS];
+		DBG( "fundamentals={} && dividends={}", fundamentals, dividends );
+		return fundamentals && dividends;
 	}
 
 	α Tick::Ratios()const noexcept->std::map<string,double>

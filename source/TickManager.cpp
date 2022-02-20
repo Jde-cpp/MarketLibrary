@@ -397,7 +397,9 @@ namespace Jde::Markets
 					LOG( "{}<{}"sv, ToIsoString(get<1>(value)), ToIsoString(Clock::now()) );
 					var contractId = p->first;
 					LOG( "_delays.emplace[{}]={} - ratio timeout"sv, get<2>(value), contractId );
-					get<0>(value).promise().get_return_object().SetResult( Exception{"Timeout"}.Move() );
+					auto h = move( get<0>(value) );
+					h.promise().get_return_object().SetResult( Exception{"Timeout"} );
+					Coroutine::CoroutinePool::Resume( move(h) );
 					bool add;
 					{
 						shared_lock _{ _orphanMutex };

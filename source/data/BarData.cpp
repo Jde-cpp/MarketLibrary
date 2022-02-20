@@ -27,8 +27,7 @@ namespace Jde::Markets
 
 	fs::path BarData::Path()noexcept(false)
 	{
-		var path = Settings::Getɛ<fs::path>( "marketHistorian/barPath" );
-		return path.empty() ? IApplication::Instance().ApplicationDataFolder()/"securities" : path;
+		return fs::path{ Settings::Env("marketHistorian/barPath").value_or(IApplication::Instance().ApplicationDataFolder()/"securities") };
 	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/Str::ToLower(string{ToString(contract.PrimaryExchange)})/Str::Replace(contract.Symbol, " ", "_"); }
 
@@ -37,11 +36,11 @@ namespace Jde::Markets
 		return Future<Proto::BarFile>( IO::Zip::XZ::ReadProto<Proto::BarFile>(path) ).get();
 	}
 
-	α BarData::Load( fs::path path_, string symbol2 )noexcept->AWrapper
+	α BarData::Load( fs::path path_, string symbol2, SL sl )noexcept->AsyncAwait
 	{
 		auto name{ path_.filename().string() };
 		LOG( "({})BarData::Load", name );
-		return AWrapper{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task
+		return AsyncAwait{ [path=move(path_), symbol=move(symbol2)]( HCoroutine h )->Task
 		{
 			try
 			{
@@ -82,7 +81,7 @@ namespace Jde::Markets
 				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
-		}, move(name) };
+		}, sl, move(name) };
 	}
 
 
@@ -310,9 +309,9 @@ namespace Jde::Markets
 		const Day _start; const Day _end;
 		sp<map<Day,VectorPtr<CandleStick>>> _pResults;
 	};
-	α BarData::CoLoad( ContractPtr_ pContract, Day start, Day end )noexcept(false)->AWrapper
+	α BarData::CoLoad( ContractPtr_ pContract, Day start, Day end, SL sl )noexcept(false)->AsyncAwait
 	{
-		return AWrapper( [pContract, start, end]( HCoroutine h )->Task
+		return AsyncAwait( [pContract, start, end]( HCoroutine h )->Task
 		{
 			LOG( "BarData::CoLoad( ({}) {}-{} )", pContract->Symbol, DateDisplay(start), DateDisplay(end) );
 			auto p = ms<map<Day,VectorPtr<CandleStick>>>();
@@ -335,7 +334,7 @@ namespace Jde::Markets
 				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
-		}, pContract->Symbol );
+		}, sl, pContract->Symbol );
 	}
 
 	void BarData::Save( const Contract& contract, flat_map<Day,vector<sp<::Bar>>>& rthBars )noexcept

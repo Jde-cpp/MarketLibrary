@@ -38,9 +38,9 @@ namespace Jde::Markets::BarData
 
 	Φ TryLoad( const Contract& contract, Day start, Day end )noexcept->sp<flat_map<Day,VectorPtr<CandleStick>>>;
 	Φ Load( const Contract& contract, Day start, Day end )noexcept(false)->sp<flat_map<Day,VectorPtr<CandleStick>>>;
-	Φ CoLoad( ContractPtr_ contract, Day start, Day end )noexcept(false)->AWrapper;//map<Day,VectorPtr<CandleStick>>
+	Φ CoLoad( ContractPtr_ contract, Day start, Day end, SRCE )noexcept(false)->AsyncAwait;//map<Day,VectorPtr<CandleStick>>
 	α Load( path path, sv symbol, const flat_map<string,sp<Proto::BarFile>>* pPartials=nullptr )noexcept(false)->sp<flat_map<Day,VectorPtr<CandleStick>>>;
-	α Load( fs::path path2, string symbol2 )noexcept->AWrapper;
+	α Load( fs::path path2, string symbol2, SRCE )noexcept->AsyncAwait;
 	α Load( path path )noexcept(false)->sp<Proto::BarFile>;
 
 	Φ Save( const Contract&, flat_map<Day,vector<sp<Bar>>>& rthBars )noexcept->void;

@@ -37,7 +37,7 @@ namespace Jde::Markets
 	{
 		using SecurityRight = Proto::SecurityRight;
 		using Proto::Results::OptionValues;
-		Φ Load( sp<::ContractDetails> pUnderlying, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait;
+		Φ Load( sp<::ContractDetails> pUnderlying, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->AsyncAwait;
 		Φ Load( ContractPK underlyingId, Day earliestDay=0 )noexcept(false)->OptionSetPtr;
 		Φ SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& pDetails )noexcept(false)->OptionSetPtr;
 		α LoadFiles( const Contract& contract )noexcept->flat_map<Day,sp<Proto::UnderlyingOIValues>>;

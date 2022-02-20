@@ -97,13 +97,14 @@ namespace Jde::Markets
 		const string endTimeString{ format("{}{:0>2}{:0>2} {:0>2}:{:0>2}:{:0>2} GMT", endTime.Year(), endTime.Month(), endTime.Day(), endTime.Hour(), endTime.Minute(), endTime.Second()) };
 		reqHistoricalData( reqId, *contract.ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString((BarSize::Enum)barSize)}, string{TwsDisplay::ToString(display)}, useRth ? 1 : 0, 2, false, TagValueListSPtr{}, sl );
 	}
-	α TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SL sl )noexcept->void
+	α TwsClient::reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str  barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SL sl )noexcept(false)->void
 	{
+		ASSERT( durationStr!="0 D" );
 		var contractDisplay = contract.localSymbol.size() ? contract.localSymbol : std::to_string( contract.conId );
 		var size = WrapperLogPtr()->HistoricalDataRequestSize();
 		LOGSL( "({})reqHistoricalData( '{}', '{}', '{}', '{}', '{}', useRth='{}', keepUpToDate='{}' ){}", reqId, contractDisplay, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH!=0, keepUpToDate, size/*send ? "" : "*"*/ );
-		ASSERT( size<_settings.MaxHistoricalDataRequest+1 )
-		ASSERT( durationStr!="0 D" );
+		if( size>_settings.MaxHistoricalDataRequest )
+			throw IBException{ format("Only '{}' historical data requests allowed at one time - {}.", TwsClient::MaxHistoricalDataRequest(), size), 322, reqId };
 		WrapperLogPtr()->AddHistoricalDataRequest2( reqId );
 		EClient::reqHistoricalData( reqId, contract, endDateTime, durationStr, barSizeSetting, whatToShow, useRTH, formatDate, keepUpToDate, chartOptions );
 	}

@@ -255,9 +255,9 @@ namespace Jde::Markets
 		return pResults;
 	}
 
-	α Load2( sp<::ContractDetails> pUnderlying, DayIndex expiration, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
+	α Load2( sp<::ContractDetails> pUnderlying, DayIndex expiration, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->AsyncAwait
 	{
-		return FunctionAwait( [=]( HCoroutine h )->Task
+		return AsyncAwait( [=]( HCoroutine h )->Task
 		{
 			var& symbol = pUnderlying->contract.symbol;
 			var ibContract = ToIb( symbol, expiration, right, startStrike && startStrike==endStrike ? startStrike : 0 );
@@ -295,9 +295,9 @@ namespace Jde::Markets
 			h.resume();
 		});
 	}
-	α OptionData::Load( sp<::ContractDetails> pDetail, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->FunctionAwait
+	α OptionData::Load( sp<::ContractDetails> pDetail, Day startExp, Day endExp, SecurityRight right, double startStrike, double endStrike, Proto::Results::OptionValues* pResults )->AsyncAwait
 	{
-		return FunctionAwait( [=]( HCoroutine h )->Task
+		return AsyncAwait( [=]( HCoroutine h )->Task
 		{
 			if( startExp==endExp )
 			{

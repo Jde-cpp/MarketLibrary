@@ -63,7 +63,7 @@ namespace Jde::Markets::OrderManager
 		~Awaitable()=default;
 		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
 		α await_suspend( HCoroutine h )noexcept->void;
-		α await_resume()noexcept->AwaitResult{ DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id()); return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
+		α await_resume()noexcept->AwaitResult{ /*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
 	private:
 		Task::promise_type* _pPromise{nullptr};
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;

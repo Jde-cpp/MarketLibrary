@@ -92,7 +92,7 @@ namespace Jde::Markets
 					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).SP<map<Day,VectorPtr<CandleStick>>>();
 					if( !pBars->size() )
 						continue;
-					LOG( "({})HistoryAwait::AsyncFetch have files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );
+					LOG( "({})HistoryAwait::AsyncFetch Loaded files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );
 					for( var& [day,pSticks] : *pBars )
 					{
 						CONTINUE_IF( pCache->find(day)->second, "Day {} has value, but loaded again.", day );
@@ -142,13 +142,15 @@ namespace Jde::Markets
 				if( !IsHoliday(iDay) )
 					++dayCount;
 			}
-			if( var size=WrapperLog::HistoricalDataRequestSize(); size>TwsClient::MaxHistoricalDataRequest() )
+			try
 			{
-				h.promise().get_return_object().SetResult( IBException{format("Only '{}' historical data requests allowed at one time - {}.", TwsClient::MaxHistoricalDataRequest(), size), 322, id} );
+				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+			}
+			catch( IBException& e )
+			{
+				h.promise().get_return_object().SetResult( move(e) );
 				h.resume();
 			}
-			else
-				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 		}
 	}
 

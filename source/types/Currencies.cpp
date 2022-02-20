@@ -23,7 +23,7 @@ namespace Jde
 			p = std::find( CurrencyStrings.begin(), CurrencyStrings.end(), x );
 			found = p!=CurrencyStrings.end();
 			if( !found )
-				DBG( "could not find currency '{}'"sv, x );
+				WARN( "could not find currency '{}'"sv, x );
 		}
 		return found ? static_cast<Proto::Currencies>( std::distance(CurrencyStrings.begin(), p) ) : Proto::Currencies::NoCurrency;
 	}

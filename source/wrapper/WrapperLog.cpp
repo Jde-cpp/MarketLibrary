@@ -67,7 +67,7 @@ namespace Jde::Markets
 		OrderManager::Push( orderId, status, ToDouble(filled), ToDouble(remaining), avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice );
 		LOG( "WrapperLog::orderStatus( {}, {}, {}/{} )"sv, orderId, status, ToDouble(filled), ToDouble(filled)+ToDouble(remaining) );
 	}
-	α toString( const ::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*order.totalQuantity, order.lmtPrice ); };
+	α toString( const ::Order& order ){ return fmt::format( "{}x{}" , (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice ); };
 	α WrapperLog::openOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& orderState )$
 	{
 		OrderManager::Push( order, contract, orderState );

@@ -124,8 +124,8 @@ namespace Jde::Markets
 	}
 	struct NoCache
 	{
-		NoCache(){ Settings::Set("marketHistorian/barPath", _tempPath); }
-		~NoCache(){ Settings::Set( "marketHistorian/barPath", _original ); fs::remove_all( _tempPath ); }
+		NoCache(){ Settings::Set("marketHistorian/barPath", _tempPath, false); }
+		~NoCache(){ Settings::Set( "marketHistorian/barPath", _original, false ); fs::remove_all( _tempPath ); }
 		fs::path _original{ Settings::Getɛ<fs::path>("marketHistorian/barPath") };
 		fs::path _tempPath{ fs::temp_directory_path()/"unitTests" };
 	};
@@ -152,7 +152,7 @@ namespace Jde::Markets
 		ASSERT_EQ( FindMemoryLog(TwsClient::ReqHistoricalDataLogId).size(), 1 );
 		CompareBars( *pFileCache, *pNoCache, false );
 	}
-	
+
 	TEST_F( HistoricalDataCacheTest, LoadFromFile2 )
 	{
 		var pContract = SFuture<::ContractDetails>( Tws::ContractDetail(Contracts::Tsla.Id) ).get();
@@ -192,9 +192,9 @@ namespace Jde::Markets
 	//Test a week of SPY.
 	α Near( double actual, double expected, double value, SRCE )->void
 	{
-		ASSERT_NEAR( actual, expected, value );
 		if( abs(actual-expected)>value )
 			ERR( "x={}", abs(actual-expected) );
+		ASSERT_NEAR( actual, expected, value );
 	}
 	TEST_F(HistoricalDataCacheTest, StdDev)
 	{
@@ -221,7 +221,7 @@ namespace Jde::Markets
 */
 		bool cached = true;
 		auto pValues = SFuture<StatCount>( ReqStats(contract, 5, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
-		test( *pValues, {{cached ? 1.004263 : 1.004734673, cached ? 0.000226 : .0002306706838, cached ? .946808 : .9463821274, cached ? 1.044750 : 1.04559958}, 248} );
+		test( *pValues, {{cached ? 1.0047580 : 1.004734673, cached ? .0002294 : .0002306706838, cached ? .94711575 : .9463821274, cached ? 1.0459227 : 1.04559958}, 248} );
 
 		pValues = SFuture<StatCount>( ReqStats(contract, 90/390.0, ToDays(DateTime{2019,1,2}.GetTimePoint()), ToDays(DateTime{2019,12,31}.GetTimePoint())) ).get();
 		test( *pValues, {{1.00012755, 0.000006148848795, 0.9905072578, 1.007764935}, 252} );

@@ -53,7 +53,7 @@ namespace Jde::Markets
 		α reqAccountUpdatesMulti(TickerId reqId, str account, str modelCode, bool ledgerAndNLV)noexcept->void;
 		α reqExecutions( int reqId, const ExecutionFilter& filter )noexcept->void;
 		α ReqHistoricalData( TickerId reqId, const Contract& contract, Day endDay, Day dayCount, Proto::Requests::BarSize barSize, Proto::Requests::Display display, bool useRth, SRCE )noexcept->void;
-		α reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SRCE )noexcept->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
+		α reqHistoricalData( TickerId reqId, const ::Contract& contract, str endDateTime, str durationStr, str barSizeSetting, str whatToShow, int useRTH, int formatDate, bool keepUpToDate, const TagValueListSPtr& chartOptions, SRCE )noexcept(false)->void; static constexpr uint32 ReqHistoricalDataLogId = 1595149123;
 		α reqPositions()noexcept->void{ LOG( "reqPositions()" ); EClientSocket::reqPositions(); }
 		α reqRealTimeBars(TickerId id, const ::Contract& contract, int barSize, str whatToShow, bool useRTH, const TagValueListSPtr& realTimeBarsOptions)noexcept->void;
 

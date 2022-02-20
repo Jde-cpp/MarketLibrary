@@ -1,8 +1,8 @@
 {
 	"testing":
 	{
-		"tests":  "HistoricalDataCacheTest.LoadFromFile2",
-		"_tests":  "*"
+		"_tests":  "*",
+		"tests":  "HistoricalDataCacheTest.StdDev"
 	},
 	"logging":
 	{
@@ -15,13 +15,13 @@
 	},
 	"marketHistorian":
 	{
-		"barPath": "C:\\ProgramData\\Jde-cpp\\TwsWebSocket\\securities"
+		"barPath": "$(JDE_BAR_PATH)"
 	},
 	"wakeDuration": "PT5S",
 	"db":
 	{
-		"xdriver": "libJde.MySql.so",
-		"driver": "Jde.DB.Odbc.dll",
+		"driver": "libJde.MySql.so",
+		"xdriver": "Jde.DB.Odbc.dll",
 		"xconnectionString": "Jde_UM_Connection",
 		"connectionString": "DSN=Jde_TWS_Connection",
 		"meta": "../../TwsWebSocket/meta.json"
