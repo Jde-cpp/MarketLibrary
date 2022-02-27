@@ -156,7 +156,7 @@ namespace Jde::Markets
 			if( auto p = std::find_if( _accounts.begin(), _accounts.end(), [&ibName](var& x)->bool{ return x.second.IbName==ibName; } ); p!=_accounts.end() )
 				p->second.Connected = true;
 			else
-				Accounts::TryInsert( ibName );
+				Accounts::TryInsert( ibName, &_accountMutex );
 		}
 	}
 
@@ -166,7 +166,7 @@ namespace Jde::Markets
 		auto p = std::find_if( _accounts.begin(), _accounts.end(), [&ibName](var& x)->bool{ return x.second.IbName==ibName; } );
 		return p==_accounts.end() ? nullopt : optional{ p->second };
 	}
-	α Accounts::TryInsert( string ibName )noexcept->optional<Account>
+	α Accounts::TryInsert( string ibName, shared_mutex* pAccountMutex )noexcept->optional<Account>
 	{
 		optional<Account> y;
 		try
@@ -175,7 +175,9 @@ namespace Jde::Markets
 			INFO( "inserted account '{}'."sv, ibName );
 			var id = *Future<uint>(DB::IdFromName("ib_accounts", ibName) ).get();
 			y = Account{ id, move(ibName) };
-			ul l{ _accountMutex };
+			optional<ul> l;
+			if( !pAccountMutex )
+				l = ul{_accountMutex};
 			_accounts.emplace( id, y.value() );
 		}
 		catch( const IException& )

@@ -1,4 +1,5 @@
 ﻿#include "TwsAwaitable.h"
+#include <jde/markets/types/MyOrder.h>
 #include <jde/blockly/BlocklyLibrary.h>
 #include <jde/blockly/IBlockly.h>
 
@@ -69,7 +70,7 @@ namespace Jde::Markets
 		if( _pData )
 			*_pData->add_orders() = o;
 	}
-	α AllOpenOrdersAwait::Push( up<OrderStatus> p )noexcept->void
+	α AllOpenOrdersAwait::Push( up<Proto::Results::OrderStatus> p )noexcept->void
 	{
 		lock_guard l{ _mutex };
 		if( _pData )
@@ -98,8 +99,6 @@ namespace Jde::Markets
 		base::await_suspend( h );
 		if( !_order.orderId )
 			_order.orderId = _pTws->RequestId();
-		WrapperPtr()->_orderHandles.MoveIn( _order.orderId, move(h) );
-//		LOG( "({})receiveOrder( contract='{}' {}x{} )"sv, _order.orderId, pIbContract->symbol, order.lmtPrice, ToDouble(order.totalQuantity) );
 		bool place = true;
 		if( _blockId.size() )
 		{
@@ -113,33 +112,29 @@ namespace Jde::Markets
 			{
 				place = false;
 				_pPromise->get_return_object().SetResult( e.Move() );
-				//WebSendGateway::PushS( "Place order failed", e.Move(), {{session.SessionId}, r.id()} );
 			}
-			//todo allow cancel
-/*			std::thread{ [ pBlockly=*p ]()
-			{
-				pBlockly->Run();
-				while( pBlockly->Running() )
-					std::this_thread::sleep_for( 5s );
-			}}.detach();
-*/
 		}
 		if( place )
-			_pTws->placeOrder( *_pContract, _order );//can't have h destruct this when _blockId.size() is using it.
-
-/*		if( !order.whatIf && r.stop()>0 )
 		{
-			var parentId = _tws.RequestId();
-			_requestSession.emplace( parentId, make_tuple(sessionId, r.id()) );
-			Jde::Markets::MyOrder parent{ parentId, r.order() };
-			parent.IsBuy( !order.IsBuy() );
-			parent.OrderType( r::EOrderType::StopLimit );
-			parent.totalQuantity = order.totalQuantity;
-			parent.auxPrice = r.stop();
-			parent.lmtPrice = r.stop_limit();
-			parent.parentId = reqId;
-			_tws.placeOrder( *pIbContract, parent );
-		}*/
+			var parentId = !_order.whatIf && _stop>0 ? _order.orderId : 0;//whatif=don't actually execute.
+			if( !parentId )
+				WrapperPtr()->_orderHandles.MoveIn( _order.orderId, move(h) );
+			_pTws->placeOrder( *_pContract, _order, _sl );//can't have h destruct this when _blockId.size() is using it.
+			if( parentId )
+			{
+				var childId = _pTws->RequestId();
+				WrapperPtr()->_orderHandles.MoveIn( childId, move(h) );
+				MyOrder parent{ _order };
+				parent.orderId = childId;
+				parent.IsBuy( _order.action!="BUY" );
+				parent.OrderType( Proto::EOrderType::StopLimit );
+				ASSERT( parent.totalQuantity==_order.totalQuantity );  //parent.totalQuantity = _order.totalQuantity;//is this needed?
+				parent.auxPrice = _stop;
+				parent.lmtPrice = _stopLimit;
+				parent.parentId = parentId;
+				_pTws->placeOrder( *_pContract, parent, _sl );
+			}
+		}
 	}
 	α PlaceOrderAwait::await_resume()noexcept->AwaitResult
 	{

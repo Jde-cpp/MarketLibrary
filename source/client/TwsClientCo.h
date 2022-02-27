@@ -13,17 +13,17 @@ namespace Jde::Markets
 {
 	struct ΓM HistoricalNewsAwait final : ITwsAwaitUnique//<sp<Proto::Results::HistoricalNewsCollection>>
 	{
-		HistoricalNewsAwait( function<void(ReqId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
+		HistoricalNewsAwait( function<void(ReqId, sp<TwsClient>)> f, SRCE )noexcept:ITwsAwaitUnique{sl},_fnctn{f}{}
 		α await_suspend( HCoroutine h )noexcept->void override;
 	private:
 		function<void(ReqId, sp<TwsClient>)> _fnctn;
 	};
 #define Base ITwsAwaitShared
-	struct ΓM ContractAwait final : Base//::ContractDetails
+	struct ΓM ContractAwait final : Base
 	{
 		using base=Base;
-		ContractAwait( ContractPK id, function<void(ReqId, sp<TwsClient>)> f, bool single=true )noexcept:_fnctn{f},_id{id},_single{single}{}
-		ContractAwait( function<void(ReqId, sp<TwsClient>)> f, bool single=true )noexcept:ContractAwait{ 0, f, single }{}
+		ContractAwait( ContractPK id, function<void(ReqId, sp<TwsClient>)> f, bool single=true, SRCE )noexcept:Base{sl}, _fnctn{f},_id{id},_single{single}{}
+		ContractAwait( function<void(ReqId, sp<TwsClient>)> f, bool single=true, SRCE )noexcept:ContractAwait{ 0, f, single, sl }{}
 		α await_ready()noexcept->bool override;
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override;
@@ -49,7 +49,7 @@ namespace Jde::Markets
 	};
 	struct ΓM NewsArticleAwait final : ITwsAwaitUnique
 	{
-		NewsArticleAwait( function<void(ReqId, sp<TwsClient>)> f )noexcept:_fnctn{f}{}
+		NewsArticleAwait( function<void(ReqId, sp<TwsClient>)> f, SRCE )noexcept:ITwsAwaitUnique{sl}, _fnctn{f}{}
 		α await_suspend( HCoroutine h )noexcept->void override;
 	private:
 		function<void(ReqId, sp<TwsClient>)> _fnctn;
@@ -71,8 +71,8 @@ namespace Jde::Markets
 		Ω NewsProviders()noexcept->NewsProviderAwait;
 		Ω NewsArticle( str providerCode, str articleId )noexcept->NewsArticleAwait;
 		Ω SecDefOptParams( ContractPK underlyingConId, bool smart=false )noexcept{ return SecDefOptParamAwait{underlyingConId, smart}; }
-		Ω PlaceOrder( sp<::Contract> c, ::Order o, string blockId )noexcept{ return PlaceOrderAwait{ c, move(o), move(blockId) }; }
-		Ω RequestAllOpenOrders()noexcept{ return AllOpenOrdersAwait{}; }
+		Ω PlaceOrder( sp<::Contract> c, ::Order o, string blockId, double stop=0, double stopLimit=0, SRCE )noexcept{ return PlaceOrderAwait{ c, move(o), move(blockId), stop, stopLimit, sl }; }
+		Ω RequestAllOpenOrders( SRCE )noexcept{ return AllOpenOrdersAwait{ sl }; }
 		Ω ReqManagedAccts()noexcept{ return AccountsAwait{}; }
 
 	private:

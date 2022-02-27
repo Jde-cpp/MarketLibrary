@@ -3,7 +3,6 @@
 #include <jde/coroutine/Task.h>
 #include <jde/markets/Exports.h>
 #include <jde/markets/TypeDefs.h>
-//#include <jde/markets/types/proto/results.pb.h>
 #include "../../../../Framework/source/coroutine/Awaitable.h"
 
 namespace Jde::Markets
@@ -29,6 +28,7 @@ namespace Jde::Markets
 	
 	struct ITwsAwaitUnique : ITwsAwait
 	{
+		ITwsAwaitUnique( SL sl ):ITwsAwait{ sl }{}
 	};
 
 	struct ITwsAwaitShared : ITwsAwait
@@ -54,6 +54,7 @@ namespace Jde::Markets
 	struct ΓM AllOpenOrdersAwait final : Base
 	{
 		using base=Base;
+		AllOpenOrdersAwait( SRCE )noexcept:base{sl}{}
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override;
 		Ω Finish()noexcept->void;
@@ -68,13 +69,16 @@ namespace Jde::Markets
 	struct ΓM PlaceOrderAwait final : Base
 	{
 		using base=Base;
-		PlaceOrderAwait( sp<::Contract> c, ::Order o, string blockId ):_pContract{c}, _order{move(o)}, _blockId{move(blockId)}{}
+		PlaceOrderAwait( sp<::Contract> c, ::Order o, string blockId, double stop, double stopLimit, SRCE ):base{sl},_pContract{c}, _order{move(o)}, _blockId{move(blockId)}, _stop{stop}, _stopLimit{stopLimit}
+		{}
 		α await_suspend( HCoroutine h )noexcept->void override;
 		α await_resume()noexcept->AwaitResult override;
 	private:
 		sp<::Contract> _pContract;
 		::Order _order;
 		string _blockId;
+		double _stop;
+		double _stopLimit;
 	};
 }
 #undef Base

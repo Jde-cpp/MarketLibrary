@@ -27,7 +27,7 @@ namespace Jde::Markets
 
 	fs::path BarData::Path()noexcept(false)
 	{
-		return fs::path{ Settings::Env("marketHistorian/barPath").value_or(IApplication::Instance().ApplicationDataFolder()/"securities") };
+		return fs::path{ Settings::Env("marketHistorian/barPath").value_or( (IApplication::Instance().ApplicationDataFolder()/"securities").string()) };
 	}
 	fs::path BarData::Path( const Contract& contract )noexcept(false){ ASSERT(contract.PrimaryExchange!=Exchanges::Smart) return Path()/Str::ToLower(string{ToString(contract.PrimaryExchange)})/Str::Replace(contract.Symbol, " ", "_"); }
 

@@ -29,7 +29,7 @@ namespace Jde::Markets::Accounts
 {
 	α Set( const vector<string>& accounts )noexcept->void;
 	Φ Find( str ibName )noexcept->optional<Account>;
-	Φ TryInsert( string ibName )noexcept->optional<Account>;
+	Φ TryInsert( string ibName, shared_mutex* pAccountMutex )noexcept->optional<Account>;
 	Φ CanRead( str ibName, UserPK userId )noexcept->bool;
 }
 #undef Φ
