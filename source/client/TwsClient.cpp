@@ -41,7 +41,7 @@ namespace Jde::Markets
 		AccountAuthorizer::Initialize();
 		for( var port : _settings.Ports )
 		{
-			TRACE( "Attempt to connect to Tws:  {}", port );
+			LOG( "Attempt to connect to Tws:  {}", port );
 			if( eConnect(_settings.Host.c_str(), port, (int)clientId, false) )
 			{
 				//INFO( "connected to Tws:  {}.", port );
