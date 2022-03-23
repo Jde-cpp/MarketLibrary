@@ -232,7 +232,7 @@ namespace Jde::Markets
 		ResultsFunction _function;
 		vector<tuple<fs::path,Day,Day>> _files;
 		sp<IException> _pException;
-		Coroutine::HCoroutine _h;
+		HCoroutine _h;
 		string _symbol;
 	};
 	α ForEachFile( const Contract& contract, Day start, Day endInput, ResultsFunction f )noexcept{ return BarFilesAwaitable{contract, start, endInput, f}; }
