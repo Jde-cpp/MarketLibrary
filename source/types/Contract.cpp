@@ -312,27 +312,25 @@ namespace Jde::Markets
 		var cacheId = format( "TradingHours.{}.{}", timeZoneId, hours );
 		if( auto pValue = Cache::Get<vector<Proto::Results::ContractHours>>(cacheId); pValue )
 			return pValue;
-		auto parseTimeframe = [timeZoneId]( str timeFrame )noexcept(false)
+		auto parseTimeframe = [timeZoneId]( sv timeFrame )noexcept(false)
 		{
-			auto parseDateTime = [timeZoneId]( str value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
+			auto parseDateTime = [timeZoneId]( sv value )noexcept(false)->time_t //20200131:0930, 20200104:CLOSED
 			{
 				var dateTime = Str::Split( value, ':' );
-				var& date = dateTime[0];
-				THROW_IF( date.size()!=8 || dateTime.size()!=2, "Could not parse parseDateTime '{}'.", value );
-				var year  = stoi( date.substr(0,4) ); var month = stoi( date.substr(4,2) ); var day = stoi( date.substr(6,2) );
+				var& date = dateTime[0]; THROW_IF( date.size()!=8 || dateTime.size()!=2, "Could not parse parseDateTime '{}'.", value );
+				var year  = To<uint16>( date.substr(0,4) ); var month = To<uint8>( date.substr(4,2) ); var day = To<uint8>( date.substr(6,2) );
 				var& time = dateTime[1]; uint8 hour=0; uint8 minute=0;
 				if( time!="CLOSED" )
 				{
 					THROW_IF( time.size()!=4, "Could not parse time part of parseDateTime '{}'.", value );
-					hour = stoi( time.substr(0,2) );
-					minute = stoi( time.substr(2,2) );
+					hour = To<uint8>( time.substr(0,2) );
+					minute = To<uint8>( time.substr(2,2) );
 				}
 				var localTime = DateTime( year, month, day, hour, minute ).GetTimePoint();
 				return Clock::to_time_t( localTime-Timezone::TryGetGmtOffset(timeZoneId, localTime) );
 			};
 			var startEnd = Str::Split( timeFrame, '-' );//20200131:0930-20200131:1600 //20200104:CLOSED
-			var start = parseDateTime( startEnd[0] );
-			THROW_IF( startEnd.size()>2, "Could not parse parseTimeframe '{}'.", timeFrame );
+			var start = parseDateTime( startEnd[0] ); THROW_IF( startEnd.size()>2, "Could not parse parseTimeframe '{}'.", timeFrame );
 			var end = startEnd.size()==2 ? parseDateTime( startEnd[1] ) : 0;
 
 			Proto::Results::ContractHours hours; hours.set_start( (int)start ); hours.set_end( (int)end );

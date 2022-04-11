@@ -148,7 +148,7 @@ namespace Jde::Markets
 		return haveAccess;
 	}
 
-	α Accounts::Set( const vector<string>& accounts )noexcept->void
+	α Accounts::Set( const vector<sv>& accounts )noexcept->void
 	{
 		for( var& ibName : accounts )
 		{
@@ -156,7 +156,7 @@ namespace Jde::Markets
 			if( auto p = std::find_if( _accounts.begin(), _accounts.end(), [&ibName](var& x)->bool{ return x.second.IbName==ibName; } ); p!=_accounts.end() )
 				p->second.Connected = true;
 			else
-				Accounts::TryInsert( ibName, &_accountMutex );
+				Accounts::TryInsert( string{ibName}, &_accountMutex );
 		}
 	}
 

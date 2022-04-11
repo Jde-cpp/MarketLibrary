@@ -459,17 +459,17 @@ namespace Jde::Markets
 					DBG( "Could not convert '{}' to dividends."sv, subValue );
 				else
 				{
-					values.emplace( "DIV_PAST_YEAR", stod(dividendValues[0]) );
-					values.emplace( "DIV_NEXT_YEAR", stod(dividendValues[1]) );
+					values.emplace( "DIV_PAST_YEAR", To<double>(dividendValues[0]) );
+					values.emplace( "DIV_NEXT_YEAR", To<double>(dividendValues[1]) );
 					var& dateString = dividendValues[2];
 					if( dateString.size()==8 )
 					{
-						const DateTime date( stoi(dateString.substr(0,4)), (uint8)stoi(dateString.substr(4,2)), (uint8)stoi(dateString.substr(6,2)) );
+						const DateTime date( To<uint16>(dateString.substr(0,4)), To<uint8>(dateString.substr(4,2)), To<uint8>(dateString.substr(6,2)) );
 						values.emplace( "DIV_NEXT_DAY", Chrono::ToDays(date.GetTimePoint()) );
 					}
 					else
 						DBG( "Could not read next dividend day '{}'."sv, dateString );
-					values.emplace( "DIV_NEXT", stod(dividendValues[3]) );
+					values.emplace( "DIV_NEXT", To<double>(dividendValues[3]) );
 				}
 			}
 		}
@@ -484,7 +484,7 @@ namespace Jde::Markets
 					continue;
 				try
 				{
-					values.emplace( pair[0], stod(pair[1]) );
+					values.emplace( pair[0], To<double>(pair[1]) );
 				}
 				catch( std::invalid_argument& )
 				{
