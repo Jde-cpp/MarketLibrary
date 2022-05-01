@@ -18,10 +18,10 @@ namespace Jde::Markets
 		ITwsAwaitShared{ sl },
 		_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 	{
-		LOG( "HistoryAwait={:x}", (uint)this );
+		//LOG( "HistoryAwait={:x}", (uint)this );
 	}
 
-	HistoryAwait::~HistoryAwait(){ LOG( "HistoryAwait={:x}", (uint)this ); }
+	HistoryAwait::~HistoryAwait(){ /*LOG( "HistoryAwait={:x}", (uint)this );*/ }
 	α HistoryAwait::SetData( bool force )noexcept->bool
 	{
 		bool set = false;
@@ -132,7 +132,9 @@ namespace Jde::Markets
 			_twsRequests.push_back( _pTws->RequestId() );
 		for( uint i=0; i<requests.size(); ++i )
 		{
-			var start = std::get<0>( requests[i] ); var end = std::get<1>( requests[i] ); var id = _twsRequests[i];
+			var start = std::get<0>( requests[i] ); 
+			var end = std::get<1>( requests[i] ); 
+			var id = _twsRequests[i];
 			WrapperPtr()->_historical.emplace( id, this );
 			const DateTime endTime{ Chrono::FromDays(end) };
 			var endTimeString{ format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };

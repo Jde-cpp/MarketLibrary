@@ -8,17 +8,26 @@ namespace Jde::Markets
 {
 	static const LogTag& _logLevel = Logging::TagLevel( "tws-orders" );
 	flat_map<::OrderId,OrderManager::Cache> _cache;
+	using namespace Coroutine;
 
-	α OrderManager::Cancel( Coroutine::Handle h )noexcept->void
+	α OrderManager::Cancel( Coroutine::Handle h )noexcept->AsyncReadyAwait
 	{
-		OMInstancePtr->Cancel( h );
+		sp<OrderWorker> p=OrderWorker::Instance();
+		return p ? p->Cancel( h ) : AsyncReadyAwait{};
+	}
+	namespace Internal
+	{
+		α Latest( ::OrderId orderId, up<CoLockGuard> _ )noexcept->up<OrderManager::Cache>
+		{
+			auto p = _cache.find( orderId );
+			return p==_cache.end() ? nullptr : mu<OrderManager::Cache>(p->second);
+		}
 	}
 	α OrderManager::Latest( ::OrderId orderId )noexcept->LockWrapperAwait
 	{
-		return LockWrapperAwait{ "OrderManager._cache", [orderId]( Coroutine::AwaitResult& y )
+		return LockWrapperAwait{ "OrderManager._cache", [orderId]( AwaitResult& y, up<CoLockGuard> l )
 		{
-			auto p = _cache.find( orderId );
-			y.Set( p==_cache.end() ? nullptr : new OrderManager::Cache(p->second) );
+			y.Set( Internal::Latest(orderId, move(l)) );
 		} };
 	}
 
@@ -48,21 +57,21 @@ namespace Jde::Markets
 
 	α OrderManager::Push( ::OrderId id, int errorCode, string errorMsg )noexcept->Task
 	{
-
 		string account;
+		auto pException{ ms<IBException>(IBException{errorMsg, errorCode, id, ELogLevel::None}) };
 		{
 			var _ = ( co_await CoLockKey( "OrderManager._cache", true) ).UP<CoLockGuard>();
 			if( auto p=_cache.find(id); p!=_cache.end() )
 			{
 				account = p->second.OrderPtr->account;
-				p->second.ExceptionPtr = sp<const IBException>{ new IBException{move(errorMsg), errorCode, id} };//make_shared doesn't work.
+				p->second.ExceptionPtr = pException;//make_shared doesn't work.
 			}
 		}
 		if( account.size() )
 		{
 			var _ = ( co_await CoLockKey( "OrderManager._listeners", true) ).UP<CoLockGuard>();//TODO use a mutex class vs string
 			for( var l : _listeners )
-				l->OnOrderException( account, sp<const IBException>{new IBException{move(errorMsg), errorCode, id}} );//make_shared doesn't work.
+				l->OnOrderException( account, pException );
 		}
 		else
 			LOG( "({}) - could not find order", id );
@@ -72,7 +81,7 @@ namespace OrderManager
 {
 	flat_multimap<::OrderId,OrderWorker::SubscriptionInfo> _orderSubscriptions; mutex _orderSubscriptionMutex;
 
-	Awaitable::Awaitable( const CombinedParams& params, Coroutine::Handle& h )noexcept:
+	Awaitable::Awaitable( const CombinedParams& params, Handle& h )noexcept:
 		base{ h },
 		CombinedParams{ params }
 	{}
@@ -83,26 +92,43 @@ namespace OrderManager
 		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{{h, _hClient}, *this} );
 	}
 
-	α OrderWorker::Cancel( Coroutine::Handle h )noexcept->void
+	α OrderWorker::Cancel( Coroutine::Handle h )noexcept->AsyncReadyAwait
 	{
-		unique_lock l{ _orderSubscriptionMutex };
-		if( auto p = std::find_if(_orderSubscriptions.begin(), _orderSubscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_orderSubscriptions.end() )
+		::OrderId orderId;
+		auto  ready = [&h, &orderId]()
 		{
-			LOG( "({})OrderWorker::Cancel({})"sv, p->first, h );
-
-			p->second.HCo.destroy();
-			_orderSubscriptions.erase( p );
-		}
-		else
-			LOG( "OrderWorker - Could not find handle {}."sv, h );
+			optional<AwaitResult> y;
+			unique_lock _{ _orderSubscriptionMutex };
+			if( auto p = std::find_if(_orderSubscriptions.begin(), _orderSubscriptions.end(), [h](var x){ return x.second.HClient==h; }); p!=_orderSubscriptions.end() )
+			{
+				var orderId = p->first;
+				LOG( "({})OrderWorker::Cancel({})"sv, orderId, h );
+				p->second.HCo.destroy();
+				_orderSubscriptions.erase( p );
+				if( auto pLock = ForceSuspend() ? nullptr : LockWrapperAwait::TryLock("OrderManager._cache", true); pLock )
+					y = AwaitResult{ Internal::Latest(orderId, move(pLock)) };
+			}
+			else
+			{
+				LOG( "OrderWorker::Cancel({}) Could not find handle."sv, h );
+				y = AwaitResult{ nullptr };
+			}
+			return y;
+		};
+		auto suspend = [orderId]( HCoroutine h )->Task
+		{
+			auto pCache = ( co_await OrderManager::Latest(orderId) ).UP<Cache>();
+			h.promise().get_return_object().SetResult( move(pCache) );
+			h.resume();
+		};
+		return AsyncReadyAwait{ ready, suspend };
 	}
 
 	α OrderWorker::Subscribe( const SubscriptionInfo& params )noexcept->void
 	{
 		ASSERT( params.Params.OrderPtr );
-		unique_lock l{ _orderSubscriptionMutex };
-		//--------------------------------------------------
-		LOG( "({})OrderManager add subscription."sv, params.Params.OrderPtr->orderId );
+		LOG( "({})OrderManager add subscription.", params.Params.OrderPtr->orderId );
+		unique_lock _{ _orderSubscriptionMutex };
 		_orderSubscriptions.emplace( params.Params.OrderPtr->orderId, params );
 	}
 	α OrderWorker::Push( sp<const OrderStatus> pStatus )noexcept->void
@@ -116,7 +142,7 @@ namespace OrderManager
 		l.unlock();
 		_cv.notify_one();
 	}
-	α OrderWorker::Push( sp<const MyOrder> pOrder, const ::Contract& contract, sp<const OrderState> pState )noexcept->void
+	α OrderWorker::Push( sp<const MyOrder> pOrder, const ::Contract& contract, sp<const OrderState> pState )ι->void
 	{
 		ASSERT( pOrder );
 		unique_lock l{_incomingMutex};
@@ -130,50 +156,68 @@ namespace OrderManager
 			if( !cache.ContractPtr )
 				cache.ContractPtr = ms<const Markets::Contract>( contract );
 			pContract = cache.ContractPtr;
+			LOG( "({})OrderWorker::Push update {} limit={}", pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
 		}
 		else
-			_incoming.try_emplace( pOrder->orderId, Cache{pOrder, pContract = ms<Contract>(contract), {}, pState} );
-		LOG( "({})added order -{} limit={}"sv, pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
+		{
+			_incoming.emplace( pOrder->orderId, Cache{pOrder, pContract = ms<Contract>(contract), {}, pState} );
+			//LOG( "({})OrderWorker::Push {} limit={}", pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
+		}
 		std::unique_lock<std::mutex> lk( _mtx );
 		l.unlock();
 		_cv.notify_one();
 	}
 
-	α Update( ::OrderId id, Cache&& update_ )->Task
+	α Update( ::OrderId id, Cache&& update_ )ι->Task
 	{
 		Cache latest;
 		{
 			Cache update{ move(update_) };//need local
-			var _ = ( co_await CoLockKey( "OrderManager._cache", true) ).UP<CoLockGuard>();//TODO make unique.
+			var _ = ( co_await CoLockKey("OrderManager._cache", true) ).UP<CoLockGuard>();
 			if( auto p=_cache.find(id); p!=_cache.end() )
 			{
-				string log = format( "({})OrderManager update."sv, id );
+				string log = format( "({})OrderManager update - ", id ); var initialSize = log.size();
 				auto& v = p->second;
 				if( update.OrderPtr )
 				{
-					log.append( format(" limit={}", update.OrderPtr->lmtPrice) );
+					if( update.OrderPtr->lmtPrice!=v.OrderPtr->lmtPrice )
+						log.append( format("limit:{} vs {}", update.OrderPtr->lmtPrice, v.OrderPtr->lmtPrice) );
 					var lastUpdate = v.OrderPtr->LastUpdate;
 					v.OrderPtr = update.OrderPtr;
 					v.OrderPtr->LastUpdate = lastUpdate;
 				}
-				if( update.StatusPtr )
+				if( OrderStatus::Fields fields{ update.StatusPtr ? v.StatusPtr ? v.StatusPtr->Changes(*update.StatusPtr) : OrderStatus::Fields::All : OrderStatus::Fields::None }; fields!=OrderStatus::Fields::None )
+				{
 					v.StatusPtr = update.StatusPtr;
+					vector<string> statusLog;
+					if( fields && OrderStatus::Fields::Status )
+						statusLog.push_back( format("Value:{}", update.StatusPtr->Status) );
+					if( fields && OrderStatus::Fields::Filled )
+						statusLog.push_back( format("Filled:{}", update.StatusPtr->Filled) );
+					if( fields && OrderStatus::Fields::Remaining )
+						statusLog.push_back( format("Remaining:{}", update.StatusPtr->Remaining) );
+					log.append( format("Status{{ {} }}", Str::AddCommas(statusLog)) );
+				}
 				if( update.StatePtr )
+				{
+					if( !v.StatePtr || v.StatePtr->status!=update.StatePtr->status )
+						log.append( format(" State:{} ", update.StatePtr->status) );
 					v.StatePtr = update.StatePtr;
+				}
 				latest = v;
-				LOGS( move(log) );
+				if( log.size()<initialSize )
+					LOGS( move(log) );
 			}
 			else
 			{
-				LOG( "OrderManager add {} to cache."sv, id );
+				LOG( "{} - OrderManager add to cache."sv, update.ToString() );
 				_cache.emplace( id, update );
 				latest = update;
 			}
 		}
 		{
 			unique_lock l2{ _orderSubscriptionMutex };
-			auto range = _orderSubscriptions.equal_range( id );
-			for( auto p = range.first; p!=_orderSubscriptions.end() && p->first==id; )
+			for( auto p = _orderSubscriptions.find(id); p!=_orderSubscriptions.end() && p->first==id; )
 			{
 				LOG( "OrderManager have subscription."sv );
 				auto& original = p->second.Params;
@@ -182,17 +226,13 @@ namespace OrderManager
 				var stateChange = statusChange || (!original.StatePtr && latest.StatePtr) || (original.StatePtr && latest.StatePtr && OrderStateChanges( *latest.StatePtr, *original.StatePtr/*, original.StateFields*/)!=OrderStateFields::None );
 				if( stateChange )
 				{
-					LOG( "OrderManager changes. {} {}"sv, _orderSubscriptions.size(), Threading::GetThreadId() );
-					auto& h = p->second.HCo;
-					h.promise().get_return_object().SetResult( ms<Cache>(latest) );
-					Coroutine::CoroutinePool::Resume( move(h) );
-					p = _orderSubscriptions.erase( p );
+					LOG( "OrderManager trigger subscription. total subscriptions size={}", _orderSubscriptions.size() );
+					p->second.HCo.promise().get_return_object().SetResult( ms<Cache>(latest) );
+					CoroutinePool::Resume( move(p->second.HCo) );
 				}
 				else
-				{
 					LOG( "OrderManager no changes."sv );
-					++p;
-				}
+				p = stateChange ? _orderSubscriptions.erase( p ) : std::next( p );
 			}
 		}
 		if( latest.StatusPtr || latest.StatePtr )
@@ -225,7 +265,7 @@ namespace OrderManager
 	{
 		std::call_once( _singleThread, []()
 		{
-			LOG( "Creating OrderWroker"sv );
+			LOG( "Creating OrderWorker" );
 			OrderWorker::_pInstance = ms<OrderWorker>();
 			OrderWorker::_pInstance->Start();
 			_pTws = dynamic_pointer_cast<TwsClientSync>( TwsClient::InstancePtr() );

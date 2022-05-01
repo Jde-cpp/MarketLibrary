@@ -1,7 +1,5 @@
 ﻿#include <jde/markets/types/MyOrder.h>
 #include "OrderEnums.h"
-//#include "proto/requests.pb.h"
-
 
 #define var const auto
 namespace Jde
@@ -122,7 +120,7 @@ namespace Jde::Markets
 	}
 	α MyOrder::ToProto()const noexcept->up<Proto::Order>
 	{
-		auto p = make_unique<Proto::Order>();
+		auto p = mu<Proto::Order>();
 		auto& proto = *p;
 		proto.set_id( orderId );
 		proto.set_client_id(clientId);
@@ -264,9 +262,9 @@ namespace Jde::Markets
 		return changes;
 	}
 
-	α OrderStatus::ToProto()const noexcept->up<Proto::Results::OrderStatus>
+	α OrderStatus::ToProto()const noexcept->up<Proto::OrderStatus>
 	{
-		auto p = make_unique<Proto::Results::OrderStatus>();
+		auto p = mu<Proto::OrderStatus>();
 		p->set_order_id( Id );
 		p->set_status( Status );
 		p->set_filled( Filled );
@@ -288,6 +286,4 @@ namespace Jde::Markets
 		if( a.completedStatus!=b.completedStatus ) changes|=OrderStateFields::CompletedStatus;
 		return changes;
 	}
-
-
 }

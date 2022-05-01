@@ -26,7 +26,7 @@ namespace Jde::Markets
 		return id==-1 || _pTickWorker->HandleError( id, code, m );
 	}
 #define $ noexcept->void
-	α WrapperLog::error( int id, int errorCode, str errorMsg )$
+	α WrapperLog::error( int id, int errorCode, str errorMsg, str /*advancedOrderRejectJson*/ )$
 	{
 		LOG_IFT( _historicalDataRequests.erase(id),  _historicalLevel, "({})_historicalDataRequests.erase(){}", id, _historicalDataRequests.size() );
 		LOG_IF( errorCode!=2106, "({})WrapperLog::error( {}, {} )", id, errorCode, errorMsg );
@@ -288,6 +288,10 @@ namespace Jde::Markets
 			cancel = p->second.empty();
 		}
 		return cancel && _canceledAccounts.emplace( account );
+	}
+	α WrapperLog::userInfo( int reqId, str whiteBrandingId )$
+	{
+		LOG( "WrapperLog::userInfo( {}, {} )", reqId, whiteBrandingId );
 	}
 	α WrapperLog::wshMetaData( int reqId, str dataJson )$
 	{

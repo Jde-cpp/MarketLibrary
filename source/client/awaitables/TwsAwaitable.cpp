@@ -46,7 +46,7 @@ namespace Jde::Markets
 		sp<void> p = _smart
 			? _dataPtr->exchanges().size() ? ms<ExchangeContracts>( _dataPtr->exchanges()[0] ) : sp<void>{}
 			: _dataPtr;
-		return AwaitResult{ p };
+		return AwaitResult{ move(p) };
 	}
 
 	vector<HCoroutine> AllOpenOrdersAwait::_handles;
@@ -70,7 +70,7 @@ namespace Jde::Markets
 		if( _pData )
 			*_pData->add_orders() = o;
 	}
-	α AllOpenOrdersAwait::Push( up<Proto::Results::OrderStatus> p )noexcept->void
+	α AllOpenOrdersAwait::Push( up<Proto::OrderStatus> p )noexcept->void
 	{
 		lock_guard l{ _mutex };
 		if( _pData )

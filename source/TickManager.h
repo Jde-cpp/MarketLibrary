@@ -26,17 +26,17 @@ namespace Jde::Markets
 	{
 		struct TickParams /*~final*/
 		{
-			Tick::Fields Fields;
+			function<bool(const Markets::Tick&)> Trigger;
 			Markets::Tick Tick;
 		};
 
 		struct ΓM Awaitable final : CancelAwait, TickParams
 		{
 			using base=CancelAwait;
-			Awaitable( const TickParams& params, Handle& h )noexcept;
-			α await_ready()noexcept->bool override;
-			α await_suspend( HCoroutine h )noexcept->void override;
-			α await_resume()noexcept->AwaitResult override{ base::AwaitResume(); return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ mu<Markets::Tick>(TickParams::Tick) }; }
+			Awaitable( const TickParams& params, Handle& h )ι;
+			α await_ready()ι->bool override;
+			α await_suspend( HCoroutine h )ι->void override;
+			α await_resume()ι->AwaitResult override{ base::AwaitResume(); return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ mu<Markets::Tick>(TickParams::Tick) }; }
 		private:
 			Task::promise_type* _pPromise{ nullptr };
 		};
@@ -44,7 +44,7 @@ namespace Jde::Markets
 		using ProtoFunction=function<void(const vector<Proto::Results::MessageUnion>&)>;
 		Ω CalcImpliedVolatility( uint32 sessionId, uint32 clientId,  const ::Contract& contract, double optionPrice, double underPrice, ProtoFunction fnctn )noexcept->void;
 		Ω CalculateOptionPrice(  uint32 sessionId, uint32 clientId, const ::Contract& contract, double volatility, double underPrice, ProtoFunction fnctn )noexcept->void;
-		Ω Cancel( Handle h )noexcept->void;
+		Ω Cancel( Handle h )noexcept->optional<Tick>;
 		Ω Subscribe( const TickParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
 		Ω Subscribe( uint32 sessionId, uint32 clientId, ContractPK contractId, const flat_set<ETickList>& fields, bool snapshot, ProtoFunction fnctn )noexcept(false)->void;
 		Ω CancelProto( uint sessionId, uint clientId, ContractPK contractId )noexcept->void;
@@ -70,15 +70,15 @@ namespace Jde::Markets
 			Ω SGet( ContractPK contractId )noexcept->optional<Tick>;
 		private:
 			Φ Process()noexcept->void override;
-			α Cancel( Handle h )noexcept->void;
+			α Cancel( Handle h )noexcept->optional<Tick>;
 			α CancelProto( uint hClient, ContractPK contractId, unique_lock<mutex>* pLock=nullptr )noexcept->void;
 			α Subscribe( const SubscriptionInfo& params )noexcept->void;
 			α AddOutgoingField( ContractPK id, ETickType t )noexcept->void;
 
 			α Push( TickerId id, ETickType type, function<void(Tick&)> fnctn )noexcept->void;
 
-			α Test( Tick& tick, TickFields fields )noexcept->bool;
-			α Test( Tick& clientTick, TickFields clientFields, const Tick& latestTick )const noexcept->bool;
+			α Test( Tick& tick, function<bool(const Markets::Tick&)> test )noexcept->bool;
+			α Test( Tick& clientTick, function<bool(const Markets::Tick&)> test, const Tick& latestTick )const noexcept->bool;
 			α Ratios( ContractPK contractId )noexcept->Task;
 			α Get( ContractPK contractId )const noexcept->optional<Tick>;
 

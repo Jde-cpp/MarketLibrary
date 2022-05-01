@@ -45,7 +45,7 @@ namespace Jde::Markets
 		void contractDetailsEnd( int reqId)noexcept override;
 		void execDetails( int reqId, const ::Contract& contract, const Execution& execution)noexcept override;
 		void execDetailsEnd( int reqId)noexcept override;
-		void error( int id, int errorCode, str errorMsg )noexcept override;
+		void error( int id, int errorCode, str errorMsg, str advancedOrderRejectJson={} )noexcept override;
 		β error2( int id, int errorCode, str errorMsg )noexcept->bool;
 		void updateMktDepth(TickerId id, int position, int operation, int side, double price, ::Decimal size)noexcept override;
 		void updateMktDepthL2(TickerId id, int position, str marketMaker, int operation, int side, double price, ::Decimal size, bool isSmartDepth)noexcept override;
@@ -106,6 +106,7 @@ namespace Jde::Markets
 		α completedOrdersEnd()$;
 		α tickOptionComputation( ::TickerId tickerId, ::TickType tickType, int tickAttrib, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice )$;
 		α replaceFAEnd( int /*reqId*/, str /*text*/ )${};
+		α userInfo( int reqId, str whiteBrandingId )$;
 		α wshMetaData( int reqId, str dataJson )$;
 		α wshEventData( int reqId, str dataJson )$;
 
@@ -113,7 +114,6 @@ namespace Jde::Markets
 		Ω AddHistoricalDataRequest2( TickerId id )noexcept->void{ _historicalDataRequests.emplace(id); }
 		α AddAccountUpdate( str accountNumber, sp<IAccountUpdateHandler> callback )noexcept->tuple<uint,bool>;
 		α RemoveAccountUpdate( str account, uint handle )noexcept->bool;
-
 	protected:
 		static UnorderedSet<TickerId> _historicalDataRequests;
 		static const LogTag& _logLevel;

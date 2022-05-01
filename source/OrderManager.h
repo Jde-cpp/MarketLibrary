@@ -51,6 +51,7 @@ namespace Jde::Markets::OrderManager
 		sp<const OrderStatus> StatusPtr;
 		sp<const ::OrderState> StatePtr;
 		sp<const IBException> ExceptionPtr;
+		α ToString()Ι->string{ return OrderPtr ? format("({}){} - {}", OrderPtr->orderId, ContractPtr ? ContractPtr->Display() : "NOCONTRACT", OrderPtr->lmtPrice) : "NOORDER";  }
 	};
 
 	using boost::container::flat_multimap;
@@ -59,24 +60,24 @@ namespace Jde::Markets::OrderManager
 	struct ΓM Awaitable final : CancelAwait, CombinedParams
 	{
 		typedef CancelAwait base;
-		Awaitable( const CombinedParams& params, Handle& h )noexcept;
+		Awaitable( const CombinedParams& params, Handle& h )ι;
 		~Awaitable()=default;
-		α await_ready()noexcept->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
-		α await_suspend( HCoroutine h )noexcept->void;
-		α await_resume()noexcept->AwaitResult{ /*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
+		α await_ready()ι->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
+		α await_suspend( HCoroutine h )ι->void;
+		α await_resume()ι->AwaitResult{ /*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
 	private:
 		Task::promise_type* _pPromise{nullptr};
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
 	};
 #define Φ ΓM α
-	Φ Cancel( Handle h )noexcept->void;
-	Ξ Subscribe( const CombinedParams& params, Handle& h )noexcept{ return Awaitable{params, h}; }
-	Φ Listen( sp<IListener> p )noexcept->Task;
-	Φ Latest( ::OrderId orderId )noexcept->LockWrapperAwait;
-	α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void;
-	Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;
-	α Push( const ::Order& order, const ::Contract& contract )noexcept->void;
-	α Push( ::OrderId id, int errorCode, string errorMsg )noexcept->Task;
+	Φ Cancel( Handle h )noexcept->AsyncReadyAwait;
+	Ξ Subscribe( const CombinedParams& params, Handle& h )ι{ return Awaitable{params, h}; }
+	Φ Listen( sp<IListener> p )ι->Task;
+	Φ Latest( ::OrderId orderId )ι->LockWrapperAwait;
+	α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )ι->void;
+	Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )ι->void;
+	α Push( const ::Order& order, const ::Contract& contract )ι->void;
+	α Push( ::OrderId id, int errorCode, string errorMsg )ι->Task;
 
 	struct OrderWorker final: TCoWorker<OrderWorker,Awaitable>
 	{
@@ -84,10 +85,10 @@ namespace Jde::Markets::OrderManager
 		struct SubscriptionInfo : base::Handles<>{ CombinedParams Params; };
 		OrderWorker():base{"OrderWorker"}{};
 	private:
-		static sp<OrderWorker> Instance()noexcept;
+		static sp<OrderWorker> Instance()ι;
 		Φ Process()noexcept->void override;
 		optional<Cache> Latest( ::OrderId orderId )noexcept;
-		α Cancel( Handle h )noexcept->void;
+		α Cancel( Handle h )noexcept->AsyncReadyAwait;
 		α Subscribe( const SubscriptionInfo& params )noexcept->void;
 		α Push( sp<const OrderStatus> status )noexcept->void;
 		α Push( sp<const MyOrder> order, const ::Contract& contract, sp<const OrderState> state={} )noexcept->void;
@@ -96,7 +97,7 @@ namespace Jde::Markets::OrderManager
 		static sp<TwsClientSync> _pTws;
 		flat_map<::OrderId,Cache> _incoming; mutex _incomingMutex;
 		friend Awaitable;
-		friend Φ Cancel( Handle h )noexcept->void;
+		friend Φ Cancel( Handle h )noexcept->AsyncReadyAwait;
 		friend ΓM optional<Cache> GetLatest( ::OrderId orderId )noexcept;
 		friend α Push( ::OrderId orderId, str status, double filled, double remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, str whyHeld, double mktCapPrice )noexcept->void;
 		friend Φ Push( const ::Order& order, const ::Contract& contract, const ::OrderState& orderState )noexcept->void;

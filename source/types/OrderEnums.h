@@ -5,7 +5,7 @@
 
 namespace Jde::Markets
 {
-	using Proto::Results::EOrderStatus;
+	using Proto::EOrderStatus;
 	constexpr std::array<sv,22> EOrderTypeStrings={ "LMT", "MKT", "MTL", "MIT", "MOC", "PEG MKT", "PEG STK", "REL", "BOX TOP", "LIT", "LOC", "PASSV REL", "PEG MID", "STP", "STP LMT", "STP PRT", "TRAIL", "TRAIL LIMIT", "REL + LMT", "REL + MKT", "VOL", "PEG BENCH"  };
 	Ξ ToOrderTypeString( Proto::EOrderType orderType )noexcept{ return Str::FromEnum( EOrderTypeStrings, orderType ); }
 	Ξ ToOrderType( sv value )noexcept{ return Str::ToEnum<Proto::EOrderType>( EOrderTypeStrings, value).value_or(Proto::EOrderType::Limit ); }
@@ -18,7 +18,7 @@ namespace Jde::Markets
 	constexpr sv ToActionString( EAction action ){ return EActionStrings[(uint)action]; }
 
 	Ξ operator& (EOrderStatus a, EOrderStatus b){ return (EOrderStatus)( (uint8)a & (uint8)b ); }
-	Ξ operator!( EOrderStatus a ){ return a==EOrderStatus::None; }
+	Ξ operator!( EOrderStatus a ){ return a==EOrderStatus::NoStatus; }
 	Ξ IsComplete( EOrderStatus a ){ return a==EOrderStatus::Filled || a==EOrderStatus::Cancelled; }
 	Ξ ToString( EOrderStatus order )noexcept;
 	Ξ ToOrderStatus( sv statusText )noexcept;
@@ -45,7 +45,7 @@ namespace Jde
 	}
 	Ξ Markets::ToOrderStatus( sv statusText )noexcept
 	{
-		EOrderStatus orderStatus = EOrderStatus::None;
+		EOrderStatus orderStatus = EOrderStatus::NoStatus;
 		if( statusText=="PendingSubmit" ) orderStatus = EOrderStatus::PendingSubmit;
 		else if( statusText=="PendingCancel" ) orderStatus = EOrderStatus::PendingCancel;
 		else if( statusText=="PreSubmitted" ) orderStatus = EOrderStatus::PreSubmitted;

@@ -190,7 +190,23 @@ namespace Jde::Markets
 	using Proto::Results::TickSize;
 	using Proto::Results::TickGeneric;
 	using Proto::Results::TickString;
-	Proto::Results::MessageUnion Tick::ToProto( ETickType type )const noexcept
+	α Tick::ToProto()Ι->up<Jde::Markets::Proto::Tick>
+	{
+		auto y = mu<Jde::Markets::Proto::Tick>();
+		y->set_ask( Ask );
+		y->set_ask_size( ToDouble(AskSize) );
+		y->set_bid( Bid );
+		y->set_bid_size( ToDouble(BidSize) );
+		y->set_high( High );
+		y->set_last_price( LastPrice );
+		y->set_last_size( ToDouble(LastSize) );
+		y->set_low( Low );
+		y->set_volume( ToDouble(Volume) );
+
+		return y;
+	}
+
+	Proto::Results::MessageUnion Tick::ToProto( ETickType type )Ι
 	{
 		Proto::Results::MessageUnion msg;
 		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
@@ -303,7 +319,7 @@ namespace Jde::Markets
 		}
 		return msg;
 	}
-	α Tick::AddProto( ETickType type, vector<Proto::Results::MessageUnion>& messages )const noexcept->void
+	α Tick::AddProto( ETickType type, vector<Proto::Results::MessageUnion>& messages )Ι->void
 	{
 		if( type==ETickType::NewsTick && NewsPtr )
 		{
@@ -318,8 +334,20 @@ namespace Jde::Markets
 		else
 			messages.push_back( ToProto(type) );
 	}
+	α Tick::AllSet( Markets::Tick::Fields fields )Ι->bool
+	{ 
+		bool allSet = true;
+		for( uint i=0; i<fields.size() && fields.any() && allSet; ++i )
+		{
+			if( !fields[i] )
+				continue;
+			allSet = Tick::IsSet( (ETickType)i );
+			fields.flip( i );
+		}
+		return allSet;
+	}
 
-	Tick::TVariant Tick::Variant( ETickType type )const noexcept
+	Tick::TVariant Tick::Variant( ETickType type )Ι
 	{
 		TVariant result{nullptr};
 		if( !_setFields[type] )
@@ -427,20 +455,20 @@ namespace Jde::Markets
 		}
 		return result;
 	}
-	α Tick::FieldEqual( const Tick& other, ETickType tick )const noexcept->bool
+	α Tick::FieldEqual( const Tick& other, ETickType tick )Ι->bool
 	{
 		return Variant( tick )==other.Variant( tick );
 	}
 
-	α Tick::HasRatios()const noexcept->bool
+	α Tick::HasRatios()Ι->bool
 	{
 		bool fundamentals = _setFields[ETickType::FUNDAMENTAL_RATIOS];
 		bool dividends = _setFields[ETickType::IB_DIVIDENDS];
-		DBG( "fundamentals={} && dividends={}", fundamentals, dividends );
+//		DBG( "fundamentals={} && dividends={}", fundamentals, dividends );
 		return fundamentals && dividends;
 	}
 
-	α Tick::Ratios()const noexcept->std::map<string,double>
+	α Tick::Ratios()Ι->std::map<string,double>
 	{
 		std::map<string,double> values;
 		{
@@ -517,7 +545,7 @@ namespace Jde::Markets
 		fields.set( ETickType::OpenTick );
 		return fields;
 	}
-	up<Proto::Results::TickNews> News::ToProto( ContractPK contractId )const noexcept
+	up<Proto::Results::TickNews> News::ToProto( ContractPK contractId )Ι
 	{
 		auto p = make_unique<Proto::Results::TickNews>();
 		p->set_id( contractId );
@@ -529,7 +557,7 @@ namespace Jde::Markets
 
 		return p;
 	}
-	up<Proto::Results::OptionCalculation> OptionComputation::ToProto( ContractPK contractId, ETickType tickType )const noexcept
+	up<Proto::Results::OptionCalculation> OptionComputation::ToProto( ContractPK contractId, ETickType tickType )Ι
 	{
 		auto p = make_unique<Proto::Results::OptionCalculation>();
 		p->set_request_id( contractId );

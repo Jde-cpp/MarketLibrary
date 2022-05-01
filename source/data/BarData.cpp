@@ -46,7 +46,7 @@ namespace Jde::Markets
 			{
 				LOG( "({}) Reading", path.string() );
 				AwaitResult t = co_await IO::Zip::XZ::ReadProto<Proto::BarFile>( move(path) );
-				var pFile = t.SP<Proto::BarFile>();
+				var pFile = t.UP<Proto::BarFile>();
 				Day dayCount = pFile->days_size();
 				auto pResults = make_shared<map<Day,VectorPtr<CandleStick>>>();
 				for( Day i=0; i<dayCount; ++i )
@@ -74,11 +74,12 @@ namespace Jde::Markets
 					for( int iBar=0; iBar<barCount; ++iBar )
 						pDays->push_back( CandleStick(day.bars(iBar)) );
 				}
+				LOG( "SetResult({:x})", (uint)&pResults );
 				h.promise().get_return_object().SetResult( pResults );
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( e.Clone() );
+				h.promise().get_return_object().SetResult( move(e) );
 			}
 			h.resume();
 		}, sl, move(name) };

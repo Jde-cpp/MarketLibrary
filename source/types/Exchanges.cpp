@@ -36,7 +36,28 @@ namespace Jde
 			var year = date.Year();
 			var day = date.Day();
 			var month= date.Month();
-			if( year==2021 || year==2010 )
+			if( year==2005 || year==2022 )
+			{
+				if( month == 1 )
+					isHoliday = day==17;
+				else if( month==2 )
+					isHoliday = day==21;
+				else if( month==3 && year==2005 )
+					isHoliday = day==25;
+				else if( month==4 && year==2022 )
+					isHoliday = day==15;//19097
+				else if( month==5 )
+					isHoliday = day==30;
+				else if( month==7 )
+					isHoliday = day==4;
+				else if( month==9 )
+					isHoliday = day==5;
+				else if( month==11 )
+					isHoliday = day==24;
+				else if( month==12 )
+					isHoliday = day==26;
+			}
+			else if( year==2021 || year==2010 )
 			{
 				if( month == 1 )
 					isHoliday = day==1 || day==18;
@@ -303,27 +324,6 @@ namespace Jde
 					isHoliday = day==22;
 				else if( month==12 )
 					isHoliday = day==25;
-			}
-			else if( year==2005 || year==2022 )
-			{
-				if( month == 1 )
-					isHoliday = day==17;
-				else if( month==2 )
-					isHoliday = day==21;
-				else if( month==3 && year==2005 )
-					isHoliday = day==25;
-				else if( month==4 && year==2022 )
-					isHoliday = day==15;
-				else if( month==5 )
-					isHoliday = day==30;
-				else if( month==7 )
-					isHoliday = day==4;
-				else if( month==9 )
-					isHoliday = day==5;
-				else if( month==11 )
-					isHoliday = day==24;
-				else if( month==12 )
-					isHoliday = day==26;
 			}
 			else if( year==2004 )
 			{

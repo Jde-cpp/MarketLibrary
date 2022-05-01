@@ -34,9 +34,10 @@ namespace Jde::Markets
 		WorkerPtr->CancelProto( sessionId, contractId );
 	}
 
-	α TickManager::Cancel( Coroutine::Handle h )noexcept->void
+	α TickManager::Cancel( Coroutine::Handle h )noexcept->optional<Tick>
 	{
-		WorkerPtr->Cancel( h );
+		auto p = TickWorker::Instance();
+		return p ? p->Cancel( h ) : nullopt;
 	}
 
 	TickManager::Awaitable::Awaitable( const TickParams& params, Coroutine::Handle& h )noexcept:
@@ -55,8 +56,8 @@ namespace Jde::Markets
 	}
 	bool TickManager::Awaitable::await_ready()noexcept
 	{
-		auto p=TickWorker::Instance();
-		var isReady = p && p->Test( Tick, Fields );
+		auto p = TickWorker::Instance();
+		var isReady = p && p->Test( Tick, Trigger );
 		if( isReady )
 			LOG( "TickManager::await_ready={}"sv, isReady );
 		return isReady;
@@ -100,11 +101,11 @@ namespace Jde::Markets
 		_values.try_emplace( contractId, contractId, id );
 	}
 
-	bool TickManager::TickWorker::Test( Tick& clientTick, TickFields fields )noexcept
+	bool TickManager::TickWorker::Test( Tick& clientTick, function<bool(const Markets::Tick&)> test )ι
 	{
-		var contractId = clientTick.ContractId;
-		var tick = Get( contractId );
-		bool change = tick && TickManager::TickWorker::Test( clientTick, fields, tick.value() );
+		var contractId{ clientTick.ContractId };
+		var tick{ Get(contractId) };
+		var change{ tick && TickManager::TickWorker::Test(clientTick, test, tick.value()) };
 		if( change )
 		{
 			unique_lock l2{ _delayMutex };
@@ -119,9 +120,13 @@ namespace Jde::Markets
 		return change;
 	}
 
-	bool TickManager::TickWorker::Test( Tick& clientTick, TickFields clientFields, const Tick& latestTick )const noexcept
+	bool TickManager::TickWorker::Test( Tick& clientTick, function<bool(const Markets::Tick&)> test, const Tick& latestTick )const noexcept
 	{
-		bool haveUpdate = false;
+		var haveUpdate = test( latestTick );
+		if( haveUpdate )
+			clientTick = latestTick;
+		return haveUpdate;
+/*		bool haveUpdate = false;
 		for( uint i = 0; clientFields.any() && i < clientFields.size() && !haveUpdate; ++i )
 		{
 			if( !clientFields[i] )
@@ -133,6 +138,7 @@ namespace Jde::Markets
 		if( haveUpdate )
 			clientTick = latestTick;
 		return haveUpdate;
+		*/
 	}
 
 	α TickManager::TickWorker::Push( TickerId tickerId, ETickType tickType, function<void(Tick&)> fnctn )noexcept->void
@@ -306,8 +312,7 @@ namespace Jde::Markets
 				{
 					auto& params = p->second.Params;
 					auto& clientTick = params.Tick;
-					auto clientFields = params.Fields;
-					bool resume = Test( clientTick, clientFields, tick );
+					bool resume = Test( clientTick, params.Trigger, tick );
 					if( resume )
 					{
 						auto h = p->second.HCo;
@@ -486,21 +491,24 @@ namespace Jde::Markets
 		else
 			WARN( "Lost request for contract '{}'"sv, contractId );
 	}
-	α TickManager::TickWorker::Cancel( Coroutine::Handle h )noexcept->void
+	α TickManager::TickWorker::Cancel( Coroutine::Handle h )noexcept->optional<Tick>
 	{
+		optional<Tick> y;
 		unique_lock l{ _subscriptionMutex };
 		if( auto p = std::find_if(_subscriptions.begin(), _subscriptions.end(), [h](var x){ return x.second.HClient==h;}); p!=_subscriptions.end() )
 		{
 			LOG( "Cancel({})"sv, h );
 			p->second.HCo.destroy();
-			var contractId = p->first;
 			_subscriptions.erase( p );
+			var contractId = p->first;
 			l.unlock();
-			unique_lock l{ _delayMutex };
+			y = Get( contractId );
+			unique_lock _{ _delayMutex };
 			_delays.emplace( Clock::now()+3s, make_tuple(ESubscriptionSource::Coroutine, h, contractId) );
 		}
 		else
 			LOG( "Could not find handle {}."sv, h );
+		return y;
 	}
 	α TickManager::TickWorker::CancelProto( uint sessionId, ContractPK contractId, unique_lock<mutex>* pLock )noexcept->void
 	{
@@ -564,30 +572,6 @@ namespace Jde::Markets
 		return  _value ? AwaitResult{ _value.release() } : _pPromise ? _pPromise->get_return_object().Result() : AwaitResult{ Exception{"no Tws Connection"} };
 	}
 
-/*	α TickManager::TickWorker::Ratios( const ContractPK contractId )noexcept->Task
-	{
-		auto pTwsClient = _pTwsClient;
-		var tick = Get( contractId );
-		if( tick && tick.value().HasRatios() )
-		{
-			std::promise<Tick> promise;
-			promise.set_value( tick.value() );
-			return promise.get_future();
-		}
-		//don't already have.
-		auto pLock = ms<unique_lock<mutex>>( _twsSubscriptionMutex );
-		flat_set<ETickList> requestTicks = GetSubscribedTicks( contractId );
-
-		const flat_set ticks{ ETickList::MiscStats, ETickList::Fundamentals, ETickList::Dividends };
-		var handle = ++InternalSubscriptionHandle;
-		AddSubscription( contractId, TickListSource{ESubscriptionSource::Internal, handle, ticks}, pLock );
-
-		unique_lock l{ _ratioSubscriptionMutex };
-		LOG( "_ratioSubscriptions.emplace({}, {})"sv, contractId, ToIsoString(Clock::now()+5s) );
-		auto p = _ratioSubscriptions.emplace( contractId, make_tuple( std::promise<Tick>{}, Clock::now()+5s, handle ) );
-		return get<0>( p->second ).get_future();
-	}
-*/
 	α TickManager::TickWorker::AddSubscription( ContractPK contractId, const TickListSource& source, sp<unique_lock<mutex>> pLock )noexcept(false)->bool
 	{
 		auto newTicks = 0;

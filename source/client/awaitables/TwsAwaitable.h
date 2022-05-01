@@ -7,7 +7,8 @@
 
 namespace Jde::Markets
 {
-	namespace Proto::Results{ class OptionExchanges; class OpenOrder; class OrderStatus; class Orders; }
+	namespace Proto{ class OrderStatus; }
+	namespace Proto::Results{ class OptionExchanges; class OpenOrder; class Orders; }
 	using namespace Jde::Coroutine;
 	struct WrapperCo; struct Tws;
 
@@ -59,7 +60,7 @@ namespace Jde::Markets
 		α await_resume()noexcept->AwaitResult override;
 		Ω Finish()noexcept->void;
 		Ω Push( Proto::Results::OpenOrder& order )noexcept->void;
-		Ω Push( up<Proto::Results::OrderStatus> status )noexcept->void;
+		Ω Push( up<Proto::OrderStatus> status )noexcept->void;
 	private:
 		HCoroutine _h;
 		static vector<HCoroutine> _handles; static std::mutex _mutex;

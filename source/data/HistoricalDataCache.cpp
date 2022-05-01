@@ -322,10 +322,10 @@ namespace Jde::Markets
 		{
 			flat_set<Day> tempTest;tempTest.emplace( day );
 			var result = Contains( tempTest, rth, barSize );
-			DBG( "result={}", result ? "null" : format("({},{})", get<0>(*result), get<1>(*result)) );
-			for( var& x : cache )
-				DBG( "({}){}", x.first, DateDisplay(x.first) );
-			ERR("({}) Trying to add '{}' bar but does not contain '{}' - {}"sv, contract.Symbol, BarSize::ToString(barSize), DateDisplay(FromDays(day)), day );
+			//DBG( "result={}", result ? "null" : format("({},{})", get<0>(*result), get<1>(*result)) );TODO
+			//for( var& x : cache )
+			//	DBG( "({}){}", x.first, DateDisplay(x.first) );
+			//DBG("({}) Trying to add '{}' bar but does not contain '{}' - {}"sv, contract.Symbol, BarSize::ToString(barSize), DateDisplay(FromDays(day)), day );
 		}
 		else
 			pResult->push_back( ms<::Bar>(p->second) );

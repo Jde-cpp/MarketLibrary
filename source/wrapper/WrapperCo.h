@@ -8,27 +8,26 @@ namespace Jde::Markets
 {
 	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait; struct PlaceOrderAwait;
 	using namespace Jde::Coroutine;
+#define $ noexcept->void override
 	struct ΓM WrapperCo : WrapperLog
 	{
 		α error2( int id, int errorCode, str errorMsg )noexcept->bool override;
-		α error( int id, int errorCode, str errorMsg )noexcept->void override;
-		α historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept->void override;
-		α historicalNewsEnd( int requestId, bool hasMore )noexcept->void override;
+		α error( int id, int errorCode, str errorMsg, str advancedOrderRejectJson )$;
+		α historicalNews( int requestId, str time, str providerCode, str articleId, str headline )$;
+		α historicalNewsEnd( int requestId, bool hasMore )$;
 
-		α historicalData( TickerId reqId, const ::Bar& bar )noexcept->void override;//{ HistoricalData(reqId, bar); }
-		α historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void override;//{ HistoricalDataEnd(reqId, startDateStr, endDateStr); }
-		//α HistoricalData( TickerId reqId, const ::Bar& bar )noexcept->bool;
-		//α HistoricalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->bool;
+		α historicalData( TickerId reqId, const ::Bar& bar )$;
+		α historicalDataEnd( int reqId, str startDateStr, str endDateStr )$;
 
-		α contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void override;
-		α contractDetailsEnd( int reqId )noexcept->void override;
-		α managedAccounts( str accountsList )noexcept->void override;
+		α contractDetails( int reqId, const ::ContractDetails& contractDetails )$;
+		α contractDetailsEnd( int reqId )$;
+		α managedAccounts( str accountsList )$;
 
-		α newsProviders( const vector<NewsProvider>& providers )noexcept->void override;
-		α newsArticle( int reqId, int articleType, str articleText )noexcept->void override;
+		α newsProviders( const vector<NewsProvider>& providers )$;
+		α newsArticle( int reqId, int articleType, str articleText )$;
 
-		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept->void override;
-		α securityDefinitionOptionalParameterEnd( int reqId )noexcept->void override;
+		α securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )$;
+		α securityDefinitionOptionalParameterEnd( int reqId )$;
 		α OpenOrder( ::OrderId orderId, const ::Contract& contract, const ::Order& order, const ::OrderState& state )noexcept->sp<Proto::Results::OpenOrder>;
 	protected:
 		flat_map<ReqId,up<vector<sp<::ContractDetails>>>> _requestContracts; UnorderedMapValue<ReqId,HCoroutine> _contractHandles;
@@ -38,10 +37,10 @@ namespace Jde::Markets
 		UnorderedMapValue<int,HCoroutine> _newsArticleHandles;
 		flat_map<ReqId,sp<Proto::Results::OptionExchanges>> _optionParams; UnorderedMapValue<ReqId,HCoroutine> _secDefOptParamHandles;
 		UnorderedMapValue<int,HistoryAwait*> _historical;
-		//flat_map<TickerId,vector<::Bar>> _historicalData;
 		HCoroutine _accountHandle;
 		UnorderedMapValue<::OrderId,HCoroutine> _orderHandles;
 
 		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait; friend PlaceOrderAwait;
 	};
 }
+#undef $

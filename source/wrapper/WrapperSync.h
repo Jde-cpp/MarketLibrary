@@ -34,7 +34,7 @@ namespace Jde::Markets
 	protected:
 		map<ReqId,HeadTimestampCallback> _headTimestamp; mutable mutex _headTimestampMutex;
 		std::unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;
-		α error( int id, int errorCode, str errorString )noexcept->void override{error2( id, errorCode, errorString );};
+		α error( int id, int errorCode, str errorString, str /*advancedOrderRejectJson*/ )noexcept->void override{error2( id, errorCode, errorString );};
 		bool error2( int id, int errorCode, str errorString )noexcept override;
 	private:
 		α currentTime( long time )noexcept->void override;

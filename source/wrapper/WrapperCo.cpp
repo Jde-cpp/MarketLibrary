@@ -9,12 +9,12 @@
 #include "../types/IBException.h"
 
 #define var const auto
-
+#define $ noexcept->void
 namespace Jde::Markets
 {
 	flat_map<TickerId,vector<::Bar>> _historicalData;
 
-	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )->void
+	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )$
 	{
 		if( auto p = handles.MoveOut( reqId ); p )
 		{
@@ -25,11 +25,11 @@ namespace Jde::Markets
 			WARN( "({})Could not get co-handle", reqId );
 	}
 
-	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T> pResult, bool warn=true )->void
+	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T>&& pResult, bool warn=true )$
 	{
 		if( auto h = handles.MoveOut( reqId ); h )
 		{
-			h->promise().get_return_object().SetResult<T>( move(pResult) );
+			h->promise().get_return_object().SetSP<T>( move(pResult) );
 			Coroutine::CoroutinePool::Resume( move(*h) );
 		}
 		else if( warn )
@@ -51,7 +51,7 @@ namespace Jde::Markets
 			return pHandle.has_value();
 		};
 		if( auto h = errorCode!=399 ? nullopt : _orderHandles.Find(id); h )
-			h->promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id} );
+			h->promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id, ELogLevel::None} );
 
 		bool handled = errorCode==399 || r( _contractHandles ) || r(_orderHandles) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
 		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
@@ -65,14 +65,14 @@ namespace Jde::Markets
 		}
 		return handled;
 	}
-	α WrapperCo::error( int id, int errorCode, str errorMsg )noexcept->void
+	α WrapperCo::error( int id, int errorCode, str errorMsg, str advancedOrderRejectJson )$
 	{
 		error2( id, errorCode, errorMsg );
 	}
 
 	bool error2( int id, int errorCode, str errorMsg )noexcept;
 
-	α WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )noexcept->void
+	α WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )$
 	{
 		WrapperLog::historicalNews( reqId, time, providerCode, articleId, headline );
 		auto pNew = EmplaceUnique( _news, reqId )->add_historical();
@@ -83,7 +83,7 @@ namespace Jde::Markets
 		pNew->set_article_id( articleId );
 		pNew->set_headline( headline );
 	}
-	α WrapperCo::historicalNewsEnd( int reqId, bool hasMore )noexcept->void
+	α WrapperCo::historicalNewsEnd( int reqId, bool hasMore )$
 	{
 		WrapperLog::historicalNewsEnd( reqId, hasMore );
 		up<Proto::Results::NewsCollection> pCollection;
@@ -103,12 +103,12 @@ namespace Jde::Markets
 		}
 	}
 
-	α WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )noexcept->void
+	α WrapperCo::contractDetails( int reqId, const ::ContractDetails& contractDetails )$
 	{
 		WrapperLog::contractDetails( reqId, contractDetails );
 		EmplaceUnique( _requestContracts, reqId )->push_back( ms<::ContractDetails>(contractDetails) );
 	}
-	α WrapperCo::contractDetailsEnd( int reqId )noexcept->void
+	α WrapperCo::contractDetailsEnd( int reqId )$
 	{
 		WrapperLog::contractDetailsEnd( reqId );
 
@@ -119,7 +119,7 @@ namespace Jde::Markets
 			_requestContracts.erase( p );
 		}
 		else
-			v = IBException::SP( "no contracts returned", -1, reqId );
+			v = new IBException{ "no contracts returned", -1, reqId };
 
 		if( auto pHandle = _contractHandles.MoveOut( reqId ); pHandle )
 		{
@@ -127,14 +127,14 @@ namespace Jde::Markets
 			Coroutine::CoroutinePool::Resume( move(*pHandle) );
 		}
 	}
-	α WrapperCo::managedAccounts( str x )noexcept->void
+	α WrapperCo::managedAccounts( str x )$
 	{
 		WrapperLog::managedAccounts( x );
 		Accounts::Set( Str::Split(x) );
 		if( _accountHandle )
 			Coroutine::CoroutinePool::Resume( move(_accountHandle) );
 	}
-	α WrapperCo::newsProviders( const std::vector<NewsProvider>& providers )noexcept->void
+	α WrapperCo::newsProviders( const std::vector<NewsProvider>& providers )$
 	{
 		auto p = ms<map<string,string>>();
 		for_each( providers.begin(), providers.end(), [p](auto x){p->emplace(x.providerCode, x.providerName);} );
@@ -145,7 +145,7 @@ namespace Jde::Markets
 		} );
 	}
 
-	α WrapperCo::newsArticle( int reqId, int articleType, str articleText )noexcept->void
+	α WrapperCo::newsArticle( int reqId, int articleType, str articleText )$
 	{
 		auto p = mu<Proto::Results::NewsArticle>();
 		p->set_is_text( articleType==0 );
@@ -153,7 +153,7 @@ namespace Jde::Markets
 		Resume( _newsArticleHandles, reqId, move(p) );
 	}
 
-	α WrapperCo::historicalData( TickerId reqId, const ::Bar& bar )noexcept->void
+	α WrapperCo::historicalData( TickerId reqId, const ::Bar& bar )$
 	{
 		WrapperLog::historicalData( reqId, bar );
 		bool has = _historical.Has( reqId );
@@ -162,7 +162,7 @@ namespace Jde::Markets
 //		return has;
 	}
 
-	α WrapperCo::historicalDataEnd( int reqId, str startDateStr, str endDateStr )noexcept->void
+	α WrapperCo::historicalDataEnd( int reqId, str startDateStr, str endDateStr )$
 	{
 		WrapperLog::historicalDataEnd( reqId, startDateStr, endDateStr );
 		auto ppAwaitable = _historical.Find( reqId );
@@ -191,14 +191,14 @@ namespace Jde::Markets
 		return y;
 	}
 
-	α WrapperCo::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<string>& expirations, const std::set<double>& strikes )noexcept->void
+	α WrapperCo::securityDefinitionOptionalParameter( int reqId, str exchange, int underlyingConId, str tradingClass, str multiplier, const std::set<string>& expirations, const std::set<double>& strikes )$
 	{
 		WrapperLog::securityDefinitionOptionalParameter( reqId, exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 		if( CIString{exchange}=="SMART"sv )
 			*EmplaceShared( _optionParams, reqId )->add_exchanges() = ToOptionParam(  exchange, underlyingConId, tradingClass, multiplier, expirations, strikes );
 	}
 
-	α WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )noexcept->void
+	α WrapperCo::securityDefinitionOptionalParameterEnd( int reqId )$
 	{
 		WrapperLog::securityDefinitionOptionalParameterEnd( reqId );
 		var pParams = _optionParams.find( reqId );
@@ -219,7 +219,7 @@ namespace Jde::Markets
 			auto pExp = h->promise().get_return_object().Result().Error();
 			p->mutable_state()->set_warning_text( format("({}){}", pExp->Code, pExp->What()) );
 		}
-		Resume( _orderHandles, orderId, p, false );
+		Resume( _orderHandles, orderId, move(p), false );
 
 		return p;
 	}
