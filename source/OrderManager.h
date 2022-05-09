@@ -40,10 +40,7 @@ namespace Jde::Markets::OrderManager
 		sp<const ::OrderState> StatePtr;
 		OrderStateFields StateFields{OrderStateFields::None};
 	};
-	struct CombinedParams /*~final*/ : OrderParams, StatusParams, StateParams
-	{
-		CombinedParams( const OrderParams& o, const StatusParams& s, const StateParams& s2 )noexcept:OrderParams{o}, StatusParams{s}, StateParams{s2}{}
-	};
+
 	struct Cache /*~final*/
 	{
 		sp<const MyOrder> OrderPtr;
@@ -52,6 +49,13 @@ namespace Jde::Markets::OrderManager
 		sp<const ::OrderState> StatePtr;
 		sp<const IBException> ExceptionPtr;
 		α ToString()Ι->string{ return OrderPtr ? format("({}){} - {}", OrderPtr->orderId, ContractPtr ? ContractPtr->Display() : "NOCONTRACT", OrderPtr->lmtPrice) : "NOORDER";  }
+
+	};
+
+	struct CombinedParams /*~final*/ : OrderParams, StatusParams, StateParams
+	{
+		CombinedParams( const OrderParams& o, const StatusParams& s, const StateParams& s2 )noexcept:OrderParams{o}, StatusParams{s}, StateParams{s2}{}
+		α Changes( const Cache& x )Ι->bool;
 	};
 
 	using boost::container::flat_multimap;
@@ -62,11 +66,12 @@ namespace Jde::Markets::OrderManager
 		typedef CancelAwait base;
 		Awaitable( const CombinedParams& params, Handle& h )ι;
 		~Awaitable()=default;
-		α await_ready()ι->bool{ return OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; }
+		α await_ready()ι->bool;
 		α await_suspend( HCoroutine h )ι->void;
-		α await_resume()ι->AwaitResult{ /*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
+		α await_resume()ι->AwaitResult;//{ /*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ return _pPromise ? move(_pPromise->get_return_object().Result()) : Task::TResult{}; }
 	private:
 		Task::promise_type* _pPromise{nullptr};
+		up<Cache> _pReady;
 		α End( Handle h, const Cache* pCache )noexcept->void; 	std::once_flag _singleEnd;
 	};
 #define Φ ΓM α

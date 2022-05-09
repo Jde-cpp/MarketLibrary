@@ -20,14 +20,16 @@ namespace Jde::Markets
 		α Latest( ::OrderId orderId, up<CoLockGuard> _ )noexcept->up<OrderManager::Cache>
 		{
 			auto p = _cache.find( orderId );
-			return p==_cache.end() ? nullptr : mu<OrderManager::Cache>(p->second);
+			auto y = p==_cache.end() ? nullptr : mu<OrderManager::Cache>(p->second);
+			return y;
 		}
 	}
 	α OrderManager::Latest( ::OrderId orderId )noexcept->LockWrapperAwait
 	{
 		return LockWrapperAwait{ "OrderManager._cache", [orderId]( AwaitResult& y, up<CoLockGuard> l )
 		{
-			y.Set( Internal::Latest(orderId, move(l)) );
+			up<OrderManager::Cache> p = Internal::Latest( orderId, move(l) );
+			y.Set( p.release() );
 		} };
 	}
 
@@ -81,25 +83,57 @@ namespace OrderManager
 {
 	flat_multimap<::OrderId,OrderWorker::SubscriptionInfo> _orderSubscriptions; mutex _orderSubscriptionMutex;
 
+	α CombinedParams::Changes( const Cache& x )Ι->bool
+	{
+		var orderChange = (!OrderPtr && x.OrderPtr) || (OrderPtr && x.OrderPtr && x.OrderPtr->Changes( *OrderPtr, OrderFields)!=MyOrder::Fields::None );
+		var statusChange = orderChange || (!StatusPtr && x.StatusPtr) || (StatusPtr && x.StatusPtr && x.StatusPtr->Changes( *StatusPtr )!=OrderStatus::Fields::None );
+		var stateChange = statusChange 
+			|| (!StatePtr && x.StatePtr && x.StatusPtr && x.StatePtr->status!=ToString(x.StatusPtr->Status) ) 
+			|| (StatePtr && x.StatePtr && OrderStateChanges( *x.StatePtr, *StatePtr)!=OrderStateFields::None );
+		ASSERT( x.StatePtr  ||  (!x.StatePtr && !StatePtr) );
+		return stateChange;
+	}
+
 	Awaitable::Awaitable( const CombinedParams& params, Handle& h )noexcept:
 		base{ h },
 		CombinedParams{ params }
 	{}
 
+	α Awaitable::await_ready()ι->bool
+	{ 
+		bool ready = OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; 
+		if( auto pLock = ready ? nullptr : LockWrapperAwait::TryLock("OrderManager._cache", true); pLock )
+		{
+			if( auto p = _cache.find(OrderPtr->orderId); p!=_cache.end() )
+			{
+				ready = Changes( p->second );
+				if( ready )
+					_pReady = mu<Cache>( p->second );
+			}
+		}
+		return ready;
+	}
 	α Awaitable::await_suspend( coroutine_handle<Task::promise_type> h )noexcept->void
 	{
 		_pPromise = &h.promise();
 		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{{h, _hClient}, *this} );
 	}
-
+	α Awaitable::await_resume()ι->AwaitResult
+	{ 
+		/*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ 
+		return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ move(_pReady) }; 
+	}
 	α OrderWorker::Cancel( Coroutine::Handle h )noexcept->AsyncReadyAwait
 	{
 		::OrderId orderId;
-		auto  ready = [&h, &orderId]()
+		auto  ready = [h, &orderId]()
 		{
 			optional<AwaitResult> y;
 			unique_lock _{ _orderSubscriptionMutex };
-			if( auto p = std::find_if(_orderSubscriptions.begin(), _orderSubscriptions.end(), [h](var x){ return x.second.HClient==h; }); p!=_orderSubscriptions.end() )
+			if( auto p = std::find_if(_orderSubscriptions.begin(), _orderSubscriptions.end(), [h](var x)
+				{ 
+					return x.second.HClient==h; 
+				}); p!=_orderSubscriptions.end() )
 			{
 				var orderId = p->first;
 				LOG( "({})OrderWorker::Cancel({})"sv, orderId, h );
@@ -127,7 +161,7 @@ namespace OrderManager
 	α OrderWorker::Subscribe( const SubscriptionInfo& params )noexcept->void
 	{
 		ASSERT( params.Params.OrderPtr );
-		LOG( "({})OrderManager add subscription.", params.Params.OrderPtr->orderId );
+		TRACE( "({})OrderManager add subscription.", params.Params.OrderPtr->orderId );
 		unique_lock _{ _orderSubscriptionMutex };
 		_orderSubscriptions.emplace( params.Params.OrderPtr->orderId, params );
 	}
@@ -182,6 +216,7 @@ namespace OrderManager
 				{
 					if( update.OrderPtr->lmtPrice!=v.OrderPtr->lmtPrice )
 						log.append( format("limit:{} vs {}", update.OrderPtr->lmtPrice, v.OrderPtr->lmtPrice) );
+					ASSERT( v.OrderPtr->LastUpdate!=TP{} );
 					var lastUpdate = v.OrderPtr->LastUpdate;
 					v.OrderPtr = update.OrderPtr;
 					v.OrderPtr->LastUpdate = lastUpdate;
@@ -191,7 +226,7 @@ namespace OrderManager
 					v.StatusPtr = update.StatusPtr;
 					vector<string> statusLog;
 					if( fields && OrderStatus::Fields::Status )
-						statusLog.push_back( format("Value:{}", update.StatusPtr->Status) );
+						statusLog.push_back( format("Value:{}", ToString(update.StatusPtr->Status)) );
 					if( fields && OrderStatus::Fields::Filled )
 						statusLog.push_back( format("Filled:{}", update.StatusPtr->Filled) );
 					if( fields && OrderStatus::Fields::Remaining )
@@ -205,12 +240,15 @@ namespace OrderManager
 					v.StatePtr = update.StatePtr;
 				}
 				latest = v;
-				if( log.size()<initialSize )
+				if( log.size()>initialSize )
 					LOGS( move(log) );
 			}
 			else
 			{
 				LOG( "{} - OrderManager add to cache."sv, update.ToString() );
+				if( update.OrderPtr->LastUpdate==TP{} )
+					update.OrderPtr->LastUpdate = Clock::now();
+
 				_cache.emplace( id, update );
 				latest = update;
 			}
@@ -219,15 +257,15 @@ namespace OrderManager
 			unique_lock l2{ _orderSubscriptionMutex };
 			for( auto p = _orderSubscriptions.find(id); p!=_orderSubscriptions.end() && p->first==id; )
 			{
-				LOG( "OrderManager have subscription."sv );
+				TRACE( "({})OrderManager have subscription.", id );
 				auto& original = p->second.Params;
 				var orderChange = (!original.OrderPtr && latest.OrderPtr) || (original.OrderPtr && latest.OrderPtr && latest.OrderPtr->Changes( *original.OrderPtr, original.OrderFields)!=MyOrder::Fields::None );
 				var statusChange = orderChange || (!original.StatusPtr && latest.StatusPtr) || (original.StatusPtr && latest.StatusPtr && latest.StatusPtr->Changes( *original.StatusPtr /*, original.StatusFields*/)!=OrderStatus::Fields::None );
 				var stateChange = statusChange || (!original.StatePtr && latest.StatePtr) || (original.StatePtr && latest.StatePtr && OrderStateChanges( *latest.StatePtr, *original.StatePtr/*, original.StateFields*/)!=OrderStateFields::None );
 				if( stateChange )
 				{
-					LOG( "OrderManager trigger subscription. total subscriptions size={}", _orderSubscriptions.size() );
-					p->second.HCo.promise().get_return_object().SetResult( ms<Cache>(latest) );
+					TRACE( "OrderManager trigger subscription. total subscriptions size={}", _orderSubscriptions.size() );
+					p->second.HCo.promise().get_return_object().SetResult( mu<Cache>(latest) );
 					CoroutinePool::Resume( move(p->second.HCo) );
 				}
 				else

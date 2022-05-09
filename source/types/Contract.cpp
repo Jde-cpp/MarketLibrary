@@ -10,6 +10,7 @@
 
 namespace Jde::Markets
 {
+	static var& _logLevel{ Logging::TagLevel("settings") };
 	α ParseTradingHours( sv timeZoneId, str hours )noexcept->sp<vector<Proto::Results::ContractHours>>;
 	α Liquid( const ::ContractDetails& c )noexcept->sp<vector<Proto::Results::ContractHours>>{ return ParseTradingHours( c.timeZoneId, c.liquidHours ); }
 	α Rth( const ::ContractDetails& c )noexcept->sp<vector<Proto::Results::ContractHours>>{ return ParseTradingHours( c.timeZoneId, c.tradingHours ); }
