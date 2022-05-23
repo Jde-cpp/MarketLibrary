@@ -52,7 +52,7 @@ namespace Jde::Markets
 					uint count = 0;
 					for( var& p : *pDetails )
 					{
-						if( p->contract.currency==_defaultCurrency )
+						if( p->contract.currency==_defaultCurrency && p->contract.primaryExchange!="LSEETF" )
 						{
 							++count;
 							task.SetResult( p );
