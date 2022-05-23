@@ -74,7 +74,7 @@ namespace Jde::Markets
 	{
 		lock_guard l{ _mutex };
 		if( _pData )
-			*_pData->add_statuses() = move(*p.release());
+			*_pData->add_statuses() = *p;
 	}
 
 	α AllOpenOrdersAwait::Finish()noexcept->void

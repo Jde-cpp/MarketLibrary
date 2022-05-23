@@ -87,8 +87,8 @@ namespace OrderManager
 	{
 		var orderChange = (!OrderPtr && x.OrderPtr) || (OrderPtr && x.OrderPtr && x.OrderPtr->Changes( *OrderPtr, OrderFields)!=MyOrder::Fields::None );
 		var statusChange = orderChange || (!StatusPtr && x.StatusPtr) || (StatusPtr && x.StatusPtr && x.StatusPtr->Changes( *StatusPtr )!=OrderStatus::Fields::None );
-		var stateChange = statusChange 
-			|| (!StatePtr && x.StatePtr && x.StatusPtr && x.StatePtr->status!=ToString(x.StatusPtr->Status) ) 
+		var stateChange = statusChange
+			|| (!StatePtr && x.StatePtr && x.StatusPtr && x.StatePtr->status!=ToString(x.StatusPtr->Status) )
 			|| (StatePtr && x.StatePtr && OrderStateChanges( *x.StatePtr, *StatePtr)!=OrderStateFields::None );
 		ASSERT( x.StatePtr  ||  (!x.StatePtr && !StatePtr) );
 		return stateChange;
@@ -100,8 +100,8 @@ namespace OrderManager
 	{}
 
 	α Awaitable::await_ready()ι->bool
-	{ 
-		bool ready = OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None; 
+	{
+		bool ready = OrderParams::OrderFields==MyOrder::Fields::None && StatusParams::StatusFields==OrderStatus::Fields::None && StateParams::StateFields==OrderStateFields::None;
 		if( auto pLock = ready ? nullptr : LockWrapperAwait::TryLock("OrderManager._cache", true); pLock )
 		{
 			if( auto p = _cache.find(OrderPtr->orderId); p!=_cache.end() )
@@ -119,28 +119,28 @@ namespace OrderManager
 		OMInstancePtr->Subscribe( OrderWorker::SubscriptionInfo{{h, _hClient}, *this} );
 	}
 	α Awaitable::await_resume()ι->AwaitResult
-	{ 
-		/*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/ 
-		return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ move(_pReady) }; 
+	{
+		/*DBG("({})OrderManager::Awaitable::await_resume"sv, std::this_thread::get_id());*/
+		return _pPromise ? move(_pPromise->get_return_object().Result()) : AwaitResult{ move(_pReady) };
 	}
 	α OrderWorker::Cancel( Coroutine::Handle h )noexcept->AsyncReadyAwait
 	{
-		::OrderId orderId;
-		auto  ready = [h, &orderId]()
+		sp<::OrderId> pOrderId = ms<::OrderId>();
+		auto ready = [h, pOrderId]()
 		{
 			optional<AwaitResult> y;
 			unique_lock _{ _orderSubscriptionMutex };
 			if( auto p = std::find_if(_orderSubscriptions.begin(), _orderSubscriptions.end(), [h](var x)
-				{ 
-					return x.second.HClient==h; 
+				{
+					return x.second.HClient==h;
 				}); p!=_orderSubscriptions.end() )
 			{
-				var orderId = p->first;
-				LOG( "({})OrderWorker::Cancel({})"sv, orderId, h );
+				*pOrderId = p->first;
+				LOG( "({})OrderWorker::Cancel({})"sv, *pOrderId, h );
 				p->second.HCo.destroy();
 				_orderSubscriptions.erase( p );
 				if( auto pLock = ForceSuspend() ? nullptr : LockWrapperAwait::TryLock("OrderManager._cache", true); pLock )
-					y = AwaitResult{ Internal::Latest(orderId, move(pLock)) };
+					y = AwaitResult{ Internal::Latest(*pOrderId, move(pLock)) };
 			}
 			else
 			{
@@ -149,9 +149,9 @@ namespace OrderManager
 			}
 			return y;
 		};
-		auto suspend = [orderId]( HCoroutine h )->Task
+		auto suspend = [pOrderId]( HCoroutine h )->Task
 		{
-			auto pCache = ( co_await OrderManager::Latest(orderId) ).UP<Cache>();
+			auto pCache = ( co_await OrderManager::Latest(*pOrderId) ).UP<Cache>();
 			h.promise().get_return_object().SetResult( move(pCache) );
 			h.resume();
 		};
@@ -190,7 +190,7 @@ namespace OrderManager
 			if( !cache.ContractPtr )
 				cache.ContractPtr = ms<const Markets::Contract>( contract );
 			pContract = cache.ContractPtr;
-			LOG( "({})OrderWorker::Push update {} limit={}", pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
+			LOG( "({})OrderWorker::Push update '{}' limit={:.2f}", pOrder->orderId, pContract->Display(), pOrder->lmtPrice );
 		}
 		else
 		{
@@ -215,10 +215,11 @@ namespace OrderManager
 				if( update.OrderPtr )
 				{
 					if( update.OrderPtr->lmtPrice!=v.OrderPtr->lmtPrice )
-						log.append( format("limit:{} vs {}", update.OrderPtr->lmtPrice, v.OrderPtr->lmtPrice) );
+						log.append( format("limit:{:.2f} vs {:.2f}", update.OrderPtr->lmtPrice, v.OrderPtr->lmtPrice) );
 					ASSERT( v.OrderPtr->LastUpdate!=TP{} );
 					var lastUpdate = v.OrderPtr->LastUpdate;
 					v.OrderPtr = update.OrderPtr;
+					DBG( "LastUpdate={} from {}", LocalTimeDisplay(lastUpdate,true), LocalTimeDisplay(v.OrderPtr->LastUpdate, true) );
 					v.OrderPtr->LastUpdate = lastUpdate;
 				}
 				if( OrderStatus::Fields fields{ update.StatusPtr ? v.StatusPtr ? v.StatusPtr->Changes(*update.StatusPtr) : OrderStatus::Fields::All : OrderStatus::Fields::None }; fields!=OrderStatus::Fields::None )

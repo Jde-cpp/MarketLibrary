@@ -190,7 +190,7 @@ namespace Jde::Markets
 	α TwsClient::placeOrder( const ::Contract& contract, const ::Order& order, SL sl )noexcept->void
 	{
 		var contractDisplay = format( "({}){}",  contract.symbol, contract.conId );
-		LOGSL( "({})placeOrder( {}, {}, {}@{} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice );
+		LOGSL( "({})placeOrder( {}, {}, {}@{:.2f} )", order.orderId, contractDisplay, order.orderType, (order.action=="BUY" ? 1 : -1 )*ToDouble(order.totalQuantity), order.lmtPrice );
 		OrderManager::Push( order, contract );
 		EClientSocket::placeOrder( order.orderId, contract, order );
 	}

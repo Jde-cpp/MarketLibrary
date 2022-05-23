@@ -47,7 +47,7 @@ namespace Jde::Markets
 	α WrapperLog::execDetailsEnd( int reqId )${ LOG( "WrapperLog::execDetailsEnd( {} )", reqId ); }
 	α WrapperLog::historicalData( TickerId reqId, const ::Bar& bar )$
 	{
-		var date = bar.time.starts_with("20") ? DateDisplay( DateTime{ConvertIBDate(bar.time)} ) : Chrono::Display( ConvertIBDate(bar.time) );
+		var date = bar.time.starts_with("20") ? DateDisplay( DateTime{ConvertIBDate(bar.time)} ) : Chrono::Display( Clock::from_time_t(ConvertIBDate(bar.time)) );
 		LOGT( _historicalLevel, "({})hstrclData( '{}', count: '{}', volume: '{}', wap: '{}', open: '{}', close: '{}', high: '{}', low: '{}' )", reqId, date, bar.count, ToDouble(bar.volume), ToDouble(bar.wap), bar.open, bar.close, bar.high, bar.low );
 	}
 	α WrapperLog::historicalDataEnd( int reqId, str startDateStr, str endDateStr )$

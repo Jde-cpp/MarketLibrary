@@ -108,9 +108,9 @@ namespace Jde::Markets
 	}
 	α AccountAuthorizer::Test( DB::EMutationQL ql, UserPK userId, SL sl )noexcept(false)->void
 	{
-		var requested{ UM::EAccess::Administer }; //ql==DB::EMutationQL::Update ? UM::EAccess::Write : UM::EAccess::Administer
-		shared_lock l{ _accountMutex };
-		var pUser = _minimumAccess.find( userId );
+		//var requested{ UM::EAccess::Administer }; //ql==DB::EMutationQL::Update ? UM::EAccess::Write : UM::EAccess::Administer
+		shared_lock _{ _accountMutex };
+		//var pUser = _minimumAccess.find( userId );
 		//TODO:  THROW_IFSL( pUser==_minimumAccess.end() || (pUser->second & requested)==UM::EAccess::None , "No Access" );
 	}
 /*	α AccountAuthorizer::Invalidate( SL sl )noexcept(false)->void

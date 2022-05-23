@@ -320,11 +320,12 @@ namespace Jde::Markets
 		var p = cache.find( day );
 		if( p==cache.end() )
 		{
-			flat_set<Day> tempTest;tempTest.emplace( day );
-			var result = Contains( tempTest, rth, barSize );
+			//flat_set<Day> tempTest;tempTest.emplace( day );
+			//var result = Contains( tempTest, rth, barSize );
 			//DBG( "result={}", result ? "null" : format("({},{})", get<0>(*result), get<1>(*result)) );TODO
 			//for( var& x : cache )
 			//	DBG( "({}){}", x.first, DateDisplay(x.first) );
+			//TODO
 			//DBG("({}) Trying to add '{}' bar but does not contain '{}' - {}"sv, contract.Symbol, BarSize::ToString(barSize), DateDisplay(FromDays(day)), day );
 		}
 		else
