@@ -128,7 +128,6 @@ function marketLibraryProtoc
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT TradeDefaultTypeInternal _Trade_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY TradeDefaultTypeInternal _Trade_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ExecutionDefaultTypeInternal _Execution_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ExecutionDefaultTypeInternal _Execution_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ErrorDefaultTypeInternal _Error_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ErrorDefaultTypeInternal _Error_default_instance_;/' results.pb.cc;
-		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT OrderStatusDefaultTypeInternal _OrderStatus_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY OrderStatusDefaultTypeInternal _OrderStatus_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT TweetDefaultTypeInternal _Tweet_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY TweetDefaultTypeInternal _Tweet_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT RedditDefaultTypeInternal _Reddit_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY RedditDefaultTypeInternal _Reddit_default_instance_;/' results.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT TweetAuthorDefaultTypeInternal _TweetAuthor_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY TweetAuthorDefaultTypeInternal _TweetAuthor_default_instance_;/' results.pb.cc;
@@ -143,9 +142,10 @@ function marketLibraryProtoc
 		popd;
 	fi;
 	if protocBuild ib 1 && windows; then
-		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ComboLegDefaultTypeInternal _ComboLeg_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ComboLegDefaultTypeInternal _ComboLeg_default_instance_;/' ib.pb.cc;	
-		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ContractDefaultTypeInternal _Contract_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ContractDefaultTypeInternal _Contract_default_instance_;/' ib.pb.cc;	
+		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ComboLegDefaultTypeInternal _ComboLeg_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ComboLegDefaultTypeInternal _ComboLeg_default_instance_;/' ib.pb.cc;
+		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ContractDefaultTypeInternal _Contract_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY ContractDefaultTypeInternal _Contract_default_instance_;/' ib.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT OrderDefaultTypeInternal _Order_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY OrderDefaultTypeInternal _Order_default_instance_;/' ib.pb.cc;
+		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT OrderStatusDefaultTypeInternal _OrderStatus_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY OrderStatusDefaultTypeInternal _OrderStatus_default_instance_;/' ib.pb.cc;
 	fi;
 	protocBuild OptionOI;
 	protocBuild bar;
@@ -156,6 +156,7 @@ function marketLibraryProtoc
 		#cd $JDE_BASH/Public/jde/markets/types/proto;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT InfoTableDefaultTypeInternal _InfoTable_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY InfoTableDefaultTypeInternal _InfoTable_default_instance_;/' edgar.pb.cc;
 		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT CompanyDefaultTypeInternal _Company_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY CompanyDefaultTypeInternal _Company_default_instance_;/' edgar.pb.cc;
+		sed -i 's/PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT Form13GItemDefaultTypeInternal _Form13GItem_default_instance_;/PROTOBUF_ATTRIBUTE_NO_DESTROY Form13GItemDefaultTypeInternal _Form13GItem_default_instance_;/' edgar.pb.cc;
 		#popd;
 	fi;
 	#cd ../..;
@@ -166,7 +167,7 @@ function marketLibraryProtoc
 		cd $JDE_BASH/Public/stage/debug/
 		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
 		cd ../release/
-		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY		
+		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
 	fi;
 	if windows; then
 		twsDir=/c/TWS\ API/source/CppClient/client;
