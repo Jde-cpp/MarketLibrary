@@ -17,7 +17,7 @@ namespace Jde::Markets
 	}
 
 	TwsProcessor::TwsProcessor( sp<TwsClient> pTwsClient, sp<EReaderSignal> pReaderSignal )noexcept:
-		_pThread{ make_unique<Threading::InterruptibleThread>( "TwsProcessor", [&,p=pTwsClient, pReaderSignal](){ProcessMessages(p, pReaderSignal);} )  }
+		_pThread{ mu<Threading::InterruptibleThread>( "TwsProcessor", [&,p=pTwsClient, pReaderSignal](){ProcessMessages(p, pReaderSignal);} )  }
 	{}
 
 	TwsProcessor::~TwsProcessor()

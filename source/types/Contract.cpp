@@ -97,7 +97,7 @@ namespace Jde::Markets
 	}
 	α Contract::ToProto()const noexcept->up<Proto::Contract>
 	{
-		auto pProto = make_unique<Proto::Contract>();//  stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
+		auto pProto = mu<Proto::Contract>();//  stupidPointer ? sp<Proto::Contract>( new Proto::Contract(), [](Proto::Contract*){} ) : make_shared<Proto::Contract>();
 		pProto->set_id( Id );
 		pProto->set_symbol( Symbol );
 		pProto->set_security_type( SecType );

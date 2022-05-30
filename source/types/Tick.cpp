@@ -209,10 +209,10 @@ namespace Jde::Markets
 	Proto::Results::MessageUnion Tick::ToProto( ETickType type )Ι
 	{
 		Proto::Results::MessageUnion msg;
-		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
-		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = make_unique<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( ToDouble(v) ); msg.set_allocated_tick_size(p.release()); };
-		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = make_unique<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
-		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = make_unique<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
+		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = mu<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
+		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = mu<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( ToDouble(v) ); msg.set_allocated_tick_size(p.release()); };
+		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = mu<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
+		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = mu<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
 		auto option  = [type, &msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
 		up<google::protobuf::Message> p;
 		switch( type )
@@ -547,7 +547,7 @@ namespace Jde::Markets
 	}
 	up<Proto::Results::TickNews> News::ToProto( ContractPK contractId )Ι
 	{
-		auto p = make_unique<Proto::Results::TickNews>();
+		auto p = mu<Proto::Results::TickNews>();
 		p->set_id( contractId );
 		p->set_time( static_cast<uint32>(TimeStamp) );
 		p->set_provider_code( ProviderCode );
@@ -559,7 +559,7 @@ namespace Jde::Markets
 	}
 	up<Proto::Results::OptionCalculation> OptionComputation::ToProto( ContractPK contractId, ETickType tickType )Ι
 	{
-		auto p = make_unique<Proto::Results::OptionCalculation>();
+		auto p = mu<Proto::Results::OptionCalculation>();
 		p->set_request_id( contractId );
 		p->set_tick_type( (ETickType)tickType );
 		p->set_price_based( !ReturnBased );

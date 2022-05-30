@@ -235,7 +235,7 @@ namespace Jde::Markets
 					for( auto p = _protoSubscriptions.find(contractId); p!=_protoSubscriptions.end() && p->first==contractId; p = _protoSubscriptions.erase(p) )
 					{
 						Proto::Results::MessageUnion message;
-						auto pError = make_unique<Proto::Results::Error>(); pError->set_request_id(contractId); pError->set_code(errorCode); pError->set_message(errorString);
+						auto pError = mu<Proto::Results::Error>(); pError->set_request_id(contractId); pError->set_code(errorCode); pError->set_message(errorString);
 						message.set_allocated_error( pError.release() );
 						p->second.Function( {message} );
 					}
