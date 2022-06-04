@@ -48,7 +48,7 @@ namespace Jde::Markets
 		return less;
 	}
 
-	α OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )noexcept(false)->OptionSetPtr
+	α OptionData::SyncContracts( ContractPtr_ pContract, const vector<ContractDetails>& details )ε->sp<OptionSet>
 	{
 		auto pExisting = Load( pContract->Id );
 		for( var& detail : details )
@@ -60,19 +60,19 @@ namespace Jde::Markets
 		return pExisting;
 	}
 
-	α OptionData::Insert( const Option& value )noexcept(false)->void
+	α OptionData::Insert( const Option& value )ε->void
 	{
 		var sql = "insert into sec_option_contracts( id, expiration_date, flags, strike, under_contract_id ) values( ?, ?, ?, ?, ? )";
 		DB::DataSource().Execute( sql, {(uint)value.Id, (uint)value.ExpirationDay, (uint)value.IsCall ? 1 : 2, (double)value.Strike, (uint)value.UnderlyingId} );
 	}
 
-	α OptionData::Load( ContractPK underlyingId, Day earliestDay )noexcept(false)->OptionSetPtr
+	α OptionData::Load( ContractPK underlyingId, Day earliestDay )ε->sp<OptionSet>
 	{
 		var sql = "select id, expiration_date, flags, strike from sec_option_contracts where under_contract_id=? and expiration_date>=?";
-		auto pResults = make_shared<flat_set<OptionPtr,SPCompare<const Option>>>();
+		auto pResults = make_shared<flat_set<sp<const Option>,SPCompare<const Option>>>();
 		auto result = [&pResults, underlyingId]( const DB::IRow& row )
 		{
-			OptionPtr pOption = make_shared<const Option>();
+			sp<const Option> pOption = make_shared<const Option>();
 			auto& option = const_cast<Option&>( *pOption );
 			option.UnderlyingId = underlyingId;
 			uint8 flags;
@@ -86,7 +86,7 @@ namespace Jde::Markets
 		return pResults;
 	}
 
-	α Load( const Contract& contract, uint16 year, uint8 month, uint8 day )noexcept(false)->sp<Proto::UnderlyingOIValues>
+	α Load( const Contract& contract, uint16 year, uint8 month, uint8 day )ε->sp<Proto::UnderlyingOIValues>
 	{
 		var file = OptionData::OptionFile( contract, year, month, day );
 		sp<Proto::UnderlyingOIValues> pUnderlying;
@@ -107,7 +107,7 @@ namespace Jde::Markets
 		return pUnderlying;
 	}
 
-	α OptionData::LoadDiff( const Contract& underlying, const vector<sp<::ContractDetails>>& ibOptions, Proto::Results::OptionValues& results )noexcept(false)->Day
+	α OptionData::LoadDiff( const Contract& underlying, const vector<sp<::ContractDetails>>& ibOptions, Proto::Results::OptionValues& results )ε->Day
 	{
 		flat_map<ContractPK, tuple<Contract,const Proto::OptionOIDay*>> options;
 		for( var p : ibOptions )
@@ -174,10 +174,10 @@ namespace Jde::Markets
 		return to;
 	}
 
-	α OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )noexcept(false)->Proto::Results::OptionValues*
+	α OptionData::LoadDiff( const Contract& contract, bool isCall, Day from, Day to, bool includeExpired, bool noFromDayOk )ε->Proto::Results::OptionValues*
 	{
 		var pOptions = Load( contract.Id );
-		flat_map<ContractPK, tuple<OptionPtr,const Proto::OptionOIDay*>> options;
+		flat_map<ContractPK, tuple<sp<const Option>,const Proto::OptionOIDay*>> options;
 		for( var& pOption : *pOptions )
 			options.emplace( pOption->Id, make_tuple(pOption,nullptr) );
 
@@ -206,7 +206,7 @@ namespace Jde::Markets
 		var today = DateTime::Today();
 		flat_map<uint16,Proto::Results::OptionDay*> values;
 		flat_set<ContractPK> matchedIds;
-		auto setValue = [&]( OptionPtr pOption, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay, bool expired )
+		auto setValue = [&]( sp<const Option> pOption, const Proto::OptionOIDay& toDay, const Proto::OptionOIDay* pFromDay, bool expired )
 		{
 			uint16 daysSinceEpoch = pOption->ExpirationDay;
 			auto pDayValue = values.find( daysSinceEpoch );

@@ -129,7 +129,7 @@ namespace Jde::Markets
 	{}
 	α CandleStick::ToIB( TimePoint time )const noexcept->::Bar
 	{
-		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0, Volume, 0 };
+		return ::Bar{ ToIBDate(time), (double)High, (double)Low, (double)Open, (double)Close, 0, (::Decimal)Volume, 0 };
 	}
 	α CandleStick::ToProto()const noexcept->Proto::MinuteBar
 	{
@@ -138,7 +138,7 @@ namespace Jde::Markets
 		proto.set_highest_traded_price( static_cast<float>(High) );
 		proto.set_lowest_traded_price( static_cast<float>(Low) );
 		proto.set_last_traded_price( static_cast<float>(Close) );
-		proto.set_volume( Round<uint32>(ToDouble(Volume)) );
+		proto.set_volume( Round<uint32>((double)Volume) );
 		return proto;
 	}
 

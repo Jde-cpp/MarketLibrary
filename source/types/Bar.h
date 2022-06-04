@@ -11,7 +11,7 @@ namespace Jde::Markets
 {
 	Φ ConvertIBDate( str time, optional<bool> ymdFormat={} )noexcept->time_t;
 	Φ ToIBDate( TimePoint time )noexcept->string;
-	
+
 	using EBarSize=Proto::Requests::BarSize;
 	namespace BarSize
 	{
@@ -35,7 +35,7 @@ namespace Jde::Markets
 		const CandleStick::Amount High{0.0};
 		const CandleStick::Amount Low{0.0};
 		const CandleStick::Amount Close{0.0};
-		const Decimal Volume{0};//was uint
+		const Decimal Volume{};
 	};
 	using EDisplay=Proto::Requests::Display;
 	namespace TwsDisplay

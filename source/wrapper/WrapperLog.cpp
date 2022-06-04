@@ -21,7 +21,7 @@ namespace Jde::Markets
 	α WrapperLog::error2( int id, int code, str m )noexcept->bool
 	{
 		WrapperLog::error( id, code, m );
-		if( id>0 && code!=322 )
+		if( id>0 && code!=322 && code!=162 )
 			OrderManager::Push( id, code, m );//todo find out if found.
 		return id==-1 || _pTickWorker->HandleError( id, code, m );
 	}
@@ -226,7 +226,7 @@ namespace Jde::Markets
 	α WrapperLog::tickSize( TickerId t, TickType type, ::Decimal v )$
 	{
 		LOGT( _tickLevel, "({})WrapperLog::tickSize( type='{}', size='{}' )", t, type, v );
-		_pTickWorker->Push( t, (ETickType)type, v );
+		_pTickWorker->Push( t, (ETickType)type, Decimal{v} );
 	}
 	α WrapperLog::tickString( TickerId t, TickType type, str v )$
 	{

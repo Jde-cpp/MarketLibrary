@@ -282,7 +282,7 @@ namespace Jde::Markets
 					var& fields = pOutgoingField->second;
 					auto& tick = pValue->second;
 					if( fields[ETickType::BidSize] )
-						TRACE( "{}", tick.BidSize );
+						TRACE( "{:.0f}", (double)tick.BidSize );
 					outgoingTicks.push_back( {tick, fields} );
 					if( fields[ETickType::NewsTick] )
 						tick.NewsPtr->clear();
@@ -345,7 +345,7 @@ namespace Jde::Markets
 						f.reset( i );
 						var tickType = (ETickType)i;
 						if( tickType==ETickType::BidSize )
-							TRACE( "{}", tick.BidSize );
+							TRACE( "{:.0f}", (double)tick.BidSize );
 						tick.AddProto( tickType, messages );
 					}
 					if( messages.size() )

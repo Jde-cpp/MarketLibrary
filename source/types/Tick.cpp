@@ -1,11 +1,9 @@
 ﻿#include <Decimal.h>
+#include <jde/Str.h>
 #include <jde/markets/types/Tick.h>
 #include <jde/Exports.h>
-#pragma warning( disable : 4244 )
-#include <jde/markets/types/proto/results.pb.h>
+#include <jde/markets/types/proto/ResultsMessage.h>
 #include <jde/blockly/BlocklyLibrary.h>
-#pragma warning( default : 4244 )
-#include <jde/Str.h>
 #include "../../../Framework/source/collections/Vector.h"
 
 #define var const auto
@@ -67,7 +65,7 @@ namespace Jde::Markets
 			_setFields.set( type );
 		return set;
 	}
-	α Tick::SetPrices( ::Decimal bidSize, double bid, ::Decimal askSize, double ask )noexcept->void
+	α Tick::SetPrices( Decimal bidSize, double bid, Decimal askSize, double ask )noexcept->void
 	{
 		BidSize = bidSize; _setFields.set( ETickType::BidSize );
 		Bid = bid; _setFields.set( ETickType::BidPrice );
@@ -194,14 +192,14 @@ namespace Jde::Markets
 	{
 		auto y = mu<Jde::Markets::Proto::Tick>();
 		y->set_ask( Ask );
-		y->set_ask_size( ToDouble(AskSize) );
+		y->set_ask_size( (double)AskSize );
 		y->set_bid( Bid );
-		y->set_bid_size( ToDouble(BidSize) );
+		y->set_bid_size( (double)BidSize );
 		y->set_high( High );
 		y->set_last_price( LastPrice );
-		y->set_last_size( ToDouble(LastSize) );
+		y->set_last_size( (double)LastSize );
 		y->set_low( Low );
-		y->set_volume( ToDouble(Volume) );
+		y->set_volume( (double)Volume );
 
 		return y;
 	}
@@ -210,7 +208,7 @@ namespace Jde::Markets
 	{
 		Proto::Results::MessageUnion msg;
 		auto price = [type, &msg, id=ContractId](double v)mutable{ auto p = mu<TickPrice>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_price( v ); /*p->set_allocated_attributes( pAttributes );*/ msg.set_allocated_tick_price(p.release()); };
-		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = mu<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( ToDouble(v) ); msg.set_allocated_tick_size(p.release()); };
+		auto size  = [type, &msg, id=ContractId](Decimal v)mutable{ auto p = mu<TickSize>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_size( (double)v ); msg.set_allocated_tick_size(p.release()); };
 		auto dble  = [type, &msg, id=ContractId](double v)mutable{ auto p = mu<TickGeneric>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_generic(p.release()); };
 		auto stng  = [type, &msg, id=ContractId](str v)mutable{ auto p = mu<TickString>(); p->set_request_id( id ); p->set_tick_type( type ); p->set_value( v ); msg.set_allocated_tick_string(p.release()); };
 		auto option  = [type, &msg, id=ContractId](const OptionComputation& v)mutable{ auto p = v.ToProto( id, type ); msg.set_allocated_option_calculation(p.release()); };
@@ -230,33 +228,33 @@ namespace Jde::Markets
 		case ETickType::LastExchange: stng( LastExchange ); break;
 
 		case ETickType::AverageVolume_: size( AverageVolume ); break;
-		case ETickType::OPEN_INTEREST: size( (int)OPEN_INTEREST ); break;
-		case ETickType::OPTION_CALL_OPEN_INTEREST: size( (int)OPTION_CALL_OPEN_INTEREST ); break;
-		case ETickType::OPTION_PUT_OPEN_INTEREST: size( (int)OPTION_PUT_OPEN_INTEREST ); break;
-		case ETickType::OPTION_CALL_VOLUME: size( (int)OPTION_CALL_VOLUME ); break;
-		case ETickType::OPTION_PUT_VOLUME: size( (int)OPTION_PUT_VOLUME ); break;
-		case ETickType::AUCTION_VOLUME: size( (int)AUCTION_VOLUME ); break;
-		case ETickType::LastTimestamp: size( (int)LastTimestamp ); break;
+		case ETickType::OPEN_INTEREST: msg = ToMessage( type, ContractId, OPEN_INTEREST ); break;
+		case ETickType::OPTION_CALL_OPEN_INTEREST: msg = ToMessage( type, ContractId, OPTION_CALL_OPEN_INTEREST ); break;
+		case ETickType::OPTION_PUT_OPEN_INTEREST: msg = ToMessage( type, ContractId, OPTION_PUT_OPEN_INTEREST ); break;
+		case ETickType::OPTION_CALL_VOLUME: msg = ToMessage( type, ContractId, OPTION_CALL_VOLUME ); break;
+		case ETickType::OPTION_PUT_VOLUME: msg = ToMessage( type, ContractId, OPTION_PUT_VOLUME ); break;
+		case ETickType::AUCTION_VOLUME: msg = ToMessage( type, ContractId, AUCTION_VOLUME ); break;
+		case ETickType::LastTimestamp: msg = ToMessage( type, ContractId, LastTimestamp ); break;
 		case ETickType::SHORTABLE: price( SHORTABLE ); break;
 		case ETickType::FUNDAMENTAL_RATIOS: stng( RatioString ); break;
 		case ETickType::RT_VOLUME: stng( RT_VOLUME ); break;
 		case ETickType::Halted: price( Halted ); break;
-		case ETickType::TRADE_COUNT: size( (int)TRADE_COUNT ); break;
-		case ETickType::VOLUME_RATE: size( (int)VOLUME_RATE ); break;
-		case ETickType::SHORT_TERM_VOLUME_3_MIN: size( (int)SHORT_TERM_VOLUME_3_MIN ); break;
-		case ETickType::SHORT_TERM_VOLUME_5_MIN: size( (int)SHORT_TERM_VOLUME_5_MIN ); break;
-		case ETickType::SHORT_TERM_VOLUME_10_MIN: size( (int)SHORT_TERM_VOLUME_10_MIN ); break;
-		case ETickType::DELAYED_BID_SIZE: size( (int)DELAYED_BID_SIZE ); break;
-		case ETickType::DELAYED_ASK_SIZE: size( (int)DELAYED_ASK_SIZE ); break;
-		case ETickType::DELAYED_LAST_SIZE: size( (int)DELAYED_LAST_SIZE ); break;
-		case ETickType::DELAYED_VOLUME: size( (int)DELAYED_VOLUME ); break;
-		case ETickType::RT_TRD_VOLUME: size( (int)RT_TRD_VOLUME ); break;
-		case ETickType::LAST_REG_TIME: size( (int)LAST_REG_TIME ); break;
-		case ETickType::FUTURES_OPEN_INTEREST: size( (int)FUTURES_OPEN_INTEREST ); break;
-		case ETickType::AVG_OPT_VOLUME: size( (int)AVG_OPT_VOLUME ); break;
-		case ETickType::DELAYED_LAST_TIMESTAMP: size( (int)DELAYED_LAST_TIMESTAMP ); break;
+		case ETickType::TRADE_COUNT: msg = ToMessage( type, ContractId, TRADE_COUNT ); break;
+		case ETickType::VOLUME_RATE: msg = ToMessage( type, ContractId, VOLUME_RATE ); break;
+		case ETickType::SHORT_TERM_VOLUME_3_MIN: msg = ToMessage( type, ContractId, SHORT_TERM_VOLUME_3_MIN ); break;
+		case ETickType::SHORT_TERM_VOLUME_5_MIN: msg = ToMessage( type, ContractId, SHORT_TERM_VOLUME_5_MIN ); break;
+		case ETickType::SHORT_TERM_VOLUME_10_MIN: msg = ToMessage( type, ContractId, SHORT_TERM_VOLUME_10_MIN ); break;
+		case ETickType::DELAYED_BID_SIZE: msg = ToMessage( type, ContractId, DELAYED_BID_SIZE ); break;
+		case ETickType::DELAYED_ASK_SIZE: msg = ToMessage( type, ContractId, DELAYED_ASK_SIZE ); break;
+		case ETickType::DELAYED_LAST_SIZE: msg = ToMessage( type, ContractId, DELAYED_LAST_SIZE ); break;
+		case ETickType::DELAYED_VOLUME: msg = ToMessage( type, ContractId, DELAYED_VOLUME ); break;
+		case ETickType::RT_TRD_VOLUME: msg = ToMessage( type, ContractId, RT_TRD_VOLUME ); break;
+		case ETickType::LAST_REG_TIME: msg = ToMessage( type, ContractId, LAST_REG_TIME ); break;
+		case ETickType::FUTURES_OPEN_INTEREST: msg = ToMessage( type, ContractId, FUTURES_OPEN_INTEREST ); break;
+		case ETickType::AVG_OPT_VOLUME: msg = ToMessage( type, ContractId, AVG_OPT_VOLUME ); break;
+		case ETickType::DELAYED_LAST_TIMESTAMP: msg = ToMessage( type, ContractId, DELAYED_LAST_TIMESTAMP ); break;
 		case ETickType::ShortableShares: size( ShortableShares ); break;
-		case ETickType::NOT_SET: size( NOT_SET ); break;
+		case ETickType::NOT_SET: msg = ToMessage( type, ContractId, NOT_SET ); break;
 
 		case ETickType::LastSize: size( LastSize ); break;
 		case ETickType::High: price( High ); break;
@@ -335,7 +333,7 @@ namespace Jde::Markets
 			messages.push_back( ToProto(type) );
 	}
 	α Tick::AllSet( Markets::Tick::Fields fields )Ι->bool
-	{ 
+	{
 		bool allSet = true;
 		for( uint i=0; i<fields.size() && fields.any() && allSet; ++i )
 		{
@@ -359,10 +357,10 @@ namespace Jde::Markets
 		case ETickType::AskPrice: result = Ask; break;
 		case ETickType::LastPrice: result = LastPrice; break;
 
-		case ETickType::BidSize: result = BidSize; break;
-		case ETickType::AskSize: result = AskSize; break;
-		case ETickType::Volume: result = Volume; break;
-		case ETickType::AverageVolume_: result = AverageVolume; break;
+		case ETickType::BidSize: result = (double)BidSize; break;
+		case ETickType::AskSize: result = (double)AskSize; break;
+		case ETickType::Volume: result = (double)Volume; break;
+		case ETickType::AverageVolume_: result = (double)AverageVolume; break;
 		case ETickType::OPEN_INTEREST: result = OPEN_INTEREST; break;
 		case ETickType::OPTION_CALL_OPEN_INTEREST: result = OPTION_CALL_OPEN_INTEREST; break;
 		case ETickType::OPTION_PUT_OPEN_INTEREST: result = OPTION_PUT_OPEN_INTEREST; break;
@@ -388,10 +386,10 @@ namespace Jde::Markets
 		case ETickType::FUTURES_OPEN_INTEREST: result = FUTURES_OPEN_INTEREST; break;
 		case ETickType::AVG_OPT_VOLUME: result = AVG_OPT_VOLUME; break;
 		case ETickType::DELAYED_LAST_TIMESTAMP: result = DELAYED_LAST_TIMESTAMP; break;
-		case ETickType::ShortableShares: result = ShortableShares; break;
+		case ETickType::ShortableShares: result = (double)ShortableShares; break;
 		case ETickType::NOT_SET: result = NOT_SET; break;
 
-		case ETickType::LastSize: result = LastSize; break;
+		case ETickType::LastSize: result = (double)LastSize; break;
 		case ETickType::High: result = High; break;
 		case ETickType::Low: result = Low; break;
 		case ETickType::ClosePrice: result = ClosePrice; break;

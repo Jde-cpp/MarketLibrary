@@ -136,7 +136,7 @@ namespace OrderManager
 				}); p!=_orderSubscriptions.end() )
 			{
 				*pOrderId = p->first;
-				LOG( "({})OrderWorker::Cancel({})"sv, *pOrderId, h );
+				LOG( "({})OrderWorker::CancelWait({})"sv, *pOrderId, h );
 				p->second.HCo.destroy();
 				_orderSubscriptions.erase( p );
 				if( auto pLock = ForceSuspend() ? nullptr : LockWrapperAwait::TryLock("OrderManager._cache", true); pLock )
@@ -219,7 +219,7 @@ namespace OrderManager
 					ASSERT( v.OrderPtr->LastUpdate!=TP{} );
 					var lastUpdate = v.OrderPtr->LastUpdate;
 					v.OrderPtr = update.OrderPtr;
-					DBG( "LastUpdate={} from {}", LocalTimeDisplay(lastUpdate,true), LocalTimeDisplay(v.OrderPtr->LastUpdate, true) );
+					LOG( "LastUpdate={} from {}", LocalTimeDisplay(lastUpdate,true), LocalTimeDisplay(v.OrderPtr->LastUpdate, true) );
 					v.OrderPtr->LastUpdate = lastUpdate;
 				}
 				if( OrderStatus::Fields fields{ update.StatusPtr ? v.StatusPtr ? v.StatusPtr->Changes(*update.StatusPtr) : OrderStatus::Fields::All : OrderStatus::Fields::None }; fields!=OrderStatus::Fields::None )
