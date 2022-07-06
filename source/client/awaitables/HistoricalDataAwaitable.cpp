@@ -14,7 +14,7 @@ namespace Jde::Markets
 {
 	static var& _logLevel{ Logging::TagLevel("mrk-hist") };
 
-	HistoryAwait::HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )noexcept:
+	HistoryAwait::HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )ι:
 		ITwsAwaitShared{ sl },
 		_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 	{
@@ -22,7 +22,7 @@ namespace Jde::Markets
 	}
 
 	HistoryAwait::~HistoryAwait(){ /*LOG( "HistoryAwait={:x}", (uint)this );*/ }
-	α HistoryAwait::SetData( bool force )noexcept->bool
+	α HistoryAwait::SetData( bool force )ι->bool
 	{
 		bool set = false;
 		if( _cache.size() )
@@ -34,23 +34,23 @@ namespace Jde::Markets
 		}
 		if( force || set )//have inclusive and not asking for live data.
 		{
-			_dataPtr = make_shared<vector<::Bar>>();
+			_pData = make_shared<vector<::Bar>>();
 			for( var& dayBars : _cache )
 			{
 				if( !dayBars.second )
 					continue;
 				for( var& pBar : *dayBars.second )
-					_dataPtr->push_back( *pBar );
+					_pData->push_back( *pBar );
 			}
 		}
 		return set;
 	}
-	α HistoryAwait::await_ready()noexcept->bool
+	α HistoryAwait::await_ready()ι->bool
 	{
 		_cache = HistoryCache::Get( *_pContract, _end, _dayCount, _barSize, (Proto::Requests::Display)_display, _useRth );// : MapPtr<Day,VectorPtr<sp<const ::Bar>>>{};
 		return SetData();
 	}
-	α HistoryAwait::Missing()noexcept->vector<tuple<Day,Day>>
+	α HistoryAwait::Missing()ι->vector<tuple<Day,Day>>
 	{
 		Day start=0, previous=0;
 		vector<tuple<Day,Day>> values;
@@ -73,12 +73,12 @@ namespace Jde::Markets
 		return values;
 	}
 
-	α HistoryAwait::await_suspend( HCoroutine h )noexcept->void
+	α HistoryAwait::await_suspend( HCoroutine h )ι->void
 	{
 		base::await_suspend( h );
 		AsyncFetch( move(h) );
 	}
-	α HistoryAwait::AsyncFetch( HCoroutine h )noexcept->Task
+	α HistoryAwait::AsyncFetch( HCoroutine h )ι->Task
 	{
 		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize<EBarSize::Week )
 		{
@@ -146,7 +146,8 @@ namespace Jde::Markets
 			}
 			try
 			{
-				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, format("{} D", dayCount), string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+				var duration = dayCount>365 ? format( "{} Y", dayCount/365+1 ) : format( "{} D", dayCount );
+				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, duration, string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 			}
 			catch( IBException& e )
 			{
@@ -156,7 +157,7 @@ namespace Jde::Markets
 		}
 	}
 
-	α HistoryAwait::SetTwsResults( ibapi::OrderId reqId, const vector<::Bar>& bars )->void
+	α HistoryAwait::SetTwsResults( ibapi::OrderId reqId, const vector<::Bar>& bars )ι->void
 	{
 		HistoryCache::Set( *_pContract, _display, _barSize, _useRth, bars, _end, _dayCount );
 		for( var& bar : bars )
@@ -174,8 +175,21 @@ namespace Jde::Markets
 			*p=0;
 		if( find_if(_twsRequests.begin(), _twsRequests.end(), [](auto x){return x!=0;})==_twsRequests.end() )
 		{
-			LOG( "({})HistoryAwait::AddTws - resume", reqId );
+			LOG( "({})HistoryAwait::AddTws - resume - bars={}", reqId, bars.size() );
 			CoroutinePool::Resume( move(_hCoroutine) );
 		}
+	}
+	α HistoryAwait::await_resume()ι->AwaitResult
+	{ 
+		//optional<HistoryException> e;
+		up<IException> e;
+		if( !_pData )
+		{
+			if( auto& y = _pPromise->get_return_object().Result(); y.HasError() )
+				e = mu<HistoryException>( move(*y.Error()->Move()), *this );
+			else
+				ASSERT( false );
+		}
+		return _pData ? AwaitResult{ static_pointer_cast<void>(_pData) } : e ? AwaitResult{ move(e) } : base::await_resume(); 
 	}
 }

@@ -71,6 +71,17 @@ namespace Jde::Markets
 	}
 
 	bool error2( int id, int errorCode, str errorMsg )noexcept;
+	
+	α WrapperCo::headTimestamp( int reqId, str headTimestamp )$
+	{
+		WrapperLog::headTimestamp( reqId, headTimestamp );
+		auto pHandle = _headTimestampHandles.MoveOut( reqId );
+		if( pHandle )
+		{
+			pHandle->promise().get_return_object().SetResult( AwaitResult{mu<TP>(Clock::from_time_t(ConvertIBDate(headTimestamp)))} );
+			Coroutine::CoroutinePool::Resume( move(*pHandle) );
+		}
+	}
 
 	α WrapperCo::historicalNews( int reqId, str time, str providerCode, str articleId, str headline )$
 	{

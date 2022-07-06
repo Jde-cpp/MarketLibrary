@@ -4,6 +4,7 @@
 #include <jde/markets/types/proto/results.pb.h>
 #pragma warning( default : 4244 )
 #include "../types/Exchanges.h"
+#include "../types/Bar.h"
 #include "../../../Framework/source/Cache.h"
 
 #define var const auto
@@ -142,6 +143,7 @@ namespace Jde::Markets
 	Contract::Contract( const ::ContractDetails& c )noexcept:
 		Contract{ c.contract }
 	{
+		IssueDate = c.issueDate.size() ? Clock::from_time_t( ConvertIBDate(c.issueDate) ) : TP::max();
 		TradingHoursPtr = Rth( c );
 		LiquidHoursPtr =  Liquid( c );
 	}

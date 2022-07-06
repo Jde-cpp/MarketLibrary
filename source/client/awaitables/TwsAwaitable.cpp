@@ -141,4 +141,18 @@ namespace Jde::Markets
 		base::AwaitResume();
 		return move( _pPromise->get_return_object().Result() );
 	}
+
+	α HeadTimestampAwait::await_suspend( HCoroutine h )ι->void
+	{
+		base::await_suspend( h );
+		var reqId = _pTws->RequestId();
+
+		WrapperPtr()->_headTimestampHandles.MoveIn( reqId, move(h) );
+		_pTws->reqHeadTimestamp( reqId, *_pContract, _whatToShow, 1, 2 );
+	}
+	α HeadTimestampAwait::await_resume()ι->AwaitResult
+	{
+		base::AwaitResume();
+		return move( _pPromise->get_return_object().Result() );
+	}
 }

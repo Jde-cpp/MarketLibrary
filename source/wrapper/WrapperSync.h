@@ -20,7 +20,6 @@ namespace Jde::Markets
 		typedef function<void(TickerId id, int errorCode, str errorMsg)> ErrorCallback;
 		typedef function<void(bool)> DisconnectCallback; α AddDisconnectCallback( const DisconnectCallback& callback )noexcept->void;
 		typedef function<void(TimePoint)> CurrentTimeCallback; α AddCurrentTime( CurrentTimeCallback& fnctn )noexcept->void;
-		typedef function<void(TimePoint)> HeadTimestampCallback; α AddHeadTimestamp( TickerId reqId, const HeadTimestampCallback& fnctn, const ErrorCallback& errorFnctn )noexcept->void;
 		typedef function<void()> EndCallback;
 
 		α AddOpenOrderEnd( EndCallback& )noexcept->void;
@@ -32,14 +31,12 @@ namespace Jde::Markets
 		WrapperItem<map<string,double>>::Future RatioPromise( ReqId reqId, Duration duration )noexcept;
 		α CheckTimeouts()noexcept->void;
 	protected:
-		map<ReqId,HeadTimestampCallback> _headTimestamp; mutable mutex _headTimestampMutex;
 		std::unordered_map<ReqId,ErrorCallback> _errorCallbacks; mutable mutex _errorCallbacksMutex;
 		α error( int id, int errorCode, str errorString, str /*advancedOrderRejectJson*/ )noexcept->void override{error2( id, errorCode, errorString );};
 		bool error2( int id, int errorCode, str errorString )noexcept override;
 	private:
 		α currentTime( long time )noexcept->void override;
 		α fundamentalData(TickerId reqId, str data)noexcept->void override;
-		α headTimestamp( int reqId, str headTimestamp )noexcept->void override;
 		α nextValidId( ::OrderId orderId)noexcept->void override;
 		α openOrderEnd()noexcept->void override;
 		α position( str account, const ::Contract& contract, ::Decimal position, double avgCost )noexcept->void override;

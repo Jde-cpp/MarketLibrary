@@ -1,10 +1,8 @@
 ﻿#pragma once
 #include <jde/markets/Exports.h>
 #include <jde/markets/TypeDefs.h>
-#pragma warning( disable : 4244 )
 #include <jde/markets/types/proto/ib.pb.h>
 #include <jde/markets/types/proto/results.pb.h>
-#pragma warning( default : 4244 )
 namespace Jde::Markets
 {
 	#define Φ ΓM α

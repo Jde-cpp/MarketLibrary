@@ -6,13 +6,14 @@
 
 namespace Jde::Markets
 {
-	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait; struct PlaceOrderAwait;
+	struct Contract;struct TwsClientCo; struct HistoryAwait; struct HistoricalNewsAwait; struct ContractAwait; struct NewsProviderAwait; struct NewsArticleAwait; struct SecDefOptParamAwait; struct AccountsAwait; struct PlaceOrderAwait; struct HeadTimestampAwait;
 	using namespace Jde::Coroutine;
 #define $ noexcept->void override
 	struct ΓM WrapperCo : WrapperLog
 	{
 		α error2( int id, int errorCode, str errorMsg )noexcept->bool override;
 		α error( int id, int errorCode, str errorMsg, str advancedOrderRejectJson )$;
+		α headTimestamp( int reqId, str headTimestamp )$;
 		α historicalNews( int requestId, str time, str providerCode, str articleId, str headline )$;
 		α historicalNewsEnd( int requestId, bool hasMore )$;
 
@@ -39,8 +40,9 @@ namespace Jde::Markets
 		UnorderedMapValue<int,HistoryAwait*> _historical;
 		HCoroutine _accountHandle;
 		UnorderedMapValue<::OrderId,HCoroutine> _orderHandles;
+		UnorderedMapValue<ReqId,HCoroutine> _headTimestampHandles;
 
-		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait; friend PlaceOrderAwait;
+		friend TwsClientCo; friend HistoricalNewsAwait; friend ContractAwait; friend NewsProviderAwait; friend NewsArticleAwait; friend HistoryAwait; friend SecDefOptParamAwait; friend AccountsAwait; friend PlaceOrderAwait; friend HeadTimestampAwait;
 	};
 }
 #undef $

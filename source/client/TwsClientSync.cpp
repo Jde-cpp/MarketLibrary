@@ -63,29 +63,6 @@ namespace Jde::Markets
 		if( pCv )
 			pCv->notify_one();
 	}
-	TimePoint TwsClientSync::HeadTimestamp( const ::Contract &contract, const std::string& whatToShow )noexcept(false)
-	{
-		var reqId = RequestId();
-		auto pCV = make_shared<std::condition_variable>();
-		_conditionVariables.emplace( reqId, pCV );
-		_wrapper.AddHeadTimestamp( reqId, [&, reqId](auto t){OnHeadTimestamp(reqId,t);}, [&](auto id, auto code, const auto& msg){OnError(id,code,msg);} );
-		mutex mutex;
-		unique_lock l{mutex};
-		TwsClient::reqHeadTimestamp( reqId, contract, whatToShow, 1, 2 );
-		if( pCV->wait_for(l, 30s)==std::cv_status::timeout )
-			WARN( "Timed out looking for HeadTimestamp."sv );
-		if( _errors.Find(reqId) )
-		{
-			auto pError = _errors.Find(reqId);
-			_errors.erase( reqId );
-			throw move( *pError );
-		}
-		var time = _headTimestamps.Find( reqId );
-		_headTimestamps.erase( reqId );
-		_conditionVariables.erase( reqId );
-		return time.value_or( TimePoint{} );
-	}
-
 	std::future<sp<string>> TwsClientSync::ReqFundamentalData( const ::Contract &contract, sv reportType )noexcept
 	{
 		var reqId = RequestId();

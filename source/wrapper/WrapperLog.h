@@ -18,10 +18,10 @@ namespace Jde::Markets
 	struct ΓM WrapperLog : public EWrapper
 	{
 		static bool IsStatusMessage( int errorCode ){ return errorCode==165  || (errorCode>2102 && errorCode<2108); }
-		void tickPrice( TickerId tickerId, TickType field, double price, const ::TickAttrib& attrib )noexcept override;
-		void tickSize( TickerId tickerId, TickType field, ::Decimal size )noexcept override;
-		void tickGeneric( TickerId tickerId, TickType tickType, double value )noexcept override;
-		void tickString( TickerId tickerId, TickType tickType, str value )noexcept override;
+		α tickPrice( TickerId tickerId, TickType field, double price, const ::TickAttrib& attrib )$;
+		α tickSize( TickerId tickerId, TickType field, ::Decimal size )$;
+		α tickGeneric( TickerId tickerId, TickType tickType, double value )$;
+		α tickString( TickerId tickerId, TickType tickType, str value )$;
 		void tickEFP(TickerId tickerId, TickType tickType, double basisPoints, str formattedBasisPoints, double totalDividends, int holdDays, str futureLastTradeDate, double dividendImpact, double dividendsToLastTradeDate)noexcept override;
 		void tickNews(int tickerId, time_t timeStamp, str providerCode, str articleId, str headline, str extraData)noexcept override;
 		void tickSnapshotEnd( int reqId)noexcept override;
@@ -89,7 +89,7 @@ namespace Jde::Markets
 		void newsArticle( int requestId, int articleType, str articleText )noexcept override;
 		void historicalNews( int requestId, str time, str providerCode, str articleId, str headline )noexcept override;
 		void historicalNewsEnd( int requestId, bool hasMore )noexcept override;
-		void headTimestamp( int reqId, str headTimestamp )noexcept override;
+		α headTimestamp( int reqId, str headTimestamp )$;
 		void histogramData( int reqId, const HistogramDataVector& data )noexcept override;
 		void historicalDataUpdate( TickerId reqId, const ::Bar& bar )noexcept override;
 		void rerouteMktDataReq( int reqId, int conid, str exchange )noexcept override;

@@ -9,7 +9,6 @@
 #include <jde/Str.h>
 #include "../../../Framework/source/math/MathUtilities.h"
 
-
 #define var const auto
 
 namespace Jde
@@ -18,9 +17,9 @@ namespace Jde
 	time_t Markets::ConvertIBDate( str time, optional<bool> ymdFormatOptional )noexcept
 	{
 		var ymdFormat = ymdFormatOptional.value_or( time.size()==8 );
-		ASSERT( (ymdFormat && time.size()==8) || time.size()==10 );
+		ASSERT( (ymdFormat && time.size()==8) || time.size()==9 || time.size()==10 );
 		return ymdFormat
-			? DateTime( (uint16)stoi(time.substr(0,4)), (uint8)stoi(time.substr(4,2)), (uint8)stoi(time.substr(6,2)) ).TimeT()
+			? DateTime{ (uint16)stoi(time.substr(0,4)), (uint8)stoi(time.substr(4,2)), (uint8)stoi(time.substr(6,2)) }.TimeT()
 			: stoi(time);
 	}
 	string Markets::ToIBDate( TimePoint timePoint )noexcept
