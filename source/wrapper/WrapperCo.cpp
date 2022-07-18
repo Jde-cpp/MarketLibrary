@@ -14,7 +14,7 @@ namespace Jde::Markets
 {
 	flat_map<TickerId,vector<::Bar>> _historicalData;
 
-	ⓣ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )$
+	Ŧ Resume( UnorderedMapValue<int,HCoroutine>& handles, int reqId, up<T> pResult )$
 	{
 		if( auto p = handles.MoveOut( reqId ); p )
 		{
@@ -25,7 +25,7 @@ namespace Jde::Markets
 			WARN( "({})Could not get co-handle", reqId );
 	}
 
-	ⓣ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T>&& pResult, bool warn=true )$
+	Ŧ Resume( UnorderedMapValue<ReqId,HCoroutine>& handles, int reqId, sp<T>&& pResult, bool warn=true )$
 	{
 		if( auto h = handles.MoveOut( reqId ); h )
 		{
@@ -71,7 +71,7 @@ namespace Jde::Markets
 	}
 
 	bool error2( int id, int errorCode, str errorMsg )noexcept;
-	
+
 	α WrapperCo::headTimestamp( int reqId, str headTimestamp )$
 	{
 		WrapperLog::headTimestamp( reqId, headTimestamp );

@@ -160,16 +160,16 @@ function marketLibraryProtoc
 		#popd;
 	fi;
 	#cd ../..;
-	if [ ! -f  $stage/release/libbid.lib ]; then
-		if [ ! -d $REPO_BASH/IntelRDFPMathLib20U2 ]; then echo install intel floating point library; exit 1; fi;
-		cd $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY;
-		nmake -fmakefile.mak CC=cl CALL_BY_REF=0 GLOBAL_RND=0 GLOBAL_FLAGS=0 UNCHANGED_BINARY_FLAGS=0
-		cd $JDE_BASH/Public/stage/debug/
-		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
-		cd ../release/
-		mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
-	fi;
 	if windows; then
+		if [ ! -f  $stage/release/libbid.lib ]; then
+			if [ ! -d $REPO_BASH/IntelRDFPMathLib20U2 ]; then echo install intel floating point library; exit 1; fi;
+			cd $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY;
+			nmake -fmakefile.mak CC=cl CALL_BY_REF=0 GLOBAL_RND=0 GLOBAL_FLAGS=0 UNCHANGED_BINARY_FLAGS=0
+			cd $JDE_BASH/Public/stage/debug/
+			mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
+			cd ../release/
+			mklink libbid.lib $REPO_BASH/IntelRDFPMathLib20U2/LIBRARY
+		fi;
 		twsDir=/c/TWS\ API/source/CppClient/client;
 		if [ -d  "$twsDir" ]; then
 			echo Found:  \"c:\\TWS API\"
