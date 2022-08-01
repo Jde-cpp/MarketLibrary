@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../TwsClient.h"
 #include "TwsAwaitable.h"
+#include <jde/markets/types/Contract.h>
 #include "../../types/IBException.h"
 #include "../../types/Bar.h"
 
@@ -14,7 +15,7 @@ namespace Jde::Markets
 		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, SL sl )ι:HistoryAwait{ pContract, end, dayCount, barSize, display, useRth, 0, sl }{}
 		α await_ready()ι->bool override;
 		α await_suspend( HCoroutine h )ι->void override;
-		α await_resume()ι->AwaitResult;
+		α await_resume()ι->AwaitResult override;
 		~HistoryAwait();
 	private:
 		HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )ι;
@@ -23,7 +24,7 @@ namespace Jde::Markets
 		α SetData(bool force=false)ι->bool;
 		α SetTwsResults( ibapi::OrderId reqId, const vector<::Bar>& bars )ι->void;
 
-		ContractPtr_ _pContract;
+		const Contract _contract;//sp<Contract> was getting lost in SetTwsResults after tws request
 		Day _end;
 		Day _dayCount;
 		time_t _start;

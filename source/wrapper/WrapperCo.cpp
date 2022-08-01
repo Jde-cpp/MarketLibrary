@@ -53,7 +53,7 @@ namespace Jde::Markets
 		if( auto h = errorCode!=399 ? nullopt : _orderHandles.Find(id); h )
 			h->promise().get_return_object().SetResult( IBException{errorMsg, errorCode, id, ELogLevel::None} );
 
-		bool handled = errorCode==399 || r( _contractHandles ) || r(_orderHandles) || r(_newsArticleHandles) || r(_newsHandles) || r(_newsArticleHandles);
+		bool handled = errorCode==399 || r( _contractHandles ) || r( _orderHandles ) || r( _newsArticleHandles ) || r( _newsHandles ) || r( _newsArticleHandles ) || r( _headTimestampHandles );
 		if( auto p = !handled ? _historical.Find(id) : std::nullopt; p )
 		{
 			auto h = (*_historical.Find(id))->_hCoroutine;
@@ -69,8 +69,6 @@ namespace Jde::Markets
 	{
 		error2( id, errorCode, errorMsg );
 	}
-
-	bool error2( int id, int errorCode, str errorMsg )noexcept;
 
 	α WrapperCo::headTimestamp( int reqId, str headTimestamp )$
 	{
@@ -170,7 +168,6 @@ namespace Jde::Markets
 		bool has = _historical.Has( reqId );
 		if( has )
 			_historicalData.try_emplace( reqId ).first->second.push_back( bar );
-//		return has;
 	}
 
 	α WrapperCo::historicalDataEnd( int reqId, str startDateStr, str endDateStr )$
@@ -185,7 +182,6 @@ namespace Jde::Markets
 		_historical.erase( reqId );
 		if( pData!=_historicalData.end() )
 			_historicalData.erase( pData );
-		//return true;
 	}
 
 	Proto::Results::ExchangeContracts ToOptionParam( sv exchangeString, int underlyingConId, str tradingClass, str multiplier, const std::set<std::string>& expirations, const std::set<double>& strikes )noexcept

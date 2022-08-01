@@ -16,7 +16,7 @@ namespace Jde::Markets
 
 	HistoryAwait::HistoryAwait( ContractPtr_ pContract, Day end, Day dayCount, Proto::Requests::BarSize barSize, TwsDisplay::Enum display, bool useRth, time_t start, SL sl )ι:
 		ITwsAwaitShared{ sl },
-		_pContract{ pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
+		_contract{ *pContract }, _end{ end }, _dayCount{ dayCount }, _start{ start }, _barSize{ barSize }, _display{ display }, _useRth{ useRth }
 	{
 		//LOG( "HistoryAwait={:x}", (uint)this );
 	}
@@ -28,8 +28,8 @@ namespace Jde::Markets
 		if( _cache.size() )
 		{
 			var haveStartAndEnd = _cache.begin()->second && _cache.rbegin()->second;
-			var endsToday = _cache.rbegin()->first==CurrentTradingDay( *_pContract );
-			var isOpen = IsOpen( *_pContract, _useRth );
+			var endsToday = _cache.rbegin()->first==CurrentTradingDay( _contract );
+			var isOpen = IsOpen( _contract, _useRth );
 			set = haveStartAndEnd && ( !endsToday || !isOpen );
 		}
 		if( force || set )//have inclusive and not asking for live data.
@@ -47,7 +47,7 @@ namespace Jde::Markets
 	}
 	α HistoryAwait::await_ready()ι->bool
 	{
-		_cache = HistoryCache::Get( *_pContract, _end, _dayCount, _barSize, (Proto::Requests::Display)_display, _useRth );// : MapPtr<Day,VectorPtr<sp<const ::Bar>>>{};
+		_cache = HistoryCache::Get( _contract, _end, _dayCount, _barSize, (Proto::Requests::Display)_display, _useRth );// : MapPtr<Day,VectorPtr<sp<const ::Bar>>>{};
 		return SetData();
 	}
 	α HistoryAwait::Missing()ι->vector<tuple<Day,Day>>
@@ -80,7 +80,7 @@ namespace Jde::Markets
 	}
 	α HistoryAwait::AsyncFetch( HCoroutine h )ι->Task
 	{
-		if( _pContract->SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize<EBarSize::Week )
+		if( _contract.SecType==SecurityType::Stock && _display==EDisplay::Trades && _useRth && _barSize<EBarSize::Week )
 		{
 //			DBG( "this={:x} _cache={:x}", (uint)this, (uint)&_cache );
 			try
@@ -89,27 +89,27 @@ namespace Jde::Markets
 				for( var& [start,end] : Missing() )
 				{
 					auto pCache = &_cache;//for some reason gets lost in msvc.
-					auto pBars = ( co_await BarData::CoLoad( _pContract, start, end) ).SP<map<Day,VectorPtr<CandleStick>>>();
+					auto pBars = ( co_await BarData::CoLoad( ms<Contract>(_contract), start, end) ).SP<map<Day,VectorPtr<CandleStick>>>();
 					if( !pBars->size() )
 						continue;
-					LOG( "({})HistoryAwait::AsyncFetch Loaded files {}-{}", _pContract->Symbol, DateDisplay(start), DateDisplay(end) );
+					LOG( "({})HistoryAwait::AsyncFetch Loaded files {}-{}", _contract.Symbol, DateDisplay(start), DateDisplay(end) );
 					for( var& [day,pSticks] : *pBars )
 					{
 						CONTINUE_IF( pCache->find(day)->second, "Day {} has value, but loaded again.", day );
 						auto pDayBars = ms<vector<sp<Bar>>>();
-						for( auto baseTime = RthBegin( *_pContract, day ); var& stick : *pSticks )
+						for( auto baseTime = RthBegin( _contract, day ); var& stick : *pSticks )
 						{
 							var ib = ms<::Bar>( stick.ToIB(baseTime) );
 							pDayBars->push_back( ib );
 							bars.push_back( *ib );
 							baseTime+=1min;
 						}
-						VectorPtr<sp<::Bar>> pEmplaced = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine(*_pContract, day, *pDayBars, _barSize );
+						VectorPtr<sp<::Bar>> pEmplaced = _barSize==EBarSize::Minute ? pDayBars : BarData::Combine(_contract, day, *pDayBars, _barSize );
 						(*pCache)[day] = pEmplaced;
 						if( _barSize==EBarSize::Day )
-							HistoryCache::SetDay( *_pContract, true, *pEmplaced );
+							HistoryCache::SetDay( _contract, true, *pEmplaced );
 						else
-							HistoryCache::Set( *_pContract, EDisplay::Trades, EBarSize::Minute, true, bars );
+							HistoryCache::Set( _contract, EDisplay::Trades, EBarSize::Minute, true, bars );
 					}
 				}
 				if( bars.size() && SetData() )
@@ -124,7 +124,7 @@ namespace Jde::Markets
 		}
 		_hCoroutine = move(h);
 
-		if( var current=CurrentTradingDay(*_pContract); _cache.rbegin()->first==current && IsOpen(*_pContract) )//missing will return nothing
+		if( var current=CurrentTradingDay(_contract); _cache.rbegin()->first==current && IsOpen(_contract) )//missing will return nothing
 			_cache[current] = nullptr;
 		var requests = Missing(); _twsRequests.reserve( requests.size() );
 		LOG( "AsyncFetch - requests={}", requests.size() );
@@ -132,9 +132,10 @@ namespace Jde::Markets
 			_twsRequests.push_back( _pTws->RequestId() );
 		for( uint i=0; i<requests.size(); ++i )
 		{
-			var start = std::get<0>( requests[i] ); 
-			var end = std::get<1>( requests[i] ); 
+			var start = std::get<0>( requests[i] );
+			var end = std::get<1>( requests[i] );
 			var id = _twsRequests[i];
+			DBG( "_historical::size={}", WrapperPtr()->_historical.size() );
 			WrapperPtr()->_historical.emplace( id, this );
 			const DateTime endTime{ Chrono::FromDays(end) };
 			var endTimeString{ format("{}{:0>2}{:0>2} 23:59:59 GMT", endTime.Year(), endTime.Month(), endTime.Day()) };
@@ -147,7 +148,7 @@ namespace Jde::Markets
 			try
 			{
 				var duration = dayCount>365 ? format( "{} Y", dayCount/365+1 ) : format( "{} D", dayCount );
-				_pTws->reqHistoricalData( id, *_pContract->ToTws(), endTimeString, duration, string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
+				_pTws->reqHistoricalData( id, *_contract.ToTws(), endTimeString, duration, string{BarSize::ToString(_barSize)}, string{TwsDisplay::ToString(_display)}, _useRth ? 1 : 0, 2, false, TagValueListSPtr{} );
 			}
 			catch( IBException& e )
 			{
@@ -159,7 +160,7 @@ namespace Jde::Markets
 
 	α HistoryAwait::SetTwsResults( ibapi::OrderId reqId, const vector<::Bar>& bars )ι->void
 	{
-		HistoryCache::Set( *_pContract, _display, _barSize, _useRth, bars, _end, _dayCount );
+		HistoryCache::Set( _contract, _display, _barSize, _useRth, bars, _end, _dayCount );
 		for( var& bar : bars )
 		{
 			var day = Chrono::ToDays( ConvertIBDate(bar.time) );
@@ -180,7 +181,7 @@ namespace Jde::Markets
 		}
 	}
 	α HistoryAwait::await_resume()ι->AwaitResult
-	{ 
+	{
 		//optional<HistoryException> e;
 		up<IException> e;
 		if( !_pData )
@@ -190,6 +191,6 @@ namespace Jde::Markets
 			else
 				ASSERT( false );
 		}
-		return _pData ? AwaitResult{ static_pointer_cast<void>(_pData) } : e ? AwaitResult{ move(e) } : base::await_resume(); 
+		return _pData ? AwaitResult{ static_pointer_cast<void>(_pData) } : e ? AwaitResult{ move(e) } : base::await_resume();
 	}
 }

@@ -113,10 +113,9 @@ namespace Jde::Markets::HistoricalDataCache
 				var prev{ PreviousTradingDay(*c->TradingHoursPtr) };
 				var end = dayCount ? prev : NextTradingDay( PreviousTradingDay(*c->TradingHoursPtr)-365 );
 				var day100{ dayCount && dayCount>100 ? end-100 : 0 };
-				var start = dayCount ? prev-dayCount : ToDays( headTimestamp );
+				var start = dayCount ? prev-dayCount : std::min( ToDays(headTimestamp), end-3 );
 				DBG( "({})start={}, headTimestamp={} {}-{}", c->Symbol, start, DateDisplay(headTimestamp), DateDisplay(start), DateDisplay(end) );
-				DEBUG_IF( c->Symbol=="AFRM" );
-				var pBars = ( co_await Tws::HistoricalData(c, prev, end-start, EBarSize::Day, Proto::Requests::Display::Trades, true) ).SP<vector<::Bar>>();  THROW_IF( pBars->size()==0, "No history" );
+				var pBars = ( co_await Tws::HistoricalData(c, prev, end-start, EBarSize::Day, Proto::Requests::Display::Trades, true) ).SP<vector<::Bar>>(); THROW_IF( pBars->size()==0, "No history" );
 				vector<double> last100; last100.reserve( 100 );
 				auto y = mu<Result>();
 				for( var& bar : *pBars )
@@ -129,7 +128,7 @@ namespace Jde::Markets::HistoricalDataCache
 
 				y->Average =  last100.size()==0 ? 0 : std::reduce( last100.begin(), last100.end() )/(double)last100.size();
 				( co_await *DB::ExecuteProcCo("mrk_statistic_update( ?, ?, ?, ?, ?, ?, ?, ? )", {(uint32_t)contractId, dayCount, prev, y->Low, y->LowDay, y->High, y->HighDay, y->Average}) ).CheckError();
-				
+
 				pPromise->get_return_object().SetResult( move(y) );
 			}
 			catch( IException& e )
